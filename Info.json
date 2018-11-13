@@ -1,0 +1,9 @@
+{
+  "Id": "ScribeScroll",
+  "DisplayName": "Scribe Scroll",
+  "Author": "RobRendell",
+  "Version": "1.0.0",
+  "ManagerVersion": "0.12.2",
+  "EntryMethod": "ScribeScroll.Main.Load",
+  "HomePage": "https://www.nexusmods.com/pathfinderkingmaker/mods/54"
+}
