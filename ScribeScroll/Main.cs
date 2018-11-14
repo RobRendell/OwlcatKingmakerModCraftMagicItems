@@ -1,16 +1,13 @@
-﻿using Harmony12;
-using Kingmaker;
+﻿using Kingmaker;
 using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.GameModes;
-using Kingmaker.Globalmap;
 using Kingmaker.Items;
 using Kingmaker.UI;
 using Kingmaker.UI.Common;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -39,6 +36,7 @@ namespace ScribeScroll
                 && Game.Instance.CurrentMode != GameModeType.GlobalMap
                 && Game.Instance.CurrentMode != GameModeType.FullScreenUi
                 && Game.Instance.CurrentMode != GameModeType.Pause
+                && Game.Instance.CurrentMode != GameModeType.EscMode
                 && Game.Instance.CurrentMode != GameModeType.Rest
                 && Game.Instance.CurrentMode != GameModeType.Kingdom
                 ))
@@ -185,14 +183,14 @@ namespace ScribeScroll
 
         static void RenderSelection(ref int index, string label, string[] options, int xCount)
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.ExpandWidth(false));
-            index = GUILayout.SelectionGrid(index, options, xCount);
-            GUILayout.EndHorizontal();
             if (index >= options.Length)
             {
                 index = 0;
             }
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, GUILayout.ExpandWidth(false));
+            index = GUILayout.SelectionGrid(index, options, xCount);
+            GUILayout.EndHorizontal();
         }
 
         static void RenderScribeScrollControl(Spellbook spellbook, AbilityData spell, BlueprintAbility spellBlueprint, int spellLevel, int casterLevel)
@@ -207,7 +205,7 @@ namespace ScribeScroll
                 int goldCost = 25 * spellLevel * casterLevel / 4;
                 bool canAfford = (Game.Instance.Player.Money >= goldCost);
                 string cost = $"{goldCost} gold{(canAfford ? "" : " (which you can't afford)")}";
-                if (spellBlueprint.MaterialComponent != null && spellBlueprint.MaterialComponent.Item != null)
+                if (spellBlueprint.MaterialComponent != null && spellBlueprint.MaterialComponent.Item != null && spellBlueprint.MaterialComponent.Count > 0)
                 {
                     cost += $" and {spellBlueprint.MaterialComponent.Count} {spellBlueprint.MaterialComponent.Item.Name}";
                     if (Game.Instance.Player.Inventory.Count(spellBlueprint.MaterialComponent.Item) < spellBlueprint.MaterialComponent.Count)
@@ -227,9 +225,11 @@ namespace ScribeScroll
                     {
                         Game.Instance.Player.Inventory.Remove(spellBlueprint.MaterialComponent.Item, spellBlueprint.MaterialComponent.Count);
                     }
-                    Game.Instance.Player.Inventory.Add(scroll, 1);
+                    ItemEntity item = ItemsEntityFactory.CreateEntity(scroll);
+                    item.IsIdentified = true;
+                    Game.Instance.Player.Inventory.Add(item);
                     spellbook.Spend(spell);
-                    Game.Instance.UI.Common.UISound.Play(UISoundType.SubscribeItem);
+                    Game.Instance.UI.Common.UISound.Play(UISoundType.NewInformation);
                 }
             }
         }
