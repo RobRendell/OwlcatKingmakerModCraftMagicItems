@@ -7,8 +7,8 @@
     <ProjectGuid>{9379C37F-B226-4F81-893D-372F0CCEAAE5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ScribeScroll</RootNamespace>
-    <AssemblyName>ScribeScroll</AssemblyName>
+    <RootNamespace>CraftMagicItems</RootNamespace>
+    <AssemblyName>CraftMagicItems</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

@@ -1,9 +1,9 @@
 {
-  "Id": "ScribeScroll",
-  "DisplayName": "Scribe Scroll",
+  "Id": "CraftMagicItems",
+  "DisplayName": "Craft Magic Items",
   "Author": "RobRendell",
-  "Version": "1.1.0",
+  "Version": "1.2.0",
   "ManagerVersion": "0.12.2",
-  "EntryMethod": "ScribeScroll.Main.Load",
+  "EntryMethod": "CraftMagicItems.Main.Load",
   "HomePage": "https://www.nexusmods.com/pathfinderkingmaker/mods/54"
 }

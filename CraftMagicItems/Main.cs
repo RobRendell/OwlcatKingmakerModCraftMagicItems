@@ -18,22 +18,43 @@ using System.Reflection;
 using UnityEngine;
 using UnityModManagerNet;
 
-namespace ScribeScroll
+namespace CraftMagicItems
 {
+    struct ItemTypeData
+    {
+        public UsableItemType Type;
+        public int MaxSpellLevel;
+        public int BaseItemGoldCost;
+        public int Charges;
+    }
+
     public class Main
     {
-        static readonly string BLUEPRINT_PREFIX = "#ScribeScroll";
+        static readonly string oldBlueprintPrefix = "#ScribeScroll";
+        static readonly string blueprintPrefix = "#CraftMagicItems";
+
+        static readonly string[] itemTypeNames = new string[] { "Scroll", "Potion", "Wand" };
+        static readonly ItemTypeData[] itemTypeData = new ItemTypeData[]
+        {
+            new ItemTypeData { Type = UsableItemType.Scroll, MaxSpellLevel = 9, BaseItemGoldCost = 25, Charges = 1 },
+            new ItemTypeData { Type = UsableItemType.Potion, MaxSpellLevel = 3, BaseItemGoldCost = 50, Charges = 1 },
+            new ItemTypeData { Type = UsableItemType.Wand, MaxSpellLevel = 4, BaseItemGoldCost = 750, Charges = 50 }
+        };
+
+        static UnityModManager.ModEntry storedModEntry;
 
         static bool modEnabled = true;
+        static int selectedItemTypeIndex = 0;
         static int selectedSpellcasterIndex = 0;
         static int selectedSpellbookIndex = 0;
         static int selectedSpellLevelIndex = 0;
         static int selectedCasterLevel = 0;
-        static Dictionary<string, BlueprintItemEquipmentUsable> spellIdToScroll = null;
+        static Dictionary<UsableItemType, Dictionary<string, BlueprintItemEquipmentUsable>> spellIdToItem = new Dictionary<UsableItemType, Dictionary<string, BlueprintItemEquipmentUsable>>();
         static List<string> customBlueprintGUIDs = new List<string>();
 
         static void Load(UnityModManager.ModEntry modEntry)
         {
+            storedModEntry = modEntry;
             HarmonyInstance.Create("kingmaker.scribescroll").PatchAll(Assembly.GetExecutingAssembly());
             modEnabled = modEntry.Active;
             modEntry.OnToggle = OnToggle;
@@ -65,7 +86,7 @@ namespace ScribeScroll
             if (!modEnabled)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("The mod is disabled.  Loading saved games with custom scrolls will cause them to revert to regular scrolls.");
+                GUILayout.Label("The mod is disabled.  Loading saved games with custom items will cause them to revert to regular versions.");
                 GUILayout.EndHorizontal();
                 return;
             }
@@ -82,10 +103,14 @@ namespace ScribeScroll
                 ))
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Scroll scribing is not available in this game state.");
+                GUILayout.Label("Item crafting is not available in this game state.");
                 GUILayout.EndHorizontal();
                 return;
             }
+
+
+            RenderSelection(ref selectedItemTypeIndex, "Item Type: ", itemTypeNames, 3);
+            ItemTypeData selectedType = itemTypeData[selectedItemTypeIndex];
 
             // Only allow remote companions if in Oleg's (in Act I) or your capital (in Act II+)
             bool remote = Game.Instance.CurrentlyLoadedArea.IsCapital;
@@ -128,7 +153,8 @@ namespace ScribeScroll
             if (selectedSpellbookIndex < spellbooks.Count)
             {
                 Spellbook spellbook = spellbooks[selectedSpellbookIndex];
-                string[] spellLevelNames = (from index in Enumerable.Range(1, spellbook.MaxSpellLevel) select $"Level {index}").ToArray<string>();
+                int maxLevel = Math.Min(spellbook.MaxSpellLevel, selectedType.MaxSpellLevel);
+                string[] spellLevelNames = (from index in Enumerable.Range(1, maxLevel) select $"Level {index}").ToArray<string>();
                 RenderSelection(ref selectedSpellLevelIndex, "Select spell level: ", spellLevelNames, 10);
                 int spellLevel = selectedSpellLevelIndex + 1;
                 IEnumerable<AbilityData> spellOptions = null;
@@ -170,24 +196,27 @@ namespace ScribeScroll
                     else
                     {
                         selectedCasterLevel = minCasterLevel;
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label($"Caster level: {selectedCasterLevel}", GUILayout.ExpandWidth(false));
+                        GUILayout.EndHorizontal();
                     }
                     foreach (AbilityData spell in spellOptions.OrderBy(spell => spell.Name).Distinct())
                     {
                         if (spell.MetamagicData != null && spell.MetamagicData.NotEmpty)
                         {
-                            GUILayout.Label($"Cannot scribe scroll of {spell.Name} with metamagic applied.");
+                            GUILayout.Label($"Cannot craft {itemTypeNames[selectedItemTypeIndex]} of {spell.Name} with metamagic applied.");
                         }
                         else if (spell.Blueprint.HasVariants)
                         {
                             // Spells with choices (e.g. Protection from Alignment, which can be Protection from Evil, Good, Chaos or Law)
                             foreach (BlueprintAbility variant in spell.Blueprint.Variants)
                             {
-                                RenderScribeScrollControl(spellbook, spell, variant, spellLevel, selectedCasterLevel);
+                                RenderCraftItemControl(spellbook, spell, variant, spellLevel, selectedCasterLevel);
                             }
                         }
                         else
                         {
-                            RenderScribeScrollControl(spellbook, spell, spell.Blueprint, spellLevel, selectedCasterLevel);
+                            RenderCraftItemControl(spellbook, spell, spell.Blueprint, spellLevel, selectedCasterLevel);
                         }
                     }
                 }
@@ -211,48 +240,42 @@ namespace ScribeScroll
             GUILayout.EndHorizontal();
         }
 
-        static BlueprintItemEquipmentUsable FindScrollForSpell(BlueprintAbility blueprint)
+        static BlueprintItemEquipmentUsable FindItemBlueprintForSpell(BlueprintAbility spell, UsableItemType itemType)
         {
-            if (spellIdToScroll == null)
+            if (!spellIdToItem.ContainsKey(itemType))
             {
-                // Populate spellIdToScroll dict in a single initial pass
-                spellIdToScroll = new Dictionary<string, BlueprintItemEquipmentUsable>();
+                spellIdToItem.Add(itemType, new Dictionary<string, BlueprintItemEquipmentUsable>());
                 BlueprintItemEquipmentUsable[] allUsableItems = Resources.FindObjectsOfTypeAll<BlueprintItemEquipmentUsable>();
                 foreach (BlueprintItemEquipmentUsable item in allUsableItems)
                 {
-                    if (item.Type == UsableItemType.Scroll)
+                    if (item.Type == itemType)
                     {
-                        spellIdToScroll[item.Ability.AssetGuid] = item;
+                        spellIdToItem[itemType][item.Ability.AssetGuid] = item;
                     }
                 }
             }
-            string spellId = blueprint.AssetGuid;
-            if (spellIdToScroll.ContainsKey(spellId))
-            {
-                return spellIdToScroll[spellId];
-            }
-            else
-            {
-                return null;
-            }
+            string spellId = spell.AssetGuid;
+            return (spellIdToItem[itemType].ContainsKey(spellId)) ? spellIdToItem[itemType][spellId] : null;
         }
 
-        static void RenderScribeScrollControl(Spellbook spellbook, AbilityData spell, BlueprintAbility spellBlueprint, int spellLevel, int casterLevel)
+        static void RenderCraftItemControl(Spellbook spellbook, AbilityData spell, BlueprintAbility spellBlueprint, int spellLevel, int casterLevel)
         {
-            BlueprintItemEquipmentUsable scroll = FindScrollForSpell(spellBlueprint);
-            if (scroll == null)
+            ItemTypeData selectedItemData = itemTypeData[selectedItemTypeIndex];
+            BlueprintItemEquipmentUsable itemBlueprint = FindItemBlueprintForSpell(spellBlueprint, selectedItemData.Type);
+            if (itemBlueprint == null)
             {
-                GUILayout.Label($"There is no scroll of {spellBlueprint.Name}");
+                GUILayout.Label($"There is no {itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name}");
             }
             else
             {
-                int goldCost = 25 * spellLevel * casterLevel / 4;
+                int goldCost = selectedItemData.BaseItemGoldCost * spellLevel * casterLevel / 4;
                 bool canAfford = (Game.Instance.Player.Money >= goldCost);
                 string cost = $"{goldCost} gold{(canAfford ? "" : " (which you can't afford)")}";
                 if (spell.RequireMaterialComponent)
                 {
-                    cost += $" and {spellBlueprint.MaterialComponent.Count} {spellBlueprint.MaterialComponent.Item.Name}";
-                    if (Game.Instance.Player.Inventory.Count(spellBlueprint.MaterialComponent.Item) < spellBlueprint.MaterialComponent.Count)
+                    int count = spellBlueprint.MaterialComponent.Count * selectedItemData.Charges;
+                    cost += $" and {count} {spellBlueprint.MaterialComponent.Item.Name}";
+                    if (!Game.Instance.Player.Inventory.Contains(spellBlueprint.MaterialComponent.Item, count))
                     {
                         canAfford = false;
                         cost += " (which you don't have)";
@@ -260,35 +283,52 @@ namespace ScribeScroll
                 }
                 if (!canAfford)
                 {
-                    GUILayout.Label($"Scribe scroll of {spellBlueprint.Name} for {cost}");
+                    GUILayout.Label($"Craft {itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name} for {cost}");
                 }
-                else if (GUILayout.Button($"Scribe scroll of {spellBlueprint.Name} for {cost}", GUILayout.ExpandWidth(false)))
+                else if (GUILayout.Button($"Craft {itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name} for {cost}", GUILayout.ExpandWidth(false)))
                 {
                     Game.Instance.Player.SpendMoney(goldCost);
-                    spell.Spend(); // Also removes expensive material components
-                    ItemEntity item;
-                    if (casterLevel == scroll.CasterLevel)
+                    spell.SpendFromSpellbook();
+                    if (spell.RequireMaterialComponent)
                     {
-                        // Create a scroll item using the default scroll blueprint
-                        item = ItemsEntityFactory.CreateEntity(scroll);
+                        int count = spellBlueprint.MaterialComponent.Count * selectedItemData.Charges;
+                        Game.Instance.Player.Inventory.Remove(spellBlueprint.MaterialComponent.Item, count);
+                    }
+                    ItemEntity item;
+                    if (casterLevel == itemBlueprint.CasterLevel)
+                    {
+                        // Create an item using the default blueprint
+                        item = ItemsEntityFactory.CreateEntity(itemBlueprint);
                     }
                     else
                     {
-                        // Create a scroll item using a custom scroll blueprint
-                        string blueprintId = BuildCustomScrollGuid(scroll.AssetGuid, casterLevel);
+                        // Create an item using a custom blueprint
+                        string blueprintId = BuildCustomItemGuid(itemBlueprint.AssetGuid, casterLevel);
                         BlueprintItem customBlueprint = (BlueprintItem)ResourcesLibrary.TryGetBlueprint(blueprintId);
                         item = ItemsEntityFactory.CreateEntity(customBlueprint);
                     }
-                    item.IsIdentified = true; // Mark the scroll as identified
+                    item.IsIdentified = true; // Mark the item as identified.
+                    item.Charges = selectedItemData.Charges; // Set the charges, since wand blueprints have random values.
                     Game.Instance.Player.Inventory.Add(item);
-                    Game.Instance.UI.Common.UISound.Play(UISoundType.NewInformation);
+                    switch (selectedItemData.Type)
+                    {
+                        case UsableItemType.Scroll:
+                            Game.Instance.UI.Common.UISound.Play(UISoundType.NewInformation);
+                            break;
+                        case UsableItemType.Potion:
+                            Game.Instance.UI.Common.UISound.PlayItemSound(SlotAction.Take, item, false);
+                            break;
+                        case UsableItemType.Wand:
+                            Game.Instance.UI.Common.UISound.Play(UISoundType.SettlementBuildStart);
+                            break;
+                    }
                 }
             }
         }
 
-        static string BuildCustomScrollGuid(string originalGuid, int casterLevel)
+        static string BuildCustomItemGuid(string originalGuid, int casterLevel)
         {
-            return $"{originalGuid}{BLUEPRINT_PREFIX}(CL={casterLevel})";
+            return $"{originalGuid}{blueprintPrefix}(CL={casterLevel})";
         }
 
         // This patch is generic, and makes custom blueprints fall back to their initial version.
@@ -315,19 +355,36 @@ namespace ScribeScroll
         }
 
         // Make our mod-specific updates to the blueprint based on the data stored in assetId.  Return a string which
-        // is the AssetGuid of the supplied blueprint plus our customization again.
+        // is the AssetGuid of the supplied blueprint plus our customization again, or null if we couldn't change the
+        // blueprint.
         static string ApplyBlueprintPatch(BlueprintScriptableObject blueprint, string assetId)
         {
-            int pos = assetId.IndexOf(BLUEPRINT_PREFIX);
+            int pos = assetId.IndexOf(blueprintPrefix);
+            if (pos < 0)
+            {
+                pos = assetId.IndexOf(oldBlueprintPrefix);
+            }
+            if (pos < 0)
+            {
+                storedModEntry.Logger.Warning($"Failed to find expected substring in custom blueprint assetId ${assetId}");
+                return null;
+            }
             int startPos = assetId.IndexOf("CL=", pos) + 3;
             for (pos = startPos; pos < assetId.Length && Char.IsDigit(assetId[pos]); pos++)
             {
             }
-            int casterLevel = int.Parse(assetId.Substring(startPos, pos - startPos));
-            BlueprintItemEquipment scroll = (BlueprintItemEquipment)blueprint;
-            scroll.CasterLevel = casterLevel;
-            Traverse.Create(blueprint).Field("m_Cost").SetValue(0); // Allow the game to auto-calculate the cost
-            return BuildCustomScrollGuid(blueprint.AssetGuid, casterLevel);
+            try
+            {
+                int casterLevel = int.Parse(assetId.Substring(startPos, pos - startPos));
+                ((BlueprintItemEquipment)blueprint).CasterLevel = casterLevel;
+                Traverse.Create(blueprint).Field("m_Cost").SetValue(0); // Allow the game to auto-calculate the cost
+                return BuildCustomItemGuid(blueprint.AssetGuid, casterLevel);
+            }
+            catch (Exception e)
+            {
+                storedModEntry.Logger.Warning($"Exception attempting to patch blueprint ${blueprint.AssetGuid} with custom assetId ${assetId}: {e}");
+                return null;
+            }
         }
 
         [HarmonyPatch]
@@ -342,11 +399,11 @@ namespace ScribeScroll
 
             static void Postfix(string assetId, ref BlueprintScriptableObject __result)
             {
-                if (modEnabled && assetId != __result.AssetGuid && assetId.Contains(BLUEPRINT_PREFIX))
+                if (modEnabled && assetId != __result.AssetGuid && (assetId.Contains(blueprintPrefix) || assetId.Contains(oldBlueprintPrefix)))
                 {
                     if (__result.AssetGuid.Length == 32)
                     {
-                        // Loaded the original copy of the blueprint - clone it.
+                        // We have the original blueprint - clone it so we can make modifications which won't affect the original.
                         Type type = __result.GetType();
                         BlueprintScriptableObject clone = (BlueprintScriptableObject)Activator.CreateInstance(type);
                         for (; type != null && type != typeof(UnityEngine.Object); type = type.BaseType)
@@ -359,12 +416,17 @@ namespace ScribeScroll
                         }
                         __result = clone;
                     }
-                    // Patch the blueprint, and insert into ResourcesLibrary under the new GUID.
+                    // Patch the blueprint
                     string newAssetId = ApplyBlueprintPatch(__result, assetId);
-                    Traverse.Create(__result).Field("m_AssetGuid").SetValue(newAssetId);
-                    ResourcesLibrary.LibraryObject.BlueprintsByAssetId.Add(newAssetId, __result);
-                    ResourcesLibrary.LibraryObject.GetAllBlueprints().Add(__result);
-                    customBlueprintGUIDs.Add(newAssetId);
+                    if (newAssetId != null)
+                    {
+                        // Insert patched blueprint into ResourcesLibrary under the new GUID.
+                        Traverse.Create(__result).Field("m_AssetGuid").SetValue(newAssetId);
+                        ResourcesLibrary.LibraryObject.BlueprintsByAssetId.Add(newAssetId, __result);
+                        ResourcesLibrary.LibraryObject.GetAllBlueprints().Add(__result);
+                        // Also record the custom GUID so we can clean it up if the mod is later disabled.
+                        customBlueprintGUIDs.Add(newAssetId);
+                    }
                 }
             }
         }
