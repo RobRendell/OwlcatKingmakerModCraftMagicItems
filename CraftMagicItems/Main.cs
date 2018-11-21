@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityModManagerNet;
 
@@ -27,9 +28,10 @@ namespace CraftMagicItems {
     }
 
     public class Main {
+        static readonly int vanillaAssetIdLength = 32;
         static readonly string oldBlueprintPrefix = "#ScribeScroll";
         static readonly string blueprintPrefix = "#CraftMagicItems";
-
+        static readonly Regex blueprintRegex = new Regex($"({oldBlueprintPrefix}|{blueprintPrefix})\\(CL=(\\d+)(,SL=(\\d+))(,spellId=\\((([^()]+|(?<Level>\\()|(?<-Level>\\)))+(?(Level)(?!)))\\))?\\)");
         static readonly string[] itemTypeNames = new string[] { "Scroll", "Potion", "Wand" };
         static readonly ItemTypeData[] itemTypeData = new ItemTypeData[]
         {
@@ -46,8 +48,9 @@ namespace CraftMagicItems {
         static int selectedSpellbookIndex = 0;
         static int selectedSpellLevelIndex = 0;
         static int selectedCasterLevel = 0;
-        static Dictionary<UsableItemType, Dictionary<string, BlueprintItemEquipmentUsable>> spellIdToItem = new Dictionary<UsableItemType, Dictionary<string, BlueprintItemEquipmentUsable>>();
+        static Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>> spellIdToItem = new Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>>();
         static List<string> customBlueprintGUIDs = new List<string>();
+        static System.Random random = new System.Random();
 
         static void Load(UnityModManager.ModEntry modEntry) {
             storedModEntry = modEntry;
@@ -97,6 +100,9 @@ namespace CraftMagicItems {
                 return;
             }
 
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"Number of custom Craft Magic Items blueprints loaded: {customBlueprintGUIDs.Count}");
+            GUILayout.EndHorizontal();
 
             RenderSelection(ref selectedItemTypeIndex, "Item Type: ", itemTypeNames, 3);
             ItemTypeData selectedType = itemTypeData[selectedItemTypeIndex];
@@ -136,11 +142,14 @@ namespace CraftMagicItems {
             if (selectedSpellbookIndex < spellbooks.Count) {
                 Spellbook spellbook = spellbooks[selectedSpellbookIndex];
                 int maxLevel = Math.Min(spellbook.MaxSpellLevel, selectedType.MaxSpellLevel);
-                string[] spellLevelNames = (from index in Enumerable.Range(1, maxLevel) select $"Level {index}").ToArray<string>();
+                string[] spellLevelNames = (from index in Enumerable.Range(0, maxLevel) select $"Level {index}").ToArray<string>();
                 RenderSelection(ref selectedSpellLevelIndex, "Select spell level: ", spellLevelNames, 10);
-                int spellLevel = selectedSpellLevelIndex + 1;
+                int spellLevel = selectedSpellLevelIndex;
                 IEnumerable<AbilityData> spellOptions = null;
-                if (spellbook.Blueprint.Spontaneous) {
+                if (spellLevel == 0) {
+                    // Cantrips/Orisons are special.
+                    spellOptions = spellbook.GetKnownSpells(spellLevel);
+                } else if (spellbook.Blueprint.Spontaneous) {
                     // Spontaneous spellcaster
                     if (spellbook.GetSpontaneousSlots(spellLevel) > 0) {
                         GUILayout.BeginHorizontal();
@@ -158,7 +167,7 @@ namespace CraftMagicItems {
                     GUILayout.Label($"{caster.CharacterName} cannot currently cast any level {spellLevel} spells.");
                     GUILayout.EndHorizontal();
                 } else {
-                    int minCasterLevel = 2 * spellLevel - 1;
+                    int minCasterLevel = Math.Max(1, 2 * spellLevel - 1);
                     if (minCasterLevel < spellbook.CasterLevel) {
                         selectedCasterLevel = Mathf.RoundToInt(Mathf.Clamp(selectedCasterLevel, minCasterLevel, spellbook.CasterLevel));
                         GUILayout.BeginHorizontal();
@@ -203,13 +212,22 @@ namespace CraftMagicItems {
             GUILayout.EndHorizontal();
         }
 
-        static BlueprintItemEquipmentUsable FindItemBlueprintForSpell(BlueprintAbility spell, UsableItemType itemType) {
+        static void AddItemBlueprintForSpell(BlueprintAbility spell, UsableItemType itemType, BlueprintItemEquipment item) {
             if (!spellIdToItem.ContainsKey(itemType)) {
-                spellIdToItem.Add(itemType, new Dictionary<string, BlueprintItemEquipmentUsable>());
+                spellIdToItem.Add(itemType, new Dictionary<string, List<BlueprintItemEquipment>>());
+            }
+            if (!spellIdToItem[itemType].ContainsKey(item.Ability.AssetGuid)) {
+                spellIdToItem[itemType][item.Ability.AssetGuid] = new List<BlueprintItemEquipment>();
+            }
+            spellIdToItem[itemType][item.Ability.AssetGuid].Add(item);
+        }
+
+        static List<BlueprintItemEquipment> FindItemBlueprintForSpell(BlueprintAbility spell, UsableItemType itemType) {
+            if (!spellIdToItem.ContainsKey(itemType)) {
                 BlueprintItemEquipmentUsable[] allUsableItems = Resources.FindObjectsOfTypeAll<BlueprintItemEquipmentUsable>();
                 foreach (BlueprintItemEquipmentUsable item in allUsableItems) {
                     if (item.Type == itemType) {
-                        spellIdToItem[itemType][item.Ability.AssetGuid] = item;
+                        AddItemBlueprintForSpell(spell, itemType, item);
                     }
                 }
             }
@@ -217,62 +235,120 @@ namespace CraftMagicItems {
             return (spellIdToItem[itemType].ContainsKey(spellId)) ? spellIdToItem[itemType][spellId] : null;
         }
 
+        static string RandomBaseBlueprintId(ItemTypeData selectedItemData) {
+            string[] guids;
+            switch (selectedItemData.Type) {
+                case UsableItemType.Scroll:
+                    guids = new string[] {
+                        "17959707c7004bd4abad2983f8a4af66",
+                        "be452dba5acdd9441841d2189e1ae55a",
+                        "fbdd06f0414c3ef458eb4b2a8072e502",
+                        "358ee9cb540a9af4e9bc76cc1af62e86",
+                        "e5700c45eb88bdd40a324e10d3de4a07",
+                        "33ea3e3e578d4db4c8e57632fca4c9ec",
+                        "68d5aa212b7323e4e95e0fe731ea50cf"
+                    };
+                    break;
+                case UsableItemType.Wand:
+                    guids = new string[] {
+                        "4bf15a56d9ade8f47bf93fda7aa84d8b",
+                        "85a4ff725c5236b4f9e0adb17fb64e2b",
+                        "ce90a6251242af745b3daa56f84a5fe5",
+                        "a20d40dc97457f041a2c29bdb2e2efe8",
+                        "229fcbd357a9d6b48bc63b79188cdbd6",
+                        "021b4a12739c59541922e3857f3fb3a4",
+                        "394d337603392eb4c817994c45877fc0",
+                        "8cb627da1a91069428ce87d9a114cdd6",
+                        "85a4ff725c5236b4f9e0adb17fb64e2b"
+                    };
+                    break;
+                default:
+                    return null;
+            }
+            return guids[random.Next(guids.Length)];
+        }
+
         static void RenderCraftItemControl(Spellbook spellbook, AbilityData spell, BlueprintAbility spellBlueprint, int spellLevel, int casterLevel) {
             ItemTypeData selectedItemData = itemTypeData[selectedItemTypeIndex];
-            BlueprintItemEquipmentUsable itemBlueprint = FindItemBlueprintForSpell(spellBlueprint, selectedItemData.Type);
-            if (itemBlueprint == null) {
+            List<BlueprintItemEquipment> itemBlueprintList = FindItemBlueprintForSpell(spellBlueprint, selectedItemData.Type);
+            if (itemBlueprintList == null && selectedItemData.Type == UsableItemType.Potion) {
                 GUILayout.Label($"There is no {itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name}");
-            } else {
-                int goldCost = selectedItemData.BaseItemGoldCost * spellLevel * casterLevel / 4;
-                bool canAfford = (Game.Instance.Player.Money >= goldCost);
-                string cost = $"{goldCost} gold{(canAfford ? "" : " (which you can't afford)")}";
+                return;
+            }
+            BlueprintItemEquipment existingItemBlueprint = (itemBlueprintList == null) ? null : itemBlueprintList.Find(bp => bp.SpellLevel == spellLevel && bp.CasterLevel == casterLevel);
+            int goldCost = selectedItemData.BaseItemGoldCost * Math.Max(1, spellLevel) * casterLevel / (spellLevel == 0 ? 8 : 4);
+            bool canAfford = (Game.Instance.Player.Money >= goldCost);
+            string cost = $"{goldCost} gold{(canAfford ? "" : " (which you can't afford)")}";
+            if (spell.RequireMaterialComponent) {
+                int count = spellBlueprint.MaterialComponent.Count * selectedItemData.Charges;
+                cost += $" and {count} {spellBlueprint.MaterialComponent.Item.Name}";
+                if (!Game.Instance.Player.Inventory.Contains(spellBlueprint.MaterialComponent.Item, count)) {
+                    canAfford = false;
+                    cost += " (which you don't have)";
+                }
+            }
+            string custom = (itemBlueprintList == null || existingItemBlueprint == null || existingItemBlueprint.AssetGuid.Length > vanillaAssetIdLength) ? "(custom) " : "";
+            if (!canAfford) {
+                GUILayout.Label($"Craft {custom}{itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name} for {cost}");
+            } else if (GUILayout.Button($"Craft {custom}{itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name} for {cost}", GUILayout.ExpandWidth(false))) {
+                Game.Instance.Player.SpendMoney(goldCost);
+                spell.SpendFromSpellbook();
                 if (spell.RequireMaterialComponent) {
                     int count = spellBlueprint.MaterialComponent.Count * selectedItemData.Charges;
-                    cost += $" and {count} {spellBlueprint.MaterialComponent.Item.Name}";
-                    if (!Game.Instance.Player.Inventory.Contains(spellBlueprint.MaterialComponent.Item, count)) {
-                        canAfford = false;
-                        cost += " (which you don't have)";
-                    }
+                    Game.Instance.Player.Inventory.Remove(spellBlueprint.MaterialComponent.Item, count);
                 }
-                if (!canAfford) {
-                    GUILayout.Label($"Craft {itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name} for {cost}");
-                } else if (GUILayout.Button($"Craft {itemTypeNames[selectedItemTypeIndex]} of {spellBlueprint.Name} for {cost}", GUILayout.ExpandWidth(false))) {
-                    Game.Instance.Player.SpendMoney(goldCost);
-                    spell.SpendFromSpellbook();
-                    if (spell.RequireMaterialComponent) {
-                        int count = spellBlueprint.MaterialComponent.Count * selectedItemData.Charges;
-                        Game.Instance.Player.Inventory.Remove(spellBlueprint.MaterialComponent.Item, count);
-                    }
-                    ItemEntity item;
-                    if (casterLevel == itemBlueprint.CasterLevel) {
-                        // Create an item using the default blueprint
-                        item = ItemsEntityFactory.CreateEntity(itemBlueprint);
-                    } else {
-                        // Create an item using a custom blueprint
-                        string blueprintId = BuildCustomItemGuid(itemBlueprint.AssetGuid, casterLevel);
-                        BlueprintItem customBlueprint = (BlueprintItem)ResourcesLibrary.TryGetBlueprint(blueprintId);
-                        item = ItemsEntityFactory.CreateEntity(customBlueprint);
-                    }
-                    item.IsIdentified = true; // Mark the item as identified.
-                    item.Charges = selectedItemData.Charges; // Set the charges, since wand blueprints have random values.
-                    Game.Instance.Player.Inventory.Add(item);
-                    switch (selectedItemData.Type) {
-                        case UsableItemType.Scroll:
-                            Game.Instance.UI.Common.UISound.Play(UISoundType.NewInformation);
-                            break;
-                        case UsableItemType.Potion:
-                            Game.Instance.UI.Common.UISound.PlayItemSound(SlotAction.Take, item, false);
-                            break;
-                        case UsableItemType.Wand:
-                            Game.Instance.UI.Common.UISound.Play(UISoundType.SettlementBuildStart);
-                            break;
-                    }
+                string blueprintId = null;
+                if (itemBlueprintList == null) {
+                    // Create a custom blueprint with casterLevel, spellLevel and spellId
+                    blueprintId = BuildCustomItemGuid(RandomBaseBlueprintId(selectedItemData), casterLevel, spellLevel, spell.Blueprint.AssetGuid);
+                } else if (existingItemBlueprint == null) {
+                    // Create a custom blueprint with casterLevel and optionally SpellLevel
+                    blueprintId = BuildCustomItemGuid(itemBlueprintList[0].AssetGuid, casterLevel, itemBlueprintList[0].SpellLevel == spellLevel ? -1 : spellLevel);
+                } else {
+                    // Use an existing blueprint
+                    blueprintId = existingItemBlueprint.AssetGuid;
+                }
+                BlueprintItemEquipment actualBlueprint = (BlueprintItemEquipment)ResourcesLibrary.TryGetBlueprint(blueprintId);
+                ItemEntity item = ItemsEntityFactory.CreateEntity(actualBlueprint);
+                item.IsIdentified = true; // Mark the item as identified.
+                item.Charges = selectedItemData.Charges; // Set the charges, since wand blueprints have random values.
+                Game.Instance.Player.Inventory.Add(item);
+                if (existingItemBlueprint == null) {
+                    AddItemBlueprintForSpell(spell.Blueprint, selectedItemData.Type, actualBlueprint);
+                }
+                switch (selectedItemData.Type) {
+                    case UsableItemType.Scroll:
+                        Game.Instance.UI.Common.UISound.Play(UISoundType.NewInformation);
+                        break;
+                    case UsableItemType.Potion:
+                        Game.Instance.UI.Common.UISound.PlayItemSound(SlotAction.Take, item, false);
+                        break;
+                    case UsableItemType.Wand:
+                        Game.Instance.UI.Common.UISound.Play(UISoundType.SettlementBuildStart);
+                        break;
                 }
             }
         }
 
-        static string BuildCustomItemGuid(string originalGuid, int casterLevel) {
-            return $"{originalGuid}{blueprintPrefix}(CL={casterLevel})";
+        static string BuildCustomItemGuid(string originalGuid, int casterLevel, int spellLevel = -1, string spellId = null) {
+            if (originalGuid.Length > vanillaAssetIdLength) {
+                // Check if GUID is already customised by this mod
+                Match match = blueprintRegex.Match(originalGuid);
+                if (match.Success) {
+                    // Remove the existing customisation
+                    originalGuid = originalGuid.Substring(0, match.Index) + originalGuid.Substring(match.Index + match.Length);
+                    // Use any values which aren't explicitly overridden
+                    if (spellLevel == -1 && match.Groups[3].Success) {
+                        spellLevel = int.Parse(match.Groups[4].Value);
+                    }
+                    if (spellId == null && match.Groups[5].Success) {
+                        spellId = match.Groups[6].Value;
+                    }
+                }
+            }
+            string spellLevelString = (spellLevel == -1 ? "" : $",SL={spellLevel}");
+            string spellIdString = (spellId == null ? "" : $",spellId=({spellId})");
+            return $"{originalGuid}{blueprintPrefix}(CL={casterLevel}{spellLevelString}{spellIdString})";
         }
 
         // This patch is generic, and makes custom blueprints fall back to their initial version.
@@ -286,36 +362,50 @@ namespace CraftMagicItems {
 
             [HarmonyPriority(Priority.First)]
             static void Postfix(string assetId, ref BlueprintScriptableObject __result) {
-                if (__result == null && assetId.Length > 32) {
+                if (__result == null && assetId.Length > vanillaAssetIdLength) {
                     // Failed to load custom blueprint - return the original.
-                    string originalGuid = assetId.Substring(0, 32);
+                    string originalGuid = assetId.Substring(0, vanillaAssetIdLength);
                     __result = ResourcesLibrary.TryGetBlueprint(originalGuid);
                 }
             }
         }
 
+        static T CloneObject<T>(T originalObject) {
+            Type type = originalObject.GetType();
+            T clone = (T)Activator.CreateInstance(type);
+            for (; type != null && type != typeof(UnityEngine.Object); type = type.BaseType) {
+                FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (FieldInfo field in fields) {
+                    field.SetValue(clone, field.GetValue(originalObject));
+                }
+            }
+            return clone;
+        }
+
+
         // Make our mod-specific updates to the blueprint based on the data stored in assetId.  Return a string which
         // is the AssetGuid of the supplied blueprint plus our customization again, or null if we couldn't change the
         // blueprint.
-        static string ApplyBlueprintPatch(BlueprintScriptableObject blueprint, string assetId) {
-            int pos = assetId.IndexOf(blueprintPrefix);
-            if (pos < 0) {
-                pos = assetId.IndexOf(oldBlueprintPrefix);
-            }
-            if (pos < 0) {
-                storedModEntry.Logger.Warning($"Failed to find expected substring in custom blueprint assetId ${assetId}");
-                return null;
-            }
-            int startPos = assetId.IndexOf("CL=", pos) + 3;
-            for (pos = startPos; pos < assetId.Length && Char.IsDigit(assetId[pos]); pos++) {
-            }
-            try {
-                int casterLevel = int.Parse(assetId.Substring(startPos, pos - startPos));
-                ((BlueprintItemEquipment)blueprint).CasterLevel = casterLevel;
+        static string ApplyBlueprintPatch(BlueprintItemEquipment blueprint, string assetId) {
+            Match match = blueprintRegex.Match(assetId);
+            if (match.Success) {
+                int casterLevel = int.Parse(match.Groups[2].Value);
+                blueprint.CasterLevel = casterLevel;
+                int spellLevel = -1;
+                if (match.Groups[3].Success) {
+                    spellLevel = int.Parse(match.Groups[4].Value);
+                    blueprint.SpellLevel = spellLevel;
+                }
+                string spellId = null;
+                if (match.Groups[5].Success) {
+                    spellId = match.Groups[6].Value;
+                    blueprint.Ability = (BlueprintAbility)ResourcesLibrary.TryGetBlueprint(spellId);
+                }
+                blueprint.DC = 10 + spellLevel * 3 / 2;
                 Traverse.Create(blueprint).Field("m_Cost").SetValue(0); // Allow the game to auto-calculate the cost
-                return BuildCustomItemGuid(blueprint.AssetGuid, casterLevel);
-            } catch (Exception e) {
-                storedModEntry.Logger.Warning($"Exception attempting to patch blueprint ${blueprint.AssetGuid} with custom assetId ${assetId}: {e}");
+                return BuildCustomItemGuid(blueprint.AssetGuid, casterLevel, spellLevel, spellId);
+            } else {
+                storedModEntry.Logger.Warning($"Failed to find expected substring in custom blueprint assetId ${assetId}");
                 return null;
             }
         }
@@ -329,21 +419,13 @@ namespace CraftMagicItems {
             }
 
             static void Postfix(string assetId, ref BlueprintScriptableObject __result) {
-                if (modEnabled && assetId != __result.AssetGuid && (assetId.Contains(blueprintPrefix) || assetId.Contains(oldBlueprintPrefix))) {
-                    if (__result.AssetGuid.Length == 32) {
+                if (modEnabled && __result != null && assetId != __result.AssetGuid && (assetId.Contains(blueprintPrefix) || assetId.Contains(oldBlueprintPrefix))) {
+                    if (__result.AssetGuid.Length == vanillaAssetIdLength) {
                         // We have the original blueprint - clone it so we can make modifications which won't affect the original.
-                        Type type = __result.GetType();
-                        BlueprintScriptableObject clone = (BlueprintScriptableObject)Activator.CreateInstance(type);
-                        for (; type != null && type != typeof(UnityEngine.Object); type = type.BaseType) {
-                            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                            foreach (FieldInfo field in fields) {
-                                field.SetValue(clone, field.GetValue(__result));
-                            }
-                        }
-                        __result = clone;
+                        __result = CloneObject(__result);
                     }
                     // Patch the blueprint
-                    string newAssetId = ApplyBlueprintPatch(__result, assetId);
+                    string newAssetId = ApplyBlueprintPatch((BlueprintItemEquipment)__result, assetId);
                     if (newAssetId != null) {
                         // Insert patched blueprint into ResourcesLibrary under the new GUID.
                         Traverse.Create(__result).Field("m_AssetGuid").SetValue(newAssetId);
