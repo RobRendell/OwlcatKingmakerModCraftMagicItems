@@ -142,7 +142,7 @@ namespace CraftMagicItems {
             if (selectedSpellbookIndex < spellbooks.Count) {
                 Spellbook spellbook = spellbooks[selectedSpellbookIndex];
                 int maxLevel = Math.Min(spellbook.MaxSpellLevel, selectedType.MaxSpellLevel);
-                string[] spellLevelNames = (from index in Enumerable.Range(0, maxLevel) select $"Level {index}").ToArray<string>();
+                string[] spellLevelNames = (from index in Enumerable.Range(0, maxLevel + 1) select $"Level {index}").ToArray<string>();
                 RenderSelection(ref selectedSpellLevelIndex, "Select spell level: ", spellLevelNames, 10);
                 int spellLevel = selectedSpellLevelIndex;
                 IEnumerable<AbilityData> spellOptions = null;
