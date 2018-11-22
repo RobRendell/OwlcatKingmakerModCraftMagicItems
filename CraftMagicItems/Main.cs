@@ -400,8 +400,11 @@ namespace CraftMagicItems {
                 if (match.Groups[5].Success) {
                     spellId = match.Groups[6].Value;
                     blueprint.Ability = (BlueprintAbility)ResourcesLibrary.TryGetBlueprint(spellId);
+                    blueprint.DC = 0;
                 }
-                blueprint.DC = 10 + spellLevel * 3 / 2;
+                if (blueprint.Ability?.LocalizedSavingThrow != null && blueprint.Ability.LocalizedSavingThrow.IsSet()) {
+                    blueprint.DC = 10 + spellLevel * 3 / 2;
+                }
                 Traverse.Create(blueprint).Field("m_Cost").SetValue(0); // Allow the game to auto-calculate the cost
                 return BuildCustomItemGuid(blueprint.AssetGuid, casterLevel, spellLevel, spellId);
             } else {
