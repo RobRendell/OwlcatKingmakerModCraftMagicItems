@@ -78,6 +78,7 @@ namespace CraftMagicItems {
         static int selectedSpellbookIndex = 0;
         static int selectedSpellLevelIndex = 0;
         static int selectedCasterLevel = 0;
+        static int selectedConvertedIndex = 0;
         static int selectedFeatToLearn = 0;
         static Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>> spellIdToItem = new Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>>();
         static List<string> customBlueprintGUIDs = new List<string>();
@@ -192,57 +193,67 @@ namespace CraftMagicItems {
                 RenderSelection(ref selectedSpellbookIndex, "Class: ", spellbookNames, 10);
             }
 
-            if (selectedSpellbookIndex < spellbooks.Count) {
-                Spellbook spellbook = spellbooks[selectedSpellbookIndex];
-                int maxLevel = Math.Min(spellbook.MaxSpellLevel, craftingData.MaxSpellLevel);
-                string[] spellLevelNames = Enumerable.Range(0, maxLevel + 1).Select(index => $"Level {index}").ToArray();
-                RenderSelection(ref selectedSpellLevelIndex, "Select spell level: ", spellLevelNames, 10);
-                int spellLevel = selectedSpellLevelIndex;
-                IEnumerable<AbilityData> spellOptions = null;
-                if (spellLevel == 0) {
-                    // Cantrips/Orisons are special.
+            Spellbook spellbook = spellbooks[selectedSpellbookIndex];
+            int maxLevel = Math.Min(spellbook.MaxSpellLevel, craftingData.MaxSpellLevel);
+            string[] spellLevelNames = Enumerable.Range(0, maxLevel + 1).Select(index => $"Level {index}").ToArray();
+            RenderSelection(ref selectedSpellLevelIndex, "Select spell level: ", spellLevelNames, 10);
+            int spellLevel = selectedSpellLevelIndex;
+            IEnumerable<AbilityData> spellOptions = null;
+            if (spellLevel == 0) {
+                // Cantrips/Orisons are special.
+                spellOptions = spellbook.GetKnownSpells(spellLevel);
+            } else if (spellbook.Blueprint.Spontaneous) {
+                // Spontaneous spellcaster
+                if (spellbook.GetSpontaneousSlots(spellLevel) > 0) {
+                    RenderLabel($"{caster.CharacterName} can cast {spellbook.GetSpontaneousSlots(spellLevel)} more level {spellLevel} spells today.");
                     spellOptions = spellbook.GetKnownSpells(spellLevel);
-                } else if (spellbook.Blueprint.Spontaneous) {
-                    // Spontaneous spellcaster
-                    if (spellbook.GetSpontaneousSlots(spellLevel) > 0) {
-                        RenderLabel($"{caster.CharacterName} can cast {spellbook.GetSpontaneousSlots(spellLevel)} more level {spellLevel} spells today.");
-                        spellOptions = spellbook.GetKnownSpells(spellLevel);
-                    }
-                } else {
-                    // Prepared spellcaster
-                    spellOptions = spellbook.GetMemorizedSpells(spellLevel).Where(slot => slot.Spell != null && slot.Available).Select(slot => slot.Spell);
                 }
-                if (spellOptions == null || !spellOptions.Any()) {
-                    RenderLabel($"{caster.CharacterName} cannot currently cast any level {spellLevel} spells.");
-                } else {
-                    int minCasterLevel = Math.Max(1, 2 * spellLevel - 1);
-                    if (minCasterLevel < spellbook.CasterLevel) {
-                        selectedCasterLevel = Mathf.RoundToInt(Mathf.Clamp(selectedCasterLevel, minCasterLevel, spellbook.CasterLevel));
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label("Caster level: ", GUILayout.ExpandWidth(false));
-                        selectedCasterLevel = Mathf.RoundToInt(GUILayout.HorizontalSlider(selectedCasterLevel, minCasterLevel, spellbook.CasterLevel, GUILayout.Width(300)));
-                        GUILayout.Label($"{selectedCasterLevel}", GUILayout.ExpandWidth(false));
-                        GUILayout.EndHorizontal();
-                    } else {
-                        selectedCasterLevel = minCasterLevel;
-                        RenderLabel($"Caster level: {selectedCasterLevel}");
-                    }
-                    foreach (AbilityData spell in spellOptions.OrderBy(spell => spell.Name).Distinct()) {
-                        if (spell.MetamagicData != null && spell.MetamagicData.NotEmpty) {
-                            GUILayout.Label($"Cannot craft {craftingData.Name} of {spell.Name} with metamagic applied.");
-                        } else if (spell.Blueprint.HasVariants) {
-                            // Spells with choices (e.g. Protection from Alignment, which can be Protection from Evil, Good, Chaos or Law)
-                            foreach (BlueprintAbility variant in spell.Blueprint.Variants) {
-                                RenderCraftItemControl(craftingData, spellbook, spell, variant, spellLevel, selectedCasterLevel);
-                            }
-                        } else {
-                            RenderCraftItemControl(craftingData, spellbook, spell, spell.Blueprint, spellLevel, selectedCasterLevel);
-                        }
-                    }
-                }
-
-                RenderLabel($"Current Money: {Game.Instance.Player.Money}");
+            } else {
+                // Prepared spellcaster
+                spellOptions = spellbook.GetMemorizedSpells(spellLevel).Where(slot => slot.Spell != null && slot.Available).Select(slot => slot.Spell);
             }
+            if (spellOptions == null || !spellOptions.Any()) {
+                RenderLabel($"{caster.CharacterName} cannot currently cast any level {spellLevel} spells.");
+            } else {
+                int minCasterLevel = Math.Max(1, 2 * spellLevel - 1);
+                if (minCasterLevel < spellbook.CasterLevel) {
+                    selectedCasterLevel = Mathf.RoundToInt(Mathf.Clamp(selectedCasterLevel, minCasterLevel, spellbook.CasterLevel));
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Caster level: ", GUILayout.ExpandWidth(false));
+                    selectedCasterLevel = Mathf.RoundToInt(GUILayout.HorizontalSlider(selectedCasterLevel, minCasterLevel, spellbook.CasterLevel, GUILayout.Width(300)));
+                    GUILayout.Label($"{selectedCasterLevel}", GUILayout.ExpandWidth(false));
+                    GUILayout.EndHorizontal();
+                } else {
+                    selectedCasterLevel = minCasterLevel;
+                    RenderLabel($"Caster level: {selectedCasterLevel}");
+                }
+                BlueprintAbility converted = null;
+                IEnumerable<BlueprintAbility> convertedSpells = spellbook.GetSpontaneousConversionSpells(spellLevel);
+                if (convertedSpells.Any()) {
+                    List<string> convertOptions = new List<string>() { "Prepared spell" };
+                    convertOptions.AddRange(convertedSpells.Select(blueprint => blueprint.Name));
+                    RenderSelection(ref selectedConvertedIndex, "Use:", convertOptions.ToArray(), 5);
+                    if (selectedConvertedIndex > 0) {
+                        converted = convertedSpells.First(blueprint => blueprint.Name == convertOptions[selectedConvertedIndex]);
+                    }
+                }
+                foreach (AbilityData spell in spellOptions.OrderBy(spell => spell.Name).Distinct()) {
+                    if (spell.MetamagicData != null && spell.MetamagicData.NotEmpty) {
+                        GUILayout.Label($"Cannot craft {craftingData.Name} of {spell.Name} with metamagic applied.");
+                    } else if (converted != null) {
+                        RenderCraftItemControl(craftingData, spellbook, spell, converted, spellLevel, selectedCasterLevel);
+                    } else if (spell.Blueprint.HasVariants) {
+                        // Spells with choices (e.g. Protection from Alignment, which can be Protection from Evil, Good, Chaos or Law)
+                        foreach (BlueprintAbility variant in spell.Blueprint.Variants) {
+                            RenderCraftItemControl(craftingData, spellbook, spell, variant, spellLevel, selectedCasterLevel);
+                        }
+                    } else {
+                        RenderCraftItemControl(craftingData, spellbook, spell, spell.Blueprint, spellLevel, selectedCasterLevel);
+                    }
+                }
+            }
+
+            RenderLabel($"Current Money: {Game.Instance.Player.Money}");
         }
 
         static void RenderFeatReassignmentSection() {
@@ -428,9 +439,11 @@ namespace CraftMagicItems {
                 }
             }
             string custom = (itemBlueprintList == null || existingItemBlueprint == null || existingItemBlueprint.AssetGuid.Length > vanillaAssetIdLength) ? "(custom) " : "";
+            string casting = (spell.Blueprint != spellBlueprint) ? $" (by casting {spell.Name})" : "";
+            string label = $"Craft {custom}{craftingData.Name} of {spellBlueprint.Name}{casting} for {cost}";
             if (!canAfford) {
-                GUILayout.Label($"Craft {custom}{craftingData.Name} of {spellBlueprint.Name} for {cost}");
-            } else if (GUILayout.Button($"Craft {custom}{craftingData.Name} of {spellBlueprint.Name} for {cost}", GUILayout.ExpandWidth(false))) {
+                GUILayout.Label(label);
+            } else if (GUILayout.Button(label, GUILayout.ExpandWidth(false))) {
                 Game.Instance.Player.SpendMoney(goldCost);
                 spell.SpendFromSpellbook();
                 if (spell.RequireMaterialComponent && !settings.CraftingCostsNoGold) {
