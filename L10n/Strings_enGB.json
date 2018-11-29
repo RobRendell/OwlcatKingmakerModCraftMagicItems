@@ -1,0 +1,26 @@
+[
+	{
+		"key": "craftMagicItems-feat-scroll-displayName",
+		"value": "Crafting (Scribe Scroll)"
+	},
+	{
+		"key": "craftMagicItems-feat-scroll-description",
+		"value": "You can create a scroll of any spell that you know.  To scribe a scroll, you must use up raw materials costing the same as the scroll's sale price, as well as expending any costly material components."
+	},
+	{
+		"key": "craftMagicItems-feat-potion-displayName",
+		"value": "Crafting (Brew Potion)"
+	},
+	{
+		"key": "craftMagicItems-feat-potion-description",
+		"value": "You can create a potion of any 3rd-level or lower spell that you know that targets one or more creatures or objects.  To brew a potion, you must use up raw materials costing the same as the potion's sale price, as well as expending any costly material components."
+	},
+	{
+		"key": "craftMagicItems-feat-wand-displayName",
+		"value": "Crafting (Craft Wand)"
+	},
+	{
+		"key": "craftMagicItems-feat-wand-description",
+		"value": "You can create a wand of any 4th-level or lower spell that you know.  A newly created wand has 50 charges.  To craft a wand, you must use up raw materials costing the same as the wand's sale price, as well as expending 50 times any expensive material components."
+	}
+]

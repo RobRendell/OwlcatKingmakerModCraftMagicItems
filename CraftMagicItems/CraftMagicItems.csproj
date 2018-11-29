@@ -40,6 +40,10 @@
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -54,6 +58,10 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
@@ -62,8 +70,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Image2Sprite.cs" />
+    <Compile Include="L10n.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>del *.zip
+rmdir /S /Q CraftMagicItems
+
+mkdir CraftMagicItems
+xcopy CraftMagicItems.dll CraftMagicItems
+xcopy ..\..\..\Info.json CraftMagicItems
+xcopy /E /I ..\..\..\L10n CraftMagicItems\L10n
+xcopy /E /I ..\..\..\Icons CraftMagicItems\Icons
+"C:\Program Files\7-Zip\7z.exe" a CraftMagicItems.zip CraftMagicItems
+
+"C:\Program Files\7-Zip\7z.exe" a CraftMagicItems-Source.zip ..\..\*.cs ../../../L10n
+
+xcopy /Y CraftMagicItems.dll "C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Mods\CraftMagicItems"
+xcopy /E /I /Y ..\..\..\L10n "C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Mods\CraftMagicItems\L10n"
+xcopy /E /I /Y ..\..\..\Icons "C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Mods\CraftMagicItems\Icons"
+
+</PostBuildEvent>
+  </PropertyGroup>
 </Project>
