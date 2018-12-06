@@ -101,6 +101,7 @@ namespace CraftMagicItems {
         private static readonly CustomBlueprintBuilder CustomBlueprintBuilder = new CustomBlueprintBuilder(BlueprintRegex, ApplyBlueprintPatch);
         private static readonly Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>> SpellIdToItem = new Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>>();
         private static readonly Random RandomGenerator = new Random();
+        private static readonly List<LogDataManager.LogItemData> PendingLogItems = new List<LogDataManager.LogItemData>();
 
         // ReSharper disable once UnusedMember.Local
         private static void Load(UnityModManager.ModEntry modEntry) {
@@ -782,9 +783,34 @@ namespace CraftMagicItems {
         }
 
         private static void AddBattleLogMessage(string message, object tooltip = null, Color? color = null) {
+            var data = new LogDataManager.LogItemData(message, color ?? GameLogStrings.Instance.DefaultColor, tooltip, PrefixIcon.None);
             if (Game.Instance.UI.BattleLogManager) {
-                var data = new LogDataManager.LogItemData(message, color ?? GameLogStrings.Instance.DefaultColor, tooltip, PrefixIcon.None);
                 Game.Instance.UI.BattleLogManager.LogView.AddLogEntry(data);
+            } else {
+                PendingLogItems.Add(data);
+            }
+        }
+
+        [HarmonyPatch(typeof(LogDataManager.LogItemData), "UpdateSize")]
+        private static class LogItemDataUpdateSizePatch {
+            // ReSharper disable once UnusedMember.Local
+            private static bool Prefix() {
+                // Avoid null pointer exception when BattleLogManager not set.
+                return Game.Instance.UI.BattleLogManager != null;
+            }
+        }
+
+        [HarmonyPatch(typeof(BattleLogManager), "Initialize")]
+        private static class BattleLogManagerInitializePatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix() {
+                if (PendingLogItems.Any()) {
+                    foreach (var item in PendingLogItems) {
+                        item.UpdateSize();
+                        Game.Instance.UI.BattleLogManager.LogView.AddLogEntry(item);
+                    }
+                    PendingLogItems.Clear();
+                }
             }
         }
 
