@@ -345,16 +345,20 @@ namespace CraftMagicItems {
             var learnFeat = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(learnFeatData.FeatGuid);
             var removedFeatIndex = 0;
             foreach (var feature in caster.Descriptor.Progression.Features) {
-                if (!feature.Blueprint.HideInUI && feature.Blueprint.HasGroup(CraftingFeatGroups) && feature.SourceProgression != null) {
+                if (!feature.Blueprint.HideInUI && feature.Blueprint.HasGroup(CraftingFeatGroups)
+                                                && (feature.SourceProgression != null || feature.SourceRace != null)) {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label($"Feat: {feature.Name}", GUILayout.ExpandWidth(false));
                     if (!Array.Exists(ItemCraftingData, data => data.FeatGuid == feature.Blueprint.AssetGuid)) {
                         if (GUILayout.Button($"<- {learnFeat.Name}", GUILayout.ExpandWidth(false))) {
-                            foreach (AddFacts addFact in feature.SelectComponents((AddFacts addFacts) => true)) {
-                                addFact.OnFactDeactivate();
-                            }
+                            var currentRank = feature.Rank;
                             caster.Descriptor.Progression.ReplaceFeature(feature.Blueprint, learnFeat);
-                            caster.Descriptor.Progression.Features.RemoveFact(feature);
+                            if (currentRank == 1) {
+                                foreach (var addFact in feature.SelectComponents((AddFacts addFacts) => true)) {
+                                    addFact.OnFactDeactivate();
+                                }
+                                caster.Descriptor.Progression.Features.RemoveFact(feature);
+                            }
                             var addedFeature = caster.Descriptor.Progression.Features.AddFeature(learnFeat);
                             addedFeature.Source = feature.Source;
                             var mFacts = Traverse.Create(caster.Descriptor.Progression.Features).Field("m_Facts").GetValue<List<Fact>>();
