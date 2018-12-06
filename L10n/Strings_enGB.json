@@ -5,7 +5,7 @@
 	},
 	{
 		"key": "craftMagicItems-feat-scroll-description",
-		"value": "You can create a scroll of any spell that you know.  To scribe a scroll, you must use up raw materials costing the same as the scroll's sale price, as well as expending any costly material components."
+		"value": "You can create scrolls of any spell that you know.  To scribe a scroll, you must use up raw materials costing the same as the scroll's sale price, as well as expending any costly material components."
 	},
 	{
 		"key": "craftMagicItems-feat-potion-displayName",
@@ -13,7 +13,7 @@
 	},
 	{
 		"key": "craftMagicItems-feat-potion-description",
-		"value": "You can create a potion of any 3rd-level or lower spell that you know that targets one or more creatures or objects.  To brew a potion, you must use up raw materials costing the same as the potion's sale price, as well as expending any costly material components."
+		"value": "You can create potions of any 3rd-level or lower spell that you know that targets one or more creatures or objects.  To brew a potion, you must use up raw materials costing the same as the potion's sale price, as well as expending any costly material components."
 	},
 	{
 		"key": "craftMagicItems-feat-wand-displayName",
@@ -21,6 +21,86 @@
 	},
 	{
 		"key": "craftMagicItems-feat-wand-description",
-		"value": "You can create a wand of any 4th-level or lower spell that you know.  A newly created wand has 50 charges.  To craft a wand, you must use up raw materials costing the same as the wand's sale price, as well as expending 50 times any expensive material components."
+		"value": "You can create wands of any 4th-level or lower spell that you know.  A newly created wand has 50 charges.  To craft a wand, you must use up raw materials costing the same as the wand's sale price, as well as expending 50 times any expensive material components."
+	},
+	{
+		"key": "craftMagicItems-buff-name",
+		"value": "Craft Magic Items project schedule"
+	},
+	{
+		"key": "craftMagicItems-label-no-item-exists",
+		"value": "There is no {0} of {1}"
+	},
+	{
+		"key": "craftMagicItems-label-cost-free",
+		"value": "free (cheating)"
+	},
+	{
+		"key": "craftMagicItems-label-cost-gold",
+		"value": "{0} gold{1}"
+	},
+	{
+		"key": "craftMagicItems-label-cost-gold-too-much",
+		"value": " (which you can't afford)"
+	},
+	{
+		"key": "craftMagicItems-label-cost-gold-and-items",
+		"value": " and {0} {1}{2}"
+	},
+	{
+		"key": "craftMagicItems-label-cost-items-too-much",
+		"value": " (which you don't have)"
+	},
+	{
+		"key": "craftMagicItems-label-custom",
+		"value": "(custom) "
+	},
+	{
+		"key": "craftMagicItems-label-craft-item",
+		"value": "Craft {0}{1} of {2} for {3}"
+	},
+	{
+		"key": "craftMagicItems-logMessage-begin-crafting",
+		"value": "Spent {0} to begin crafting <b>{1}</b>."
+	},
+	{
+		"key": "craftMagicItems-startMessage",
+		"value": "Crafting should take about {count} {count_form|day|days}."
+	},
+	{
+		"key": "craftMagicItems-logMessage-not-full-day",
+		"value": "Resting resulted in no progress because it is less than a day since {Source} last did some crafting."
+	},
+	{
+		"key": "craftMagicItems-logMessage-missing-prerequisite",
+		"value": "{Source} was unable to make progress on {0} because {mf|he|she} couldn't cast the mandatory prerequisite spell {1}."
+	},
+	{
+		"key": "craftMagicItems-logMessage-missing-spell",
+		"value": "{Source} is not able to cast prerequisite spell {0}, which raises the crafting DC by 5."
+	},
+	{
+		"key": "craftMagicItems-logMessage-low-caster-level",
+		"value": "{Source} is below caster level {0}, raising the crafting DC by {1}."
+	},
+	{
+		"key": "craftMagicItems-logMessage-dc-too-high",
+		"value": "{Source} was unable to make progress on {0} because the skill check is too hard (take 10 {1} check result {2} vs. DC {3})."
+	},
+	{
+		"key": "craftMagicItems-logMessage-expend-spell",
+		"value": "{Source} expends a use of {0}."
+	},
+	{
+		"key": "craftMagicItems-logMessage-made-progress",
+		"value": "{Source} progressed {0}% towards completing {1} (take 10 {2} check result {3} vs. DC {4})."
+	},
+	{
+		"key": "craftMagicItems-logMessage-crafting-complete",
+		"value": "{Source} has completed crafting <b>{0}</b>!"
+	},
+	{
+		"key": "craftMagicItems-logMessage-crafting-cancelled",
+		"value": "Cancelled crafting of {0} - refunded {1}."
 	}
 ]

@@ -70,8 +70,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CraftingTimerComponent.cs" />
+    <Compile Include="CustomBlueprintBuilder.cs" />
     <Compile Include="Image2Sprite.cs" />
     <Compile Include="L10n.cs" />
+    <Compile Include="L10NString.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
