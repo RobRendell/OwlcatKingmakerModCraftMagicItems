@@ -818,7 +818,7 @@ namespace CraftMagicItems {
                 BlueprintItem itemBlueprint;
                 if (itemBlueprintList == null) {
                     // No items for that spell exist at all - create a custom blueprint with casterLevel, spellLevel and spellId
-                    var blueprintId = BuildCustomSpellItemGuid(RandomBaseBlueprintId(craftingData), casterLevel, spellLevel, spell.Blueprint.AssetGuid);
+                    var blueprintId = BuildCustomSpellItemGuid(RandomBaseBlueprintId(craftingData), casterLevel, spellLevel, spellBlueprint.AssetGuid);
                     itemBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintItem>(blueprintId);
                 } else if (existingItemBlueprint == null) {
                     // No item for this spell & caster level - create a custom blueprint with casterLevel and optionally SpellLevel
