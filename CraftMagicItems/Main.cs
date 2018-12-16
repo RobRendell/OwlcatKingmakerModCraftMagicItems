@@ -17,6 +17,7 @@ using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Blueprints.Root.Strings.GameLog;
 using Kingmaker.Controllers.Rest;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.GameModes;
 using Kingmaker.Items;
 using Kingmaker.Kingdom;
@@ -116,6 +117,7 @@ namespace CraftMagicItems {
                 throw;
             }
             modEnabled = modEntry.Active;
+            CustomBlueprintBuilder.Enabled = modEnabled;
             modEntry.OnSaveGUI = OnSaveGui;
             modEntry.OnToggle = OnToggle;
             modEntry.OnGUI = OnGui;
@@ -128,6 +130,7 @@ namespace CraftMagicItems {
         private static bool OnToggle(UnityModManager.ModEntry modEntry, bool enabled) {
             modEnabled = enabled;
             CustomBlueprintBuilder.Enabled = enabled;
+            MainMenuStartPatch.ModEnabledChanged();
             return true;
         }
 
@@ -209,6 +212,10 @@ namespace CraftMagicItems {
                 }
                 caster.AddFact<Buff>(timerBlueprint);
                 timer = (Buff)caster.GetFact(timerBlueprint);
+            } else if (timer.Blueprint.AssetGuid.Length == CustomBlueprintBuilder.VanillaAssetIdLength) {
+                // Clean up
+                caster.RemoveFact(timer);
+                return null;
             }
             CraftingTimerComponent result = null;
             timer.CallComponents((CraftingTimerComponent component) => {
@@ -1045,6 +1052,9 @@ namespace CraftMagicItems {
             var enchantments = match.Groups["enchantments"].Value.Split(';');
             foreach (var guid in enchantments) {
                 var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>(guid);
+                if (!enchantment) {
+                    throw new Exception($"Failed to load enchantment {guid}");
+                }
                 blueprint.Enchantments.Add(enchantment);
             }
             string[] remove = null;
@@ -1052,6 +1062,9 @@ namespace CraftMagicItems {
                 remove = match.Groups["remove"].Value.Split(';');
                 foreach (var guid in remove) {
                     var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>(guid);
+                    if (!enchantment) {
+                        throw new Exception($"Failed to load enchantment {guid}");
+                    }
                     blueprint.Enchantments.Remove(enchantment);
                 }
             }
@@ -1163,6 +1176,7 @@ namespace CraftMagicItems {
         [HarmonyPatch(typeof(MainMenu), "Start")]
         private static class MainMenuStartPatch {
             private static ObjectIDGenerator idGenerator = new ObjectIDGenerator();
+            private static bool mainMenuStarted;
 
             private static void InitialiseCraftingData() {
                 // Read the crafting data now that ResourcesLibrary is loaded.
@@ -1241,18 +1255,34 @@ namespace CraftMagicItems {
                 }
             }
 
-            // ReSharper disable once UnusedMember.Local
-            private static void Postfix() {
-                if (idGenerator != null) {
-                    InitialiseCraftingData();
+            private static void AddAllCraftingFeats() {
+                if (modEnabled && idGenerator != null) {
                     // Add crafting feats to general feat selection
                     AddCraftingFeats(Game.Instance.BlueprintRoot.Progression.FeatsProgression);
                     // ... and to relevant class feat selections.
                     foreach (var characterClass in Game.Instance.BlueprintRoot.Progression.CharacterClasses) {
                         AddCraftingFeats(characterClass.Progression);
                     }
-                    // Done!
                     idGenerator = null;
+                }
+            }
+
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix() {
+                mainMenuStarted = true;
+                if (idGenerator != null) {
+                    InitialiseCraftingData();
+                    AddAllCraftingFeats();
+                }
+            }
+
+            public static void ModEnabledChanged() {
+                if (!modEnabled) {
+                    // If the mod is disabled, reset idGenerator in case they re-enable it and we need to re-add crafting feats. 
+                    idGenerator = new ObjectIDGenerator();
+                } else if (mainMenuStarted) {
+                    // If the mod is enabled and we're past the Start of main menu, add the crafting feats now.
+                    AddAllCraftingFeats();
                 }
             }
         }
@@ -1494,6 +1524,28 @@ namespace CraftMagicItems {
             // ReSharper disable once UnusedMember.Local
             private static void Prefix(UnitDescriptor unit) {
                 WorkOnProjects(unit);
+            }
+        }
+
+        [HarmonyPatch(typeof(LoadingProcess), "TickLoading")]
+        private static class LoadingProcessTickLoadingPatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Prefix(LoadingProcess __instance, ref bool __state) {
+                __state = __instance.IsLoadingInProcess;
+            }
+
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix(LoadingProcess __instance, bool __state) {
+                if (!modEnabled && __state && !__instance.IsLoadingInProcess) {
+                    // Load of a saved game just happened and mod is disabled - clean up crafting timer "buff" from all casters.
+                    var casterList = UIUtility.GetGroup(true).Where(character => character.IsPlayerFaction
+                                                                                 && !character.Descriptor.IsPet
+                                                                                 && character.Descriptor.Spellbooks != null
+                                                                                 && character.Descriptor.Spellbooks.Any());
+                    foreach (var caster in casterList) {
+                        GetCraftingTimerComponentForCaster(caster.Descriptor);
+                    }
+                }
             }
         }
     }

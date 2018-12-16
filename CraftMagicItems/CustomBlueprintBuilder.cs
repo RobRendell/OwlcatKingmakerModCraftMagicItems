@@ -26,7 +26,7 @@ namespace CraftMagicItems {
             set {
                 enabled = value;
                 if (!value) {
-                    // IF we disable custom blueprints, remove any we've created from the ResourcesLibrary.
+                    // If we disable custom blueprints, remove any we've created from the ResourcesLibrary.
                     foreach (var assetId in CustomBlueprintIDs) {
                         var customBlueprint = ResourcesLibrary.LibraryObject.BlueprintsByAssetId?[assetId];
                         if (customBlueprint != null) {
