@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
 using Kingmaker.Blueprints.Items;
+using Kingmaker.Items;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
 
 namespace CraftMagicItems {
@@ -32,9 +33,12 @@ namespace CraftMagicItems {
 
         [JsonProperty]
         public string LastMessage;
-        
+
+        [JsonProperty]
+        public ItemEntity UpgradeItem;
+
         public CraftingProjectData(int targetCost, int casterLevel, BlueprintItem itemBlueprint, string itemType,
-                BlueprintAbility[] prerequisites = null, string message = "") {
+                BlueprintAbility[] prerequisites = null, string message = "", ItemEntity upgradeItem = null) {
             TargetCost = targetCost;
             CasterLevel = casterLevel;
             ItemBlueprint = itemBlueprint;
@@ -42,6 +46,7 @@ namespace CraftMagicItems {
             Prerequisites = prerequisites;
             Progress = 0;
             LastMessage = message;
+            UpgradeItem = upgradeItem;
         }
 
         public void AddMessage(string message) {

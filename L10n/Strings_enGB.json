@@ -24,12 +24,28 @@
 		"value": "You can create wands of any 4th-level or lower spell that you know.  A newly created wand has 50 charges.  To craft a wand, you must use up raw materials costing the same as the wand's sale price, as well as expending 50 times any expensive material components."
 	},
 	{
+		"key": "craftMagicItems-feat-wondrous-displayName",
+		"value": "Crafting (Craft Wondrous Item)"
+	},
+	{
+		"key": "craftMagicItems-feat-wondrous-description",
+		"value": "You can create a wide variety of magic wondrous items, such as amulets, belts, boots, cloaks, gloves and headbands, but not rings. Wondrous items have a minimum caster level of 3."
+	},
+	{
+		"key": "craftMagicItems-itemType-wondrous",
+		"value": "Wondrous Item"
+	},
+	{
 		"key": "craftMagicItems-buff-name",
 		"value": "Craft Magic Items project schedule"
 	},
 	{
 		"key": "craftMagicItems-label-no-item-exists",
-		"value": "There is no {0} of {1}"
+		"value": "There is no {0} {1}"
+	},
+	{
+		"key": "craftMagicItems-label-craft-new-item",
+		"value": "(New Item)"
 	},
 	{
 		"key": "craftMagicItems-label-cost-free",
@@ -56,8 +72,16 @@
 		"value": "(custom) "
 	},
 	{
+		"key": "craftMagicItems-label-craft-spell-item",
+		"value": "Craft {0}{1} {2} for {3}"
+	},
+	{
 		"key": "craftMagicItems-label-craft-item",
-		"value": "Craft {0}{1} of {2} for {3}"
+		"value": "Craft {0}{1} for {2}"
+	},
+	{
+		"key": "craftMagicItems-label-upgrade-item",
+		"value": "Upgrade {0} to {1}{2} for {3}"
 	},
 	{
 		"key": "craftMagicItems-logMessage-begin-crafting",
@@ -74,6 +98,10 @@
 	{
 		"key": "craftMagicItems-logMessage-missing-prerequisite",
 		"value": "{Source} was unable to make progress on {0} because {mf|he|she} couldn't cast the mandatory prerequisite spell {1}."
+	},
+	{
+		"key": "craftMagicItems-logMessage-missing-upgrade-item",
+		"value": "{Source} was unable to make progress on upgrading {0} to {1} because {mf|he|she} couldn't access it."
 	},
 	{
 		"key": "craftMagicItems-logMessage-missing-spell",
@@ -102,5 +130,13 @@
 	{
 		"key": "craftMagicItems-logMessage-crafting-cancelled",
 		"value": "Cancelled crafting of {0} - refunded {1}."
+	},
+	{
+		"key": "craftMagicItems-custom-description-start",
+		"value": "This item was hand-crafted to your specifications."
+	},
+	{
+		"key": "craftMagicItems-custom-description-enchantment-template",
+		"value": "+{0} {1} {2} to {3}"
 	}
 ]

@@ -23,6 +23,7 @@ namespace CraftMagicItems {
                 }
             } catch (Exception e) {
                 Main.ModEntry.Logger.Warning($"Exception loading L10n data for locale {currentLocale}: {e}");
+                throw;
             }
         }
 

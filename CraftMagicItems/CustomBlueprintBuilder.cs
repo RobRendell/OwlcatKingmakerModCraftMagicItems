@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace CraftMagicItems {
     public class CustomBlueprintBuilder {
         
-        public const int VanillaAssetIdLength = 32;
+        public static readonly int VanillaAssetIdLength = 32;
 
         private static CustomBlueprintBuilder instance;
 
@@ -46,7 +46,7 @@ namespace CraftMagicItems {
             instance = this;
         }
 
-        private object CloneObject(object originalObject) {
+        public static object CloneObject(object originalObject) {
             var type = originalObject.GetType();
             var clone = typeof(ScriptableObject).IsAssignableFrom(type) ? ScriptableObject.CreateInstance(type) : Activator.CreateInstance(type);
             for (; type != null && type != typeof(Object); type = type.BaseType) {
