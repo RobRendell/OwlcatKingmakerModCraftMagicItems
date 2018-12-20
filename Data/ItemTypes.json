@@ -92,6 +92,17 @@
       "9482c62934be44044918c3aac3730232"
     ],
     "RecipeFileName": "WondrousRecipes.json",
-    "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist"]
+    "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist"],
+    "MinimumCasterLevel": 3
+  },
+  {
+    "DataType": "RecipeBased",
+    "Name": "ArmsAndArmour",
+    "NameId": "craftMagicItems-itemType-arms-armour",
+    "FeatGuid": "7f2b282626862e345935bbea5e66424b#CraftMagicItems(feat=arms-armour)",
+    "PrerequisitesMandatory": false,
+    "RecipeFileName": "ArmsArmourRecipes.json",
+    "Slots": ["Armor", "Shield", "Weapon"],
+    "MinimumCasterLevel": 5
   }
 ]

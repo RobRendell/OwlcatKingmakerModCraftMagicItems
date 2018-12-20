@@ -24,8 +24,7 @@ namespace CraftMagicItems {
     }
 
     public class SpellBasedItemCraftingData : ItemCraftingData {
-        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))]
-        public UsableItemType UsableItemType;
+        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))] public UsableItemType UsableItemType;
         [JsonProperty] public string NamePrefixId;
         [JsonProperty] public int MaxSpellLevel;
         [JsonProperty] public int BaseItemGoldCost;
@@ -34,9 +33,8 @@ namespace CraftMagicItems {
 
     public class RecipeBasedItemCraftingData : ItemCraftingData {
         [JsonProperty] public string RecipeFileName;
-        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
-        public ItemsFilter.ItemType[] Slots;
-
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public ItemsFilter.ItemType[] Slots;
+        [JsonProperty] public int MinimumCasterLevel;
         // Loaded manually from RecipeFileName
         public RecipeData[] Recipes;
         // Built after load
@@ -44,8 +42,25 @@ namespace CraftMagicItems {
     }
 
     public enum RecipeCostType {
-        Level,
-        LevelSquared
+        LevelSquared,
+        EnhancementLevelSquared,
+        CasterLevel
+    }
+
+    public enum ItemRestrictions {
+        WeaponMelee,
+        WeaponRanged,
+        WeaponBludgeoning,
+        WeaponPiercing,
+        WeaponSlashing,
+        WeaponNotBludgeoning,
+        WeaponNotPiercing,
+        WeaponNotSlashing
+    }
+    
+    public enum CrafterPrerequisiteType {
+        AlignmentGood,
+        AlignmentEvil
     }
     
     public class RecipeData {
@@ -56,10 +71,14 @@ namespace CraftMagicItems {
         [JsonProperty] public BlueprintItemEnchantment[] Enchantments;
         [JsonProperty] public int CasterLevelStart;
         [JsonProperty] public int CasterLevelMultiplier;
-        [JsonProperty] public BlueprintAbility[] Prerequisites;
-        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))]
-        public RecipeCostType CostType;
+        [JsonProperty] public BlueprintAbility[] PrerequisiteSpells;
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public CrafterPrerequisiteType[] CrafterPrerequisites;
+        [JsonProperty] public bool AnyPrerequisite;
+        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))] public RecipeCostType CostType;
         [JsonProperty] public int CostFactor;
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public ItemsFilter.ItemType[] OnlyForSlots;
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public ItemRestrictions[] Restrictions;
+        [JsonProperty] public bool CanApplyToMundaneItem;
     }
 
     public class CraftingTypeConverter : CustomCreationConverter<ICraftingData> {

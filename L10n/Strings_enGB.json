@@ -32,8 +32,20 @@
 		"value": "You can create a wide variety of magic wondrous items, such as amulets, belts, boots, cloaks, gloves and headbands, but not rings. Wondrous items have a minimum caster level of 3."
 	},
 	{
+		"key": "craftMagicItems-feat-arms-armour-displayName",
+		"value": "Crafting (Arms and Armor)"
+	},
+	{
+		"value": "You can upgrade weapons, armor, or shields with magical enhancements. Weapons to be enchanted must be at least masterwork quality. Enchanting arms or armor has a minimum caster level of 5.",
+		"key": "craftMagicItems-feat-arms-armour-description"
+	},
+	{
 		"key": "craftMagicItems-itemType-wondrous",
 		"value": "Wondrous Item"
+	},
+	{
+		"key": "craftMagicItems-itemType-arms-armour",
+		"value": "Arms and Armor"
 	},
 	{
 		"key": "craftMagicItems-buff-name",
@@ -49,7 +61,7 @@
 	},
 	{
 		"key": "craftMagicItems-label-cost-free",
-		"value": "free (cheating)"
+		"value": "nothing (cheating)"
 	},
 	{
 		"key": "craftMagicItems-label-cost-gold",
@@ -96,32 +108,44 @@
 		"value": "Resting resulted in no progress because it is less than a day since {Source} last did some crafting."
 	},
 	{
-		"key": "craftMagicItems-logMessage-missing-prerequisite",
-		"value": "{Source} was unable to make progress on {0} because {mf|he|she} couldn't cast the mandatory prerequisite spell {1}."
+		"key": "craftMagicItems-logMessage-missing-upgrade-item",
+		"value": "{Source} was unable to make progress on upgrading <b>{0}</b> because {mf|he|she} couldn't access it."
 	},
 	{
-		"key": "craftMagicItems-logMessage-missing-upgrade-item",
-		"value": "{Source} was unable to make progress on upgrading {0} to {1} because {mf|he|she} couldn't access it."
+		"key": "craftMagicItems-logMessage-missing-prerequisite",
+		"value": "{Source} was unable to make further progress on {0} because {mf|he|she} couldn't cast the mandatory prerequisite {1}."
 	},
 	{
 		"key": "craftMagicItems-logMessage-missing-spell",
-		"value": "{Source} is not able to cast prerequisite spell {0}, which raises the crafting DC by 5."
+		"value": "{Source} is not able to cast prerequisite <i>{0}</i>, which raises the crafting DC by {1}."
 	},
 	{
 		"key": "craftMagicItems-logMessage-low-caster-level",
 		"value": "{Source} is below caster level {0}, raising the crafting DC by {1}."
 	},
 	{
+		"key": "craftMagicItems-logMessage-missing-crafter-prerequisite",
+		"value": "{Source} is not {0}, which raises the crafting DC by {1}."
+	},
+	{
 		"key": "craftMagicItems-logMessage-dc-too-high",
-		"value": "{Source} was unable to make progress on {0} because the skill check is too hard (take 10 {1} check result {2} vs. DC {3})."
+		"value": "{Source} was unable to make further progress on <b>{0}</b> because the skill check is too hard (take 10 {1} check result {2} vs. DC {3})."
 	},
 	{
 		"key": "craftMagicItems-logMessage-expend-spell",
-		"value": "{Source} expends a use of {0}."
+		"value": "{Source} expends a use of <i>{0}</i>."
 	},
 	{
 		"key": "craftMagicItems-logMessage-made-progress",
-		"value": "{Source} progressed {0}% towards completing {1} (take 10 {2} check result {3} vs. DC {4})."
+		"value": "{Source} made {0} gold progress towards completing <b>{1}</b>."
+	},
+	{
+		"key": "craftMagicItems-logMessage-made-progress-check",
+		"value": "Take 10 {0} check result {1} vs. DC {2}."
+	},
+	{
+		"key": "craftMagicItems-logMessage-made-progress-amount-complete",
+		"value": "Crafting of <b>{0}</b> is {1}% complete."
 	},
 	{
 		"key": "craftMagicItems-logMessage-crafting-complete",
@@ -129,14 +153,42 @@
 	},
 	{
 		"key": "craftMagicItems-logMessage-crafting-cancelled",
-		"value": "Cancelled crafting of {0} - refunded {1}."
+		"value": "Cancelled crafting of <b>{0}</b> - refunded {1}."
+	},
+	{
+		"key": "craftMagicItems-logMessage-comma-list-and",
+		"value": "{0} and {1}"
+	},
+	{
+		"key": "craftMagicItems-logMessage-comma-list-or",
+		"value": "{0} or {1}"
 	},
 	{
 		"key": "craftMagicItems-custom-description-start",
 		"value": "This item was hand-crafted to your specifications."
 	},
 	{
+		"key": "craftMagicItems-custom-description-additional",
+		"value": "\nIn addition, you have had further enchanting done:"
+	},
+	{
 		"key": "craftMagicItems-custom-description-enchantment-template",
 		"value": "+{0} {1} {2} to {3}"
+	},
+	{
+		"key": "craftMagicItems-custom-description-enchantment-upgrade-template",
+		"value": "{0} {1} to {2} upgraded from +{3} to +{4}"
+	},
+	{
+		"key": "craftMagicItems-crafter-prerequisite-required",
+		"value": "Crafter must be {0}."
+	},
+	{
+		"key": "craftMagicItems-crafter-prerequisite-AlignmentGood",
+		"value": "of Good alignment"
+	},
+	{
+		"key": "craftMagicItems-crafter-prerequisite-AlignmentEvil",
+		"value": "of Evil alignment"
 	}
 ]

@@ -1,0 +1,577 @@
+[
+  {
+    "Name": "ArmourEnhancementBonus",
+    "NameId": "696d7c0e-f960-4b92-a703-01d8ff9c0674",
+    "Enchantments": [
+      "a9ea95c5e02f9b7468447bc1010fe152",
+      "758b77a97640fd747abf149f5bf538d0",
+      "9448d3026111d6d49b31fc85e7f3745a",
+      "eaeb89df5be2b784c96181552414ae5a",
+      "6628f9d77fd07b54c911cd8930c0d531"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 3,
+    "PrerequisiteSpells": [],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Armor"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "ArmourShieldResistanceAcid",
+    "NameId": "44a3d9ea-b381-4947-b7fc-d0b105c83440",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "dd0e096412423d646929d9b945fd6d4c",
+      "09e0be00530efec4693a913d6a7efe23",
+      "e6fa2f59c7f1bb14ebfc429f17d0a4c6"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 6000,
+    "OnlyForSlots": ["Armor", "Shield"]
+  },
+  {
+    "Name": "ArmourShieldResistanceCold",
+    "NameId": "04cfed03-5a15-4aa0-80a1-835bd4b3a4e3",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "c872314ecfab32949ad2e0eebd834919",
+      "581c22e55f03e4e4f9f9ea619d89af5f",
+      "7ef70c319ca74fe4cb5eddea792bb353"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 6000,
+    "OnlyForSlots": ["Armor", "Shield"]
+  },
+  {
+    "Name": "ArmourShieldResistanceElectricity",
+    "NameId": "7e911471-ddb8-47c7-9266-5277a2beb7c7",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "1e4dcaf8ffa56c24788e392dae886166",
+      "fcfd9515adbd07a43b490280c06203f9",
+      "26b91513989a653458986fabce24ba95"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 6000,
+    "OnlyForSlots": ["Armor", "Shield"]
+  },
+  {
+    "Name": "ArmourShieldResistanceFire",
+    "NameId": "20b623d7-1685-4612-b280-5e38cd59614f",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "47f45701cc9545049b3745ef949d7446",
+      "85c2f44721922e4409130791f913d4b4",
+      "0e98403449de8ce4c846361c6df30d1f"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 6000,
+    "OnlyForSlots": ["Armor", "Shield"]
+  },
+  {
+    "Name": "ShieldEnhancementBonus",
+    "NameId": "696d7c0e-f960-4b92-a703-01d8ff9c0674",
+    "Enchantments": [
+      "e90c252e08035294eba39bafce76c119",
+      "7b9f2f78a83577d49927c78be0f7fbc1",
+      "ac2e3a582b5faa74aab66e0a31c935a9",
+      "a5d27d73859bd19469a6dde3b49750ff",
+      "84d191a748edef84ba30c13b8ab83bd9"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 3,
+    "PrerequisiteSpells": [],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Shield"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "WeaponEnhancementBonus",
+    "NameId": "696d7c0e-f960-4b92-a703-01d8ff9c0674",
+    "Enchantments": [
+      "d42fc23b92c640846ac137dc26e000d4",
+      "eb2faccc4c9487d43b3575d7e77ff3f5",
+      "80bb8a737579e35498177e1e3c75899b",
+      "783d7d496da6ac44f9511011fc5f1979",
+      "bdba267e951851449af552aa9f9e3992"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 3,
+    "PrerequisiteSpells": [],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "WeaponBaneAberration",
+    "NameId": "01f677ed-a814-4e69-b44c-ecd9bb2f2302",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "ee71cc8848219c24b8418a628cc3e2fa"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneAnimal",
+    "NameId": "76dd7b7c-59db-43af-863b-e6cbf7e2961c",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "78cf9fabe95d3934688ea898c154d904"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneConstruct",
+    "NameId": "2d68f30b-bb45-46d0-ab1c-da74f3952816",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "73d30862f33cc754bb5a5f3240162ae6"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneDragon",
+    "NameId": "29065a72-2e9d-4235-93f7-02abf158b265",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "e5cb46a0a658b0a41854447bea32d2ee"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneFey",
+    "NameId": "889e08af-48fd-4458-a6e5-cfc0dab63739",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "b6948040cdb601242884744a543050d4"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneGiant",
+    "NameId": "1824ead1-781e-4fc2-8aa1-9ea6b976ea99",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "dcecb5f2ffacfd44ead0ed4f8846445d"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneReptilian",
+    "NameId": "9160df38-97ff-4b5f-bc8d-41d3abafe002",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "c4b9cce255d1d6641a6105a255934e2e"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneLongshank",
+    "NameId": "d63800ed-2ba2-4405-890f-9dbb6fb42418",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "92a1f5db1a03c5b468828c25dd375806"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneLycanthrope",
+    "NameId": "858d53e1-0cfe-4f71-a140-1c7844bc9a11",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "188efcfcd9938d44e9561c87794d17a8"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneMagicalBeast",
+    "NameId": "e05d8d15-3100-4c5f-8c8c-eb764c2266d6",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "97d477424832c5144a9413c64d818659"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneMonstrousHumanoid",
+    "NameId": "e71ce6c4-e31b-41e0-b461-8a6a7fa32364",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "c5f84a79ad154c84e8d2e9fe0dd49350"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneOutsiderChaotic",
+    "NameId": "3dc1a20b-554e-4d53-b777-6b15c42935b6",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "234177d5807909f44b8c91ed3c9bf7ac"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneOutsiderEvil",
+    "NameId": "5a392845-d7e5-4417-a1aa-b4dc206fa6b2",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "20ba9055c6ae1e44ca270c03feacc53b"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneOutsideGood",
+    "NameId": "64e35be9-5bd6-440d-83b7-8995ce3336b6",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "a876de94b916b7249a77d090cb9be4f3"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneOutsiderLawful",
+    "NameId": "1ae605a0-d978-4079-b3b0-f0e76fa64817",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "3a6f564c8ea2d1941a45b19fa16e59f5"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneOutsiderNeutral",
+    "NameId": "d687cac8-1db5-472f-aad4-203bbf8f73b3",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "4e30e79c500e5af4b86a205cc20436f2"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBanePlant",
+    "NameId": "2b02bd66-1579-49fb-ab99-053203b0ff47",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "0b761b6ed6375114d8d01525d44be5a9"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneUndead",
+    "NameId": "91a0380c-c90e-47eb-a6d6-5740e275824a",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "eebb4d3f20b8caa43af1fed8f2773328"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBaneVermin",
+    "NameId": "cbf167f2-c2b7-4edd-94e0-4f723bb01845",
+    "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
+    "Enchantments": [
+      "c3428441c00354c4fabe27629c6c64dd"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponBrilliantEnergy",
+    "NameId": "c8da29f0-67fc-467e-8ad1-c78251848031",
+    "Enchantments": [
+      "66e9e299c9002ea4bb65b6f300e43770"
+    ],
+    "CasterLevelStart": 16,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["5ab0d42fb68c9e34abae4921822b9d63", "ebade19998e1f8542a1b55bd4da766b3"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 4,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponCorrosive",
+    "NameId": "3d381057-f38e-4eaf-b6c2-1d62c4f56fd6",
+    "Enchantments": [
+      "633b38ff1d11de64a91d490c683ab1c8"
+    ],
+    "CasterLevelStart": 10,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["9a46dfd390f943647ab4395fc997936d"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponDisruption",
+    "NameId": "cbbccf35-c6dc-4756-853b-9b059980e52f",
+    "Enchantments": [
+      "0f20d79b7049c0f4ca54ca3d1ea44baa"
+    ],
+    "CasterLevelStart": 14,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["ff8f1534f66559c478448723e16b6624"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 2,
+    "OnlyForSlots": ["Weapon"],
+    "Restrictions": ["WeaponMelee", "WeaponBludgeoning"]
+  },
+  {
+    "Name": "WeaponFlaming",
+    "NameId": "a9f811aa-570e-41e9-89fc-223825a5ecb4",
+    "Enchantments": [
+      "30f90becaaac51f41bf56641966c4121",
+      "3f032a3cd54e57649a0cdad0434bf221"
+    ],
+    "CasterLevelStart": 10,
+    "CasterLevelMultiplier": 2,
+    "PrerequisiteSpells": ["f9910c76efc34af41b6e43d5d8752f0f", "2d81362af43aeac4387a3d4fced489c3"],
+    "AnyPrerequisite": true,
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponFrost",
+    "NameId": "e3755592-75da-47f5-9795-484c1518505d",
+    "Enchantments": [
+      "421e54078b7719d40915ce0672511d0b",
+      "564a6924b246d254c920a7c44bf2a58b"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 2,
+    "PrerequisiteSpells": ["fcb028205a71ee64d98175ff39a0abf9"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponFurious",
+    "NameId": "4b91231a-89a6-4ad1-88c9-5ea3567e2278",
+    "Enchantments": [
+      "b606a3f5daa76cc40add055613970d2a"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["97b991256e43bb140b263c326f690ce2"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponGhostTouch",
+    "NameId": "82879a0d-c767-4c58-926f-70c0cc52efd7",
+    "Enchantments": [
+      "47857e1a5a3ec1a46adf6491b1423b4f"
+    ],
+    "CasterLevelStart": 9,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["95f7cdcec94e293489a85afdf5af1fd7"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponHoly",
+    "NameId": "c02aed5b-4eb0-40f8-ae04-5350b9dac828",
+    "Enchantments": [
+      "28a9964d81fedae44bae3ca45710c140"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["bf74b3b54c21a9344afe9947546e036f"],
+    "CrafterPrerequisites": ["AlignmentGood"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 2,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponKeen",
+    "NameId": "94570760-3d0c-48f9-9e63-0df5dbe54dec",
+    "Enchantments": [
+      "102a9c8c9b7a75e4fb5844e79deaf4c0"
+    ],
+    "CasterLevelStart": 10,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["486eaff58293f6441a5c2759c4872f98"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"],
+    "Restrictions": ["WeaponMelee", "WeaponNotBludgeoning"]
+  },
+  {
+    "Name": "WeaponShock",
+    "NameId": "7b4827cc-785f-48ab-9abc-8d14bb22ec0f",
+    "Enchantments": [
+      "7bda5277d36ad114f9f9fd21d0dab658",
+      "914d7ee77fb09d846924ca08bccee0ff"
+    ],
+    "CasterLevelStart": 8,
+    "CasterLevelMultiplier": 2,
+    "PrerequisiteSpells": ["2a9ef0e0b5822a24d88b16673a267456", "d2cff9243a7ee804cb6d5be47af30c73"],
+    "AnyPrerequisite": true,
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponSpeed",
+    "NameId": "308cdfc1-707e-49ef-b011-31c79ee2021d",
+    "Enchantments": [
+      "f1c0c50108025d546b2554674ea1c006"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["486eaff58293f6441a5c2759c4872f98"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 3,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponThundering",
+    "NameId": "a79f0833-e4ec-4a67-ae75-1508ad54648b",
+    "Enchantments": [
+      "690e762f7704e1f4aa1ac69ef0ce6a96"
+    ],
+    "CasterLevelStart": 5,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["f09453607e683784c8fca646eec49162"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponUnholy",
+    "NameId": "32d9aeca-c1c8-425d-975a-5347a8f57038",
+    "Enchantments": [
+      "d05753b8df780fc4bb55b318f06af453"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["b56521d58f996cd4299dab3f38d5fe31"],
+    "CrafterPrerequisites": ["AlignmentEvil"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 2,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponVicious",
+    "NameId": "4c64e444-9087-4e99-a303-019361891c4a",
+    "Enchantments": [
+      "a1455a289da208144981e4b1ef92cc56"
+    ],
+    "CasterLevelStart": 9,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["f34fb78eaaec141469079af124bcfa0f"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"]
+  }
+]

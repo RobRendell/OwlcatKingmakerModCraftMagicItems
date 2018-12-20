@@ -22,6 +22,8 @@ namespace CraftMagicItems {
         
         public List<string> CustomBlueprintIDs { get; } = new List<string>();
 
+        public bool Downgrade { get; private set; }
+        
         public bool Enabled {
             set {
                 enabled = value;
@@ -114,8 +116,12 @@ namespace CraftMagicItems {
             // ReSharper disable once UnusedMember.Local
             // ReSharper disable once InconsistentNaming
             private static void Postfix(string assetId, ref BlueprintScriptableObject __result) {
-                if (instance != null && instance.enabled && __result != null && assetId != __result.AssetGuid) {
-                    __result = instance.PatchBlueprint(assetId, __result);
+                if (instance != null && __result != null && assetId != __result.AssetGuid) {
+                    if (instance.enabled) {
+                        __result = instance.PatchBlueprint(assetId, __result);
+                    } else {
+                        instance.Downgrade = true;
+                    }
                 }
             }
         }

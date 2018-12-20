@@ -9,6 +9,7 @@ using Kingmaker;
 using Kingmaker.Blueprints.Items;
 using Kingmaker.Items;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
+using Newtonsoft.Json.Converters;
 
 namespace CraftMagicItems {
 
@@ -25,6 +26,12 @@ namespace CraftMagicItems {
         [JsonProperty]
         public BlueprintAbility[] Prerequisites;
 
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public CrafterPrerequisiteType[] CrafterPrerequisites;
+        
+        [JsonProperty]
+        public bool AnyPrerequisite;
+        
         [JsonProperty]
         public BlueprintItem ItemBlueprint;
 
@@ -38,15 +45,18 @@ namespace CraftMagicItems {
         public ItemEntity UpgradeItem;
 
         public CraftingProjectData(int targetCost, int casterLevel, BlueprintItem itemBlueprint, string itemType,
-                BlueprintAbility[] prerequisites = null, string message = "", ItemEntity upgradeItem = null) {
+                BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, string message = "", ItemEntity upgradeItem = null,
+                CrafterPrerequisiteType[] crafterPrerequisites = null) {
             TargetCost = targetCost;
             CasterLevel = casterLevel;
             ItemBlueprint = itemBlueprint;
             ItemType = itemType;
             Prerequisites = prerequisites;
+            AnyPrerequisite = anyPrerequisite;
             Progress = 0;
             LastMessage = message;
             UpgradeItem = upgradeItem;
+            CrafterPrerequisites = crafterPrerequisites;
         }
 
         public void AddMessage(string message) {

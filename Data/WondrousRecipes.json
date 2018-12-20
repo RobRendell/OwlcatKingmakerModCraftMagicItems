@@ -13,7 +13,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["7bc8e27cba24f0e43ae64ed201ad5785"],
+    "PrerequisiteSpells": ["7bc8e27cba24f0e43ae64ed201ad5785"],
     "CostType": "LevelSquared",
     "CostFactor": 1000
   },
@@ -32,7 +32,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["4c3d08935262b6544ae97599b3a9556d"],
+    "PrerequisiteSpells": ["4c3d08935262b6544ae97599b3a9556d"],
     "CostType": "LevelSquared",
     "CostFactor": 1000
   },
@@ -51,7 +51,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["de7a025d48ad5da4991e7d3c682cf69d"],
+    "PrerequisiteSpells": ["de7a025d48ad5da4991e7d3c682cf69d"],
     "CostType": "LevelSquared",
     "CostFactor": 1000
   },
@@ -70,7 +70,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["a900628aea19aa74aad0ece0e65d091a"],
+    "PrerequisiteSpells": ["a900628aea19aa74aad0ece0e65d091a"],
     "CostType": "LevelSquared",
     "CostFactor": 1000
   },
@@ -89,7 +89,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["ae4d3ad6a8fda1542acf2e9bbc13d113"],
+    "PrerequisiteSpells": ["ae4d3ad6a8fda1542acf2e9bbc13d113"],
     "CostType": "LevelSquared",
     "CostFactor": 1000
   },
@@ -108,7 +108,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["f0455c9295b53904f9e02fc571dd2ce1"],
+    "PrerequisiteSpells": ["f0455c9295b53904f9e02fc571dd2ce1"],
     "CostType": "LevelSquared",
     "CostFactor": 1000
   },
@@ -127,7 +127,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["446f7bf201dc1934f96ac0a26e324803"],
+    "PrerequisiteSpells": ["446f7bf201dc1934f96ac0a26e324803"],
     "CostType": "LevelSquared",
     "CostFactor": 1000
   },
@@ -144,7 +144,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
-    "Prerequisites": ["5b77d7cc65b8ab74688e74a37fc2f553"],
+    "PrerequisiteSpells": ["5b77d7cc65b8ab74688e74a37fc2f553"],
     "CostType": "LevelSquared",
     "CostFactor": 2000
   },
@@ -167,7 +167,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -190,7 +190,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -213,7 +213,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -236,7 +236,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -259,7 +259,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -282,7 +282,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -305,7 +305,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -328,7 +328,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -351,7 +351,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -374,7 +374,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   },
@@ -397,7 +397,7 @@
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 2,
-    "Prerequisites": [],
+    "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
     "CostFactor": 100
   }
