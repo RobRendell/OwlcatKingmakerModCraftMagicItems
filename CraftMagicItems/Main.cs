@@ -10,6 +10,7 @@ using Kingmaker;
 using Kingmaker.Blueprints;
 using Kingmaker.Blueprints.Classes;
 using Kingmaker.Blueprints.Classes.Selection;
+using Kingmaker.Blueprints.Classes.Spells;
 using Kingmaker.Blueprints.Facts;
 using Kingmaker.Blueprints.Items;
 using Kingmaker.Blueprints.Items.Armors;
@@ -543,7 +544,7 @@ namespace CraftMagicItems {
                 .OrderBy(recipe => new L10NString(recipe.ParentNameId ?? recipe.NameId).ToString())
                 .ToArray();
             var recipeNames = availableRecipes.Select(recipe => new L10NString(recipe.ParentNameId ?? recipe.NameId).ToString()).ToArray();
-            RenderSelection(ref selectedRecipeIndex, "Enchantment: ", recipeNames, 6, ref selectedCustomName);
+            RenderSelection(ref selectedRecipeIndex, "Enchantment: ", recipeNames, 6);
             var selectedRecipe = availableRecipes[selectedRecipeIndex];
             if (selectedRecipe.ParentNameId != null) {
                 var category = recipeNames[selectedRecipeIndex];
@@ -551,7 +552,7 @@ namespace CraftMagicItems {
                     .OrderBy(recipe => new L10NString(recipe.NameId).ToString())
                     .ToArray();
                 recipeNames = availableSubRecipes.Select(recipe => new L10NString(recipe.NameId).ToString()).ToArray();
-                RenderSelection(ref selectedSubRecipeIndex, category + ": ", recipeNames, 6, ref selectedCustomName);
+                RenderSelection(ref selectedSubRecipeIndex, category + ": ", recipeNames, 6);
                 selectedRecipe = availableSubRecipes[selectedSubRecipeIndex];
             }
             // Pick specific enchantment from the recipe
@@ -568,7 +569,7 @@ namespace CraftMagicItems {
                     counter++;
                     return enchantment.Name.Empty() ? $"+{counter}" : enchantment.Name;
                 });
-                RenderSelection(ref selectedEnchantmentIndex, "", enchantmentNames.ToArray(), 6, ref selectedCustomName);
+                RenderSelection(ref selectedEnchantmentIndex, "", enchantmentNames.ToArray(), 6);
             } else if (availableEnchantments.Length == 1) {
                 selectedEnchantmentIndex = 0;
             } else {
@@ -578,6 +579,9 @@ namespace CraftMagicItems {
             var selectedEnchantment = availableEnchantments[selectedEnchantmentIndex];
             var casterLevel = Math.Max(craftingData.MinimumCasterLevel,
                 selectedRecipe.CasterLevelStart + selectedRecipe.Enchantments.IndexOf(selectedEnchantment) * selectedRecipe.CasterLevelMultiplier);
+            if (!string.IsNullOrEmpty(selectedEnchantment.Description)) {
+                RenderLabel(selectedEnchantment.Description);
+            }
             GUILayout.BeginHorizontal();
             GUILayout.Label("Prerequisites: ", GUILayout.ExpandWidth(false));
             var prerequisites = $"{CasterLevelLocalized} {casterLevel}";
@@ -622,7 +626,7 @@ namespace CraftMagicItems {
                 baseBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(selectedBaseGuid);
                 RenderCustomNameField($"{new L10NString(selectedRecipe.NameId)} {new L10NString(GetSlotStringKey(selectedSlot))}");
                 itemGuid = BuildCustomRecipeItemGuid(selectedBaseGuid, new List<string> {selectedEnchantment.AssetGuid},
-                    baseBlueprint ? baseBlueprint.Enchantments.Select(enchantment => enchantment.AssetGuid) : null, selectedCustomName, "null", "null");
+                    baseBlueprint ? baseBlueprint.Enchantments.Select(enchantment => enchantment.AssetGuid) : null, selectedCustomName ?? "[custom item]", "null", "null");
                 itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
             }
             if (!itemToCraft) {
@@ -809,6 +813,9 @@ namespace CraftMagicItems {
                 selectedCustomName = defaultValue;
             }
             selectedCustomName = GUILayout.TextField(selectedCustomName, GUILayout.Width(300));
+            if (selectedCustomName.Trim().Length == 0) {
+                selectedCustomName = null;
+            }
             GUILayout.EndHorizontal();
         }
 
@@ -979,7 +986,7 @@ namespace CraftMagicItems {
                 } else {
                     var craftingProjects = GetCraftingTimerComponentForCaster(caster.Descriptor, true);
                     GameLogContext.Count = (goldCost + CraftingProgressPerDay - 1) / CraftingProgressPerDay;
-                    craftingProjects.AddProject(new CraftingProjectData(goldCost, casterLevel, itemBlueprint, craftingData.Name, new [] { spell.Blueprint },
+                    craftingProjects.AddProject(new CraftingProjectData(goldCost, casterLevel, itemBlueprint, craftingData.Name, new [] { spellBlueprint },
                         false, new L10NString("craftMagicItems-startMessage")));
                     currentSection = OpenSection.ProjectsSection;
                 }
@@ -1309,7 +1316,7 @@ namespace CraftMagicItems {
             } else if (match.Groups["components"].Success) {
                 result = ApplyComponentsBlueprintPatch(blueprint, match);
             } else {
-                throw new NotImplementedException($"Match of assetId {match.Value} didn't matching any sub-type");
+                throw new Exception($"Match of assetId {match.Value} didn't matching any sub-type");
             }
             return result;
         }
@@ -1501,6 +1508,17 @@ namespace CraftMagicItems {
             }
         }
 
+        // Owlcat's code doesn't correctly detect that a variant spell is in a spellList when its parent spell is. 
+        [HarmonyPatch(typeof(BlueprintAbility), "IsInSpellList")]
+        public static class BlueprintAbilityIsInSpellListPatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix(BlueprintAbility __instance, BlueprintSpellList spellList, ref bool __result) {
+                if (!__result && __instance.Parent != null && __instance.Parent != __instance) {
+                    __result = __instance.Parent.IsInSpellList(spellList);
+                }
+            }
+        }
+
         private static void AddBattleLogMessage(string message, object tooltip = null, Color? color = null) {
             var data = new LogDataManager.LogItemData(message, color ?? GameLogStrings.Instance.DefaultColor, tooltip, PrefixIcon.None);
             if (Game.Instance.UI.BattleLogManager) {
@@ -1550,8 +1568,11 @@ namespace CraftMagicItems {
                     } else {
                         // Prepared spellcaster must have memorized the spell...
                         var spellSlot = spellbook.GetMemorizedSpells(spellLevel).FirstOrDefault(slot =>
-                            slot.Available && slot.Spell?.Blueprint == spellBlueprint);
-                        if (spellSlot == null && spellbook.GetSpontaneousConversionSpells(spellLevel).Contains(spellBlueprint)) {
+                            slot.Available && (slot.Spell?.Blueprint == spellBlueprint ||
+                                               spellBlueprint.Parent && slot.Spell?.Blueprint == spellBlueprint.Parent));
+                        if (spellSlot == null && (spellbook.GetSpontaneousConversionSpells(spellLevel).Contains(spellBlueprint) ||
+                                                  (spellBlueprint.Parent &&
+                                                   spellbook.GetSpontaneousConversionSpells(spellLevel).Contains(spellBlueprint.Parent)))) {
                             // ... or be able to convert, in which case any available spell of the given level will do.
                             spellSlot = spellbook.GetMemorizedSpells(spellLevel).FirstOrDefault(slot => slot.Available);
                         }
@@ -1562,13 +1583,15 @@ namespace CraftMagicItems {
                     }
                 }
                 return spellbook.GetKnownSpells(spellLevel).First(spell => spell.Blueprint == spellBlueprint ||
-                                                                           (spell.Blueprint.HasVariants && spell.Blueprint.Variants.Contains(spellBlueprint)));
+                                                                           (spellBlueprint.Parent && spellBlueprint == spellBlueprint.Parent));
             }
             // Try casting the spell from an item
             ItemEntity fromItem = null;
             var fromItemCharges = 0;
             foreach (var item in caster.Inventory) {
-                if (item.Wielder == caster && item.Ability?.Blueprint == spellBlueprint) {
+                // Check (non-potion) items wielded by the caster to see if they can cast the required spell
+                if (item.Wielder == caster && (!(item.Blueprint is BlueprintItemEquipmentUsable usable) || usable.Type != UsableItemType.Potion)
+                                           && (item.Ability?.Blueprint == spellBlueprint || (spellBlueprint.Parent && item.Ability?.Blueprint == spellBlueprint.Parent))) {
                     // Choose the item with the most available charges, with a multiplier if the item restores charges on rest.
                     var charges = item.Charges * (((BlueprintItemEquipment) item.Blueprint).RestoreChargesOnRest ? 50 : 1);
                     if (charges > fromItemCharges) {
