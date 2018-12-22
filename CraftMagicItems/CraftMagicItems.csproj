@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -23,7 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -87,22 +87,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>del *.zip
-rmdir /S /Q CraftMagicItems
-
-mkdir CraftMagicItems
-xcopy CraftMagicItems.dll CraftMagicItems
-xcopy ..\..\..\Info.json CraftMagicItems
-xcopy /E /I ..\..\..\L10n CraftMagicItems\L10n
-xcopy /E /I ..\..\..\Icons CraftMagicItems\Icons
-"C:\Program Files\7-Zip\7z.exe" a CraftMagicItems.zip CraftMagicItems
-
-"C:\Program Files\7-Zip\7z.exe" a CraftMagicItems-Source.zip ..\..\*.cs ../../../L10n
-
-xcopy /Y CraftMagicItems.dll "C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Mods\CraftMagicItems"
-xcopy /E /I /Y ..\..\..\L10n "C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Mods\CraftMagicItems\L10n"
-xcopy /E /I /Y ..\..\..\Icons "C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Mods\CraftMagicItems\Icons"
-
-</PostBuildEvent>
+    <PostBuildEvent>..\..\AfterBuild.bat</PostBuildEvent>
   </PropertyGroup>
 </Project>

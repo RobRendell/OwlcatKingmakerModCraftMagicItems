@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
 using Kingmaker.Blueprints.Items;
+using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Items;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Newtonsoft.Json.Converters;
@@ -14,6 +15,9 @@ using Newtonsoft.Json.Converters;
 namespace CraftMagicItems {
 
     public class CraftingProjectData {
+        // Not serialized
+        public UnitEntityData Crafter;
+        
         [JsonProperty]
         public int Progress;
 
@@ -33,7 +37,10 @@ namespace CraftMagicItems {
         public bool AnyPrerequisite;
         
         [JsonProperty]
-        public BlueprintItem ItemBlueprint;
+        public BlueprintItem ItemBlueprint; // TODO remove eventually
+        
+        [JsonProperty]
+        public ItemEntity ResultItem;
 
         [JsonProperty]
         public string ItemType;
@@ -44,17 +51,17 @@ namespace CraftMagicItems {
         [JsonProperty]
         public ItemEntity UpgradeItem;
 
-        public CraftingProjectData(int targetCost, int casterLevel, BlueprintItem itemBlueprint, string itemType,
-                BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, string message = "", ItemEntity upgradeItem = null,
+        public CraftingProjectData(UnitEntityData crafter, int targetCost, int casterLevel, ItemEntity resultItem, string itemType,
+                BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, ItemEntity upgradeItem = null,
                 CrafterPrerequisiteType[] crafterPrerequisites = null) {
+            Crafter = crafter;
             TargetCost = targetCost;
             CasterLevel = casterLevel;
-            ItemBlueprint = itemBlueprint;
+            ResultItem = resultItem;
             ItemType = itemType;
             Prerequisites = prerequisites;
             AnyPrerequisite = anyPrerequisite;
             Progress = 0;
-            LastMessage = message;
             UpgradeItem = upgradeItem;
             CrafterPrerequisites = crafterPrerequisites;
         }

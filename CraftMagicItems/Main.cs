@@ -125,6 +125,8 @@ namespace CraftMagicItems {
         private static readonly Dictionary<string, int> EnchantmentIdToCost = new Dictionary<string, int>();
         private static readonly Random RandomGenerator = new Random();
         private static readonly List<LogDataManager.LogItemData> PendingLogItems = new List<LogDataManager.LogItemData>();
+        private static readonly Dictionary<ItemEntity, CraftingProjectData> ItemUpgradeProjects = new Dictionary<ItemEntity, CraftingProjectData>();
+        private static readonly List<CraftingProjectData> ItemCreationProjects = new List<CraftingProjectData>();
 
         // ReSharper disable once UnusedMember.Local
         private static void Load(UnityModManager.ModEntry modEntry) {
@@ -239,7 +241,7 @@ namespace CraftMagicItems {
                 }
                 caster.AddFact<Buff>(timerBlueprint);
                 timer = (Buff)caster.GetFact(timerBlueprint);
-            } else if (timer.Blueprint.AssetGuid.Length == CustomBlueprintBuilder.VanillaAssetIdLength) {
+            } else if (timer.Blueprint.AssetGuid.Length == CustomBlueprintBuilder.VanillaAssetIdLength && CustomBlueprintBuilder.Downgrade) {
                 // Clean up
                 caster.RemoveFact(timer);
                 return null;
@@ -504,6 +506,15 @@ namespace CraftMagicItems {
                    (IsEnchanted(item) || recipe.CanApplyToMundaneItem) && ItemMatchesRestrictions(item, recipe.Restrictions);
         }
 
+        private static ItemEntity BuildItemEntity(BlueprintItem blueprint, ItemCraftingData craftingData) {
+            var item = blueprint.CreateEntity();
+            item.IsIdentified = true;
+            if (craftingData is SpellBasedItemCraftingData spellBased) {
+                item.Charges = spellBased.Charges; // Set the charges, since wand blueprints have random values.
+            }
+            return item;
+        }
+        
         private static void RenderRecipeBasedCrafting(UnitEntityData caster, RecipeBasedItemCraftingData craftingData) {
             // Choose slot/weapon type.
             if (craftingData.Slots.Length > 1) {
@@ -513,16 +524,24 @@ namespace CraftMagicItems {
                 selectedItemSlotIndex = 0;
             }
             var selectedSlot = craftingData.Slots[selectedItemSlotIndex];
-            // Choose an existing item of that type, or create a new one (if allowed).
-            // Allow them to select an existing item of the given type.
             var playerInCapital = IsPlayerInCapital();
-            var items = Game.Instance.Player.Inventory.Where(item =>
-                item.Blueprint is BlueprintItemEquipment blueprint && blueprint.ItemType == selectedSlot
-                                                                   && CanEnchant(item)
-                                                                   && (item.Wielder == null
-                                                                       || playerInCapital
-                                                                       || Game.Instance.Player.PartyCharacters.Contains(item.Wielder.Unit))
-                ).ToArray();
+            // Choose an existing or in-progress item of that type, or create a new one (if allowed).
+            var items = Game.Instance.Player.Inventory
+                .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
+                               && blueprint.ItemType == selectedSlot
+                               && CanEnchant(item)
+                               && (item.Wielder == null
+                                   || playerInCapital
+                                   || Game.Instance.Player.PartyCharacters.Contains(item.Wielder.Unit)))
+                .Select(item => {
+                    while (ItemUpgradeProjects.ContainsKey(item)) {
+                        item = ItemUpgradeProjects[item].ResultItem;
+                    }
+                    return item;
+                })
+                .Concat(ItemCreationProjects.Select(project => project.ResultItem))
+                .OrderBy(item => item.Name)
+                .ToArray();
             var canCreateNew = craftingData.NewItemBaseIDs != null;
             var itemNames = items.Select(item => item.Name).PrependConditional(canCreateNew, new L10NString("craftMagicItems-label-craft-new-item")).ToArray();
             if (itemNames.Length == 0) {
@@ -648,50 +667,62 @@ namespace CraftMagicItems {
                 return 0;
             }
         }
+
+        private static void CancelCraftingProject(CraftingProjectData project) {
+            // Refund gold and material components.  Yes, the player could exploit this by toggling "crafting costs no gold" between
+            // queueing up a crafting project and cancelling it, but there are much more direct ways to cheat with mods, so I don't
+            // particularly care.
+            if (!settings.CraftingCostsNoGold) {
+                Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
+                Game.Instance.Player.GainMoney(project.TargetCost);
+                var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
+                BuildCostString(out var cost, craftingData, project.TargetCost, project.Prerequisites);
+                var factor = GetMaterialComponentMultiplier(craftingData);
+                if (factor > 0) {
+                    foreach (var prerequisiteSpell in project.Prerequisites) {
+                        if (prerequisiteSpell.MaterialComponent.Item) {
+                            var number = prerequisiteSpell.MaterialComponent.Count * factor;
+                            Game.Instance.Player.Inventory.Add(prerequisiteSpell.MaterialComponent.Item, number);
+                        }
+                    }
+                }
+                AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-crafting-cancelled", project.ResultItem.Name, cost));
+            }
+            var timer = GetCraftingTimerComponentForCaster(project.Crafter.Descriptor);
+            timer.CraftingProjects.Remove(project);
+            if (project.UpgradeItem == null) {
+                ItemCreationProjects.Remove(project);
+            } else {
+                ItemUpgradeProjects.Remove(project.UpgradeItem);
+                if (ItemUpgradeProjects.ContainsKey(project.ResultItem)) {
+                    CancelCraftingProject(ItemUpgradeProjects[project.ResultItem]);
+                }
+            }
+        }
         
         private static void RenderProjectsSection() {
             var caster = GetSelectedCaster(false);
             if (caster == null) {
                 return;
             }
-            var craftingProjects = GetCraftingTimerComponentForCaster(caster.Descriptor);
-            if (craftingProjects == null || craftingProjects.CraftingProjects.Count == 0) {
+            var timer = GetCraftingTimerComponentForCaster(caster.Descriptor);
+            if (timer == null || timer.CraftingProjects.Count == 0) {
                 RenderLabel($"{caster.CharacterName} is not currently working on any crafting projects.");
                 return;
             }
-            RenderLabel($"{caster.CharacterName} currently has {craftingProjects.CraftingProjects.Count} crafting projects in progress.");
+            RenderLabel($"{caster.CharacterName} currently has {timer.CraftingProjects.Count} crafting projects in progress.");
             var firstItem = true;
-            foreach (var project in craftingProjects.CraftingProjects.ToArray()) {
+            foreach (var project in timer.CraftingProjects.ToArray()) {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label($"   <b>{project.ItemBlueprint.Name}</b> is {100 * project.Progress / project.TargetCost}% complete.  {project.LastMessage}", GUILayout.Width(600f));
+                GUILayout.Label($"   <b>{project.ResultItem.Name}</b> is {100 * project.Progress / project.TargetCost}% complete.  {project.LastMessage}", GUILayout.Width(600f));
                 if (GUILayout.Button("<color=red>✖</color>", GUILayout.ExpandWidth(false))) {
-                    craftingProjects.CraftingProjects.Remove(project);
-                    // Refund gold and material components.  Yes, the player could exploit this by toggling "crafting costs no gold" between
-                    // queueing up a crafting project and cancelling it, but there are much more direct ways to cheat with mods, so I don't
-                    // particularly care.
-                    if (!settings.CraftingCostsNoGold) {
-                        Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
-                        Game.Instance.Player.GainMoney(project.TargetCost);
-                        var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
-                        BuildCostString(out var cost, craftingData, project.TargetCost, project.Prerequisites);
-                        var factor = GetMaterialComponentMultiplier(craftingData);
-                        if (factor > 0) {
-                            foreach (var prerequisiteSpell in project.Prerequisites) {
-                                if (prerequisiteSpell.MaterialComponent.Item) {
-                                    var number = prerequisiteSpell.MaterialComponent.Count * factor;
-                                    Game.Instance.Player.Inventory.Add(prerequisiteSpell.MaterialComponent.Item, number);
-                                }
-                            }
-                        }
-                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-crafting-cancelled", project.ItemBlueprint.Name, cost));
-                    }
-
+                    CancelCraftingProject(project);
                 }
                 if (firstItem) {
                     firstItem = false;
                 } else if (GUILayout.Button("Move To Top", GUILayout.ExpandWidth(false))) {
-                    craftingProjects.CraftingProjects.Remove(project);
-                    craftingProjects.CraftingProjects.Insert(0, project);
+                    timer.CraftingProjects.Remove(project);
+                    timer.CraftingProjects.Insert(0, project);
                 }
                 GUILayout.EndHorizontal();
             }
@@ -877,19 +908,18 @@ namespace CraftMagicItems {
             return blueprintIds[RandomGenerator.Next(blueprintIds.Length)];
         }
 
-        private static void CraftItem(BlueprintItem blueprint, string typeName) {
-            var craftingData = itemCraftingData.First(data => data.Name == typeName);
-            var item = blueprint.CreateEntity();
-            item.IsIdentified = true; // Mark the item as identified.
-            Game.Instance.Player.Inventory.Add(item);
-            if (craftingData is SpellBasedItemCraftingData fromSpellData) {
-                item.Charges = fromSpellData.Charges; // Set the charges, since wand blueprints have random values.
-                switch (fromSpellData.UsableItemType) {
+        private static void CraftItem(ItemEntity resultItem, ItemEntity upgradeItem = null) {
+            if (upgradeItem != null) {
+                Game.Instance.Player.Inventory.Remove(upgradeItem);
+            }
+            Game.Instance.Player.Inventory.Add(resultItem);
+            if (resultItem is ItemEntityUsable usable) {
+                switch (usable.Blueprint.Type) {
                     case UsableItemType.Scroll:
                         Game.Instance.UI.Common.UISound.Play(UISoundType.NewInformation);
                         break;
                     case UsableItemType.Potion:
-                        Game.Instance.UI.Common.UISound.PlayItemSound(SlotAction.Take, item, false);
+                        Game.Instance.UI.Common.UISound.PlayItemSound(SlotAction.Take, resultItem, false);
                         break;
                     default:
                         Game.Instance.UI.Common.UISound.Play(UISoundType.SettlementBuildStart);
@@ -936,6 +966,16 @@ namespace CraftMagicItems {
             }
             return canAfford;
         }
+        
+        private static void AddNewProject(UnitDescriptor casterDescriptor, CraftingProjectData project) {
+            var craftingProjects = GetCraftingTimerComponentForCaster(casterDescriptor, true);
+            craftingProjects.AddProject(project);
+            if (project.UpgradeItem == null) {
+                ItemCreationProjects.Add(project);
+            } else {
+                ItemUpgradeProjects[project.UpgradeItem] = project;
+            }
+        }
 
         private static void RenderSpellBasedCraftItemControl(UnitEntityData caster, SpellBasedItemCraftingData craftingData, AbilityData spell, BlueprintAbility spellBlueprint, int spellLevel, int casterLevel) {
             var itemBlueprintList = FindItemBlueprintsForSpell(spellBlueprint, craftingData.UsableItemType);
@@ -977,17 +1017,17 @@ namespace CraftMagicItems {
                         Game.Instance.Player.Inventory.Remove(spellBlueprint.MaterialComponent.Item, spellBlueprint.MaterialComponent.Count * craftingData.Charges);
                     }
                 }
-                var tooltipItem = itemBlueprint.CreateEntity();
-                tooltipItem.IsIdentified = true;
-                AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-crafting", cost, itemBlueprint.Name), tooltipItem);
+                var resultItem = BuildItemEntity(itemBlueprint, craftingData);
+                AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-crafting", cost, itemBlueprint.Name), resultItem);
                 if (settings.CraftingTakesNoTime) {
                     spell.SpendFromSpellbook();
-                    CraftItem(itemBlueprint, craftingData.Name);
+                    CraftItem(resultItem);
                 } else {
-                    var craftingProjects = GetCraftingTimerComponentForCaster(caster.Descriptor, true);
+                    var project = new CraftingProjectData(caster, goldCost, casterLevel, resultItem, craftingData.Name, new [] { spellBlueprint });
+                    AddNewProject(caster.Descriptor, project);
                     GameLogContext.Count = (goldCost + CraftingProgressPerDay - 1) / CraftingProgressPerDay;
-                    craftingProjects.AddProject(new CraftingProjectData(goldCost, casterLevel, itemBlueprint, craftingData.Name, new [] { spellBlueprint },
-                        false, new L10NString("craftMagicItems-startMessage")));
+                    project.AddMessage(new L10NString("craftMagicItems-startMessage"));
+                    AddBattleLogMessage(project.LastMessage);
                     currentSection = OpenSection.ProjectsSection;
                 }
             }
@@ -1017,19 +1057,17 @@ namespace CraftMagicItems {
                         }
                     }
                 }
-                var tooltipItem = itemBlueprint.CreateEntity();
-                tooltipItem.IsIdentified = true;
-                AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-crafting", cost, itemBlueprint.Name), tooltipItem);
+                var resultItem = BuildItemEntity(itemBlueprint, craftingData);
+                AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-crafting", cost, itemBlueprint.Name), resultItem);
                 if (settings.CraftingTakesNoTime) {
-                    if (upgradeItem != null) {
-                        Game.Instance.Player.Inventory.Remove(upgradeItem);
-                    }
-                    CraftItem(itemBlueprint, craftingData.Name);
+                    CraftItem(resultItem, upgradeItem);
                 } else {
-                    var craftingProjects = GetCraftingTimerComponentForCaster(caster.Descriptor, true);
+                    var project = new CraftingProjectData(caster, goldCost, casterLevel, resultItem, craftingData.Name, recipe.PrerequisiteSpells,
+                        recipe.AnyPrerequisite, upgradeItem, recipe.CrafterPrerequisites);
+                    AddNewProject(caster.Descriptor, project);
                     GameLogContext.Count = (goldCost + CraftingProgressPerDay - 1) / CraftingProgressPerDay;
-                    craftingProjects.AddProject(new CraftingProjectData(goldCost, casterLevel, itemBlueprint, craftingData.Name, recipe.PrerequisiteSpells,
-                        recipe.AnyPrerequisite, new L10NString("craftMagicItems-startMessage"), upgradeItem, recipe.CrafterPrerequisites));
+                    project.AddMessage(new L10NString("craftMagicItems-startMessage"));
+                    AddBattleLogMessage(project.LastMessage);
                     currentSection = OpenSection.ProjectsSection;
                 }
             }
@@ -1651,6 +1689,7 @@ namespace CraftMagicItems {
                 // Character is back in the capital - skipping them for now.
                 return;
             }
+            var isAdventuring = withPlayer && !playerInCapital;
             var timer = GetCraftingTimerComponentForCaster(caster);
             if (timer == null || timer.CraftingProjects.Count == 0) {
                 // Character is not doing any crafting
@@ -1660,7 +1699,7 @@ namespace CraftMagicItems {
             var interval = Game.Instance.Player.GameTime.Subtract(timer.LastUpdated);
             var daysAvailableToCraft = (int)Math.Ceiling(interval.TotalDays);
             if (daysAvailableToCraft <= 0) {
-                if (withPlayer) {
+                if (isAdventuring) {
                     AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-not-full-day"));
                 }
                 return;
@@ -1668,14 +1707,18 @@ namespace CraftMagicItems {
             // Time passes for this character even if they end up making no progress on their projects.  LastUpdated can go up to
             // a day into the future, due to the rounding up of daysAvailableToCraft.
             timer.LastUpdated += TimeSpan.FromDays(daysAvailableToCraft);
-            var isAdventuring = withPlayer && !playerInCapital;
-            // Work on projects sequentially, skipping any that can't progress due to missing prerequisites or having too high a DC.
+            // Work on projects sequentially, skipping any that can't progress due to missing items, missing prerequisites or having too high a DC.
             foreach (var project in timer.CraftingProjects.ToList()) {
                 var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
                 if (project.UpgradeItem != null) {
                     // Check if the item has been dropped and picked up again, which apparently creates a new object with the same blueprint.
                     if (project.UpgradeItem.Collection != Game.Instance.Player.Inventory) {
-                        project.UpgradeItem = Game.Instance.Player.Inventory.FirstOrDefault(item => item.Blueprint == project.UpgradeItem.Blueprint) ?? project.UpgradeItem;
+                        var itemInInventory = Game.Instance.Player.Inventory.FirstOrDefault(item => item.Blueprint == project.UpgradeItem.Blueprint);
+                        if (itemInInventory != null) {
+                            ItemUpgradeProjects.Remove(project.UpgradeItem);
+                            ItemUpgradeProjects[itemInInventory] = project;
+                            project.UpgradeItem = itemInInventory;
+                        }
                     }
                     // Check that the caster can get at the item they're upgrading... it must be in the party inventory, and either un-wielded, or the crafter
                     // must be with the wielder (together in the capital or out in the party together).
@@ -1691,7 +1734,7 @@ namespace CraftMagicItems {
                     var missingSpellNames = missingSpells.Select(ability => ability.Name).BuildCommaList(project.AnyPrerequisite);
                     if (craftingData.PrerequisitesMandatory) {
                         project.AddMessage(L10NFormat("craftMagicItems-logMessage-missing-prerequisite",
-                            project.ItemBlueprint.Name, missingSpellNames));
+                            project.ResultItem.Name, missingSpellNames));
                         AddBattleLogMessage(project.LastMessage);
                         // If the item type has mandatory prerequisites and some are missing, move on to the next project.
                         continue;
@@ -1713,7 +1756,7 @@ namespace CraftMagicItems {
                 var skillCheck = 10 + caster.Stats.SkillKnowledgeArcana.ModifiedValue;
                 if (skillCheck < dc) {
                     // Can't succeed by taking 10... move on to the next project.
-                    project.AddMessage(L10NFormat("craftMagicItems-logMessage-dc-too-high", project.ItemBlueprint.Name, KnowledgeArcanaLocalized, skillCheck,
+                    project.AddMessage(L10NFormat("craftMagicItems-logMessage-dc-too-high", project.ResultItem.Name, KnowledgeArcanaLocalized, skillCheck,
                         dc));
                     AddBattleLogMessage(project.LastMessage);
                     continue;
@@ -1741,14 +1784,14 @@ namespace CraftMagicItems {
                                     progressGold -= progressPerDay * (daysCrafting - day);
                                     skillCheck -= MissingPrerequisiteDCModifier;
                                     if (craftingData.PrerequisitesMandatory) {
-                                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-missing-prerequisite", project.ItemBlueprint.Name, spell.Name));
+                                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-missing-prerequisite", project.ResultItem.Name, spell.Name));
                                         daysCrafting = day;
                                         break;
                                     }
                                     AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-missing-spell", spell.Name, MissingPrerequisiteDCModifier));
                                     if (skillCheck < dc) {
                                         // Can no longer make progress
-                                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-dc-too-high", project.ItemBlueprint.Name,
+                                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-dc-too-high", project.ResultItem.Name,
                                             KnowledgeArcanaLocalized, skillCheck, dc));
                                         daysCrafting = day;
                                     } else {
@@ -1776,21 +1819,21 @@ namespace CraftMagicItems {
                 project.Progress += progressGold;
                 if (project.Progress >= project.TargetCost) {
                     // Completed the project!
-                    AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-crafting-complete", project.ItemBlueprint.Name));
-                    if (project.UpgradeItem != null) {
-                        Game.Instance.Player.Inventory.Remove(project.UpgradeItem);
-                    }
-                    CraftItem(project.ItemBlueprint, project.ItemType);
+                    AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-crafting-complete", project.ResultItem.Name));
+                    CraftItem(project.ResultItem, project.UpgradeItem);
                     timer.CraftingProjects.Remove(project);
+                    if (project.UpgradeItem == null) {
+                        ItemCreationProjects.Remove(project);
+                    } else {
+                        ItemUpgradeProjects.Remove(project.UpgradeItem);
+                    }
                 } else {
-                    var progress = L10NFormat("craftMagicItems-logMessage-made-progress", progressGold, project.ItemBlueprint.Name);
+                    var progress = L10NFormat("craftMagicItems-logMessage-made-progress", progressGold, project.ResultItem.Name);
                     var checkResult = L10NFormat("craftMagicItems-logMessage-made-progress-check", KnowledgeArcanaLocalized, skillCheck, dc);
-                    var amountComplete = L10NFormat("craftMagicItems-logMessage-made-progress-amount-complete", project.ItemBlueprint.Name,
+                    var amountComplete = L10NFormat("craftMagicItems-logMessage-made-progress-amount-complete", project.ResultItem.Name,
                         100 * project.Progress / project.TargetCost);
                     AddBattleLogMessage(progress, checkResult);
-                    var tooltipItem = project.ItemBlueprint.CreateEntity();
-                    tooltipItem.IsIdentified = true;
-                    AddBattleLogMessage(amountComplete, tooltipItem);
+                    AddBattleLogMessage(amountComplete, project.ResultItem);
                     project.AddMessage($"{progress} {checkResult}");
                 }
                 if (daysAvailableToCraft <= 0) {
@@ -1833,15 +1876,27 @@ namespace CraftMagicItems {
 
             // ReSharper disable once UnusedMember.Local
             private static void Postfix(LoadingProcess __instance, bool __state) {
-                if (!modEnabled && __state && !__instance.IsLoadingInProcess) {
-                    // Load of a saved game just happened and mod is downgrading - clean up crafting timer "buff" from all casters.
-                    if (CustomBlueprintBuilder.Downgrade) {
-                        var casterList = UIUtility.GetGroup(true).Where(character => character.IsPlayerFaction
-                                                                                     && !character.Descriptor.IsPet
-                                                                                     && character.Descriptor.Spellbooks != null
-                                                                                     && character.Descriptor.Spellbooks.Any());
-                        foreach (var caster in casterList) {
-                            GetCraftingTimerComponentForCaster(caster.Descriptor);
+                if (__state && !__instance.IsLoadingInProcess) {
+                    // Just finished loading a save
+                    var casterList = UIUtility.GetGroup(true);
+                    foreach (var caster in casterList) {
+                        // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
+                        var timer = GetCraftingTimerComponentForCaster(caster.Descriptor);
+                        if (timer != null) {
+                            // Migrate all projects using ItemBlueprint to use ResultItem
+                            foreach (var project in timer.CraftingProjects) {
+                                if (project.ItemBlueprint != null) {
+                                    var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
+                                    project.ResultItem = BuildItemEntity(project.ItemBlueprint, craftingData);
+                                    project.ItemBlueprint = null;
+                                }
+                                project.Crafter = caster;
+                                if (project.UpgradeItem == null) {
+                                    ItemCreationProjects.Add(project);
+                                } else {
+                                    ItemUpgradeProjects[project.UpgradeItem] = project;
+                                }
+                            }
                         }
                     }
                 }
