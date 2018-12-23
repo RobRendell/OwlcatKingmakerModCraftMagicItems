@@ -1620,8 +1620,8 @@ namespace CraftMagicItems {
                         return spellSlot.Spell;
                     }
                 }
-                return spellbook.GetKnownSpells(spellLevel).First(spell => spell.Blueprint == spellBlueprint ||
-                                                                           (spellBlueprint.Parent && spellBlueprint == spellBlueprint.Parent));
+                return spellbook.GetKnownSpells(spellLevel).First(known => known.Blueprint == spellBlueprint ||
+                                                                           (spellBlueprint.Parent && known.Blueprint == spellBlueprint.Parent));
             }
             // Try casting the spell from an item
             ItemEntity fromItem = null;
