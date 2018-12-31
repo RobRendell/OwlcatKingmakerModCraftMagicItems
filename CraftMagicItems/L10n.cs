@@ -9,17 +9,16 @@ namespace CraftMagicItems {
     class L10n {
         private static void LoadL10NStrings() {
             var currentLocale = LocalizationManager.CurrentLocale.ToString();
-            if (!File.Exists($"{Main.ModEntry.Path}/L10n/Strings_{currentLocale}.json")) {
+            var fileName = $"{Main.ModEntry.Path}/L10n/Strings_{currentLocale}.json";
+            if (!File.Exists(fileName)) {
                 Main.ModEntry.Logger.Warning($"Localised text for current local \"{currentLocale}\" not found, falling back on enGB.");
                 currentLocale = "enGB";
+                fileName = $"{Main.ModEntry.Path}/L10n/Strings_{currentLocale}.json";
             }
             try {
-                using (var reader = new StreamReader($"{Main.ModEntry.Path}/L10n/Strings_{currentLocale}.json")) {
-                    var json = reader.ReadToEnd();
-                    var allStringPairs = JsonConvert.DeserializeObject<DataTable>(json);
-                    foreach (DataRow row in allStringPairs.Rows) {
-                        LocalizationManager.CurrentPack?.Strings.Add(row["key"].ToString(), row["value"].ToString());
-                    }
+                var allStringPairs = Main.ReadJsonFile<DataTable>(fileName);
+                foreach (DataRow row in allStringPairs.Rows) {
+                    LocalizationManager.CurrentPack?.Strings.Add(row["key"].ToString(), row["value"].ToString());
                 }
             } catch (Exception e) {
                 Main.ModEntry.Logger.Warning($"Exception loading L10n data for locale {currentLocale}: {e}");

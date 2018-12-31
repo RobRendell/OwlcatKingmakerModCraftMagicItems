@@ -220,11 +220,15 @@ namespace CraftMagicItems {
             return toggledOn;
         }
         
-        private static T ReadJsonFile<T>(string fileName, params JsonConverter[] converters) {
+        public static T ReadJsonFile<T>(string fileName, params JsonConverter[] converters) {
             try {
-                using (var reader = new StreamReader(fileName)) {
-                    var json = reader.ReadToEnd();
-                    return JsonConvert.DeserializeObject<T>(json, converters);
+                var serializer = new JsonSerializer();
+                foreach (var converter in converters) {
+                    serializer.Converters.Add(converter);
+                }
+                using (var reader = new StreamReader(fileName))
+                using (var textReader = new JsonTextReader(reader)) {
+                    return serializer.Deserialize<T>(textReader);
                 }
             } catch (Exception e) {
                 ModEntry.Logger.Warning($"Exception reading JSON data from file {fileName}: {e}");
