@@ -1239,13 +1239,22 @@ namespace CraftMagicItems {
 
         private static int ItemPlusEquivalent(BlueprintItem blueprint) {
             var enhancementLevel = 0;
+            var cumulative = new Dictionary<RecipeData, int>();
             foreach (var enchantment in blueprint.Enchantments) {
                 if (EnchantmentIdToRecipe.ContainsKey(enchantment.AssetGuid)) {
                     var recipe = EnchantmentIdToRecipe[enchantment.AssetGuid];
                     if (recipe.CostType == RecipeCostType.EnhancementLevelSquared) {
-                        enhancementLevel += recipe.CostFactor * (recipe.Enchantments.IndexOf(enchantment) + 1);
+                        var level = recipe.Enchantments.IndexOf(enchantment) + 1;
+                        if (recipe.EnchantmentsCumulative) {
+                            cumulative[recipe] = cumulative.ContainsKey(recipe) ? Math.Max(level, cumulative[recipe]) : level;
+                        } else {
+                            enhancementLevel += recipe.CostFactor * level;
+                        }
                     }
                 }
+            }
+            foreach (var recipeLevelPair in cumulative) {
+                enhancementLevel += recipeLevelPair.Key.CostFactor * recipeLevelPair.Value;
             }
             return enhancementLevel;
         }
