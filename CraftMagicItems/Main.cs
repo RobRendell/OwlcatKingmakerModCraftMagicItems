@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -649,7 +649,8 @@ namespace CraftMagicItems {
                 baseBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(selectedBaseGuid);
                 RenderCustomNameField($"{new L10NString(selectedRecipe.NameId)} {new L10NString(GetSlotStringKey(selectedSlot))}");
                 itemGuid = BuildCustomRecipeItemGuid(selectedBaseGuid, new List<string> {selectedEnchantment.AssetGuid},
-                    baseBlueprint ? baseBlueprint.Enchantments.Select(enchantment => enchantment.AssetGuid) : null, selectedCustomName ?? "[custom item]", "null", "null");
+                    baseBlueprint && baseBlueprint.Enchantments.Count > 0 ? baseBlueprint.Enchantments.Select(enchantment => enchantment.AssetGuid) : null,
+                    selectedCustomName ?? "[custom item]", "null", "null");
                 itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
             }
             if (!itemToCraft) {
