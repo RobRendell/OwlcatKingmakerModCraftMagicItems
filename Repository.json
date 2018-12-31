@@ -1,6 +1,9 @@
 {
   "Releases":
   [
-    {"Id": "CraftMagicItems", "Version": "1.7.5"}
+    {
+      "Id": "CraftMagicItems",
+      "Version": "1.7.6"
+    }
   ]
 }

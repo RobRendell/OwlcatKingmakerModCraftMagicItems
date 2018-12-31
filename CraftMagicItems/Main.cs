@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -268,7 +268,7 @@ namespace CraftMagicItems {
                 return;
             }
             var itemTypeNames = itemTypes.Select(data => new L10NString(data.NameId).ToString()).ToArray();
-            RenderSelection(ref selectedItemTypeIndex, "Crafting: ", itemTypeNames, 8, ref selectedCustomName);
+            RenderSelection(ref selectedItemTypeIndex, "Crafting: ", itemTypeNames, 6, ref selectedCustomName);
             var craftingData = itemTypes[selectedItemTypeIndex];
             if (craftingData is SpellBasedItemCraftingData spellBased) {
                 RenderSpellBasedCrafting(caster, spellBased);
@@ -1263,16 +1263,7 @@ namespace CraftMagicItems {
             // Ensure Enchantments is not shared with base blueprint
             var enchantmentsCopy = blueprint.Enchantments.ToList();
             Traverse.Create(blueprint).Field("m_CachedEnchantments").SetValue(enchantmentsCopy);
-            var enchantmentIds = match.Groups["enchantments"].Value.Split(';');
-            var enchantments = new List<BlueprintItemEnchantment>();
-            foreach (var guid in enchantmentIds) {
-                var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>(guid);
-                if (!enchantment) {
-                    throw new Exception($"Failed to load enchantment {guid}");
-                }
-                enchantments.Add(enchantment);
-                blueprint.Enchantments.Add(enchantment);
-            }
+            // Remove enchantments first, to see if we end up with an item with no abilities.
             string[] removedIds = null;
             var removed = new List<BlueprintItemEnchantment>();
             if (match.Groups["remove"].Success) {
@@ -1297,6 +1288,20 @@ namespace CraftMagicItems {
                 blueprint.ActivatableAbility = activatableAbility == "null"
                     ? null
                     : ResourcesLibrary.TryGetBlueprint<BlueprintActivatableAbility>(activatableAbility);
+            }
+            if (blueprint.Enchantments.Count == 0 && blueprint.Ability == null && blueprint.ActivatableAbility == null) {
+                // We're down to a base item with no abilities - reset priceDelta.
+                priceDelta = 0;
+            }
+            var enchantmentIds = match.Groups["enchantments"].Value.Split(';');
+            var enchantments = new List<BlueprintItemEnchantment>();
+            foreach (var guid in enchantmentIds) {
+                var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>(guid);
+                if (!enchantment) {
+                    throw new Exception($"Failed to load enchantment {guid}");
+                }
+                enchantments.Add(enchantment);
+                blueprint.Enchantments.Add(enchantment);
             }
             string name = null;
             if (match.Groups["name"].Success) {
