@@ -531,6 +531,7 @@ namespace CraftMagicItems {
             var playerInCapital = IsPlayerInCapital();
             // Choose an existing or in-progress item of that type, or create a new one (if allowed).
             var items = Game.Instance.Player.Inventory
+                .Concat(ItemCreationProjects.Select(project => project.ResultItem))
                 .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
                                && blueprint.ItemType == selectedSlot
                                && CanEnchant(item)
@@ -543,7 +544,6 @@ namespace CraftMagicItems {
                     }
                     return item;
                 })
-                .Concat(ItemCreationProjects.Select(project => project.ResultItem))
                 .OrderBy(item => item.Name)
                 .ToArray();
             var canCreateNew = craftingData.NewItemBaseIDs != null;
