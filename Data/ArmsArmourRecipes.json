@@ -430,6 +430,7 @@
       "30f90becaaac51f41bf56641966c4121",
       "3f032a3cd54e57649a0cdad0434bf221"
     ],
+    "EnchantmentsCumulative": true,
     "CasterLevelStart": 10,
     "CasterLevelMultiplier": 2,
     "PrerequisiteSpells": ["f9910c76efc34af41b6e43d5d8752f0f", "2d81362af43aeac4387a3d4fced489c3"],
@@ -445,6 +446,7 @@
       "421e54078b7719d40915ce0672511d0b",
       "564a6924b246d254c920a7c44bf2a58b"
     ],
+    "EnchantmentsCumulative": true,
     "CasterLevelStart": 8,
     "CasterLevelMultiplier": 2,
     "PrerequisiteSpells": ["fcb028205a71ee64d98175ff39a0abf9"],
@@ -513,6 +515,7 @@
       "7bda5277d36ad114f9f9fd21d0dab658",
       "914d7ee77fb09d846924ca08bccee0ff"
     ],
+    "EnchantmentsCumulative": true,
     "CasterLevelStart": 8,
     "CasterLevelMultiplier": 2,
     "PrerequisiteSpells": ["2a9ef0e0b5822a24d88b16673a267456", "d2cff9243a7ee804cb6d5be47af30c73"],

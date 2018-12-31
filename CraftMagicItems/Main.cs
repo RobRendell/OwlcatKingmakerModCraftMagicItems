@@ -631,8 +631,16 @@ namespace CraftMagicItems {
             } else if (upgradeItem != null) {
                 // Upgrading to a custom blueprint
                 RenderCustomNameField(upgradeItem.Blueprint.Name);
-                var supersededEnchantmentId = FindSupersededEnchantmentId(upgradeItem.Blueprint, selectedEnchantment.AssetGuid);
-                itemGuid = BuildCustomRecipeItemGuid(upgradeItem.Blueprint.AssetGuid, new List<string> {selectedEnchantment.AssetGuid},
+                IEnumerable<string> enchantments;
+                string supersededEnchantmentId;
+                if (selectedRecipe.EnchantmentsCumulative) {
+                    enchantments = availableEnchantments.Take(selectedEnchantmentIndex + 1).Select(enchantment => enchantment.AssetGuid);
+                    supersededEnchantmentId = null;
+                } else {
+                    enchantments = new List<string> {selectedEnchantment.AssetGuid};
+                    supersededEnchantmentId = FindSupersededEnchantmentId(upgradeItem.Blueprint, selectedEnchantment.AssetGuid);
+                }
+                itemGuid = BuildCustomRecipeItemGuid(upgradeItem.Blueprint.AssetGuid, enchantments,
                     supersededEnchantmentId == null ? null : new List<string> {supersededEnchantmentId}, selectedCustomName == upgradeItem.Blueprint.Name ? null : selectedCustomName);
                 itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
             } else {

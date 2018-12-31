@@ -69,6 +69,7 @@ namespace CraftMagicItems {
         [JsonProperty] public string ParentNameId;
         [JsonProperty] public string BonusTypeId;
         [JsonProperty] public BlueprintItemEnchantment[] Enchantments;
+        [JsonProperty] public bool EnchantmentsCumulative;
         [JsonProperty] public int CasterLevelStart;
         [JsonProperty] public int CasterLevelMultiplier;
         [JsonProperty] public BlueprintAbility[] PrerequisiteSpells;
