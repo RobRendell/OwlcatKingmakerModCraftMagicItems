@@ -1,13 +1,17 @@
 ﻿using Harmony12;
 using Kingmaker.Localization;
-using Newtonsoft.Json;
 using System;
 using System.Data;
 using System.IO;
+using Kingmaker;
 
 namespace CraftMagicItems {
     class L10n {
+
+        private static bool initialLoad;
+        
         private static void LoadL10NStrings() {
+            initialLoad = true;
             var currentLocale = LocalizationManager.CurrentLocale.ToString();
             var fileName = $"{Main.ModEntry.Path}/L10n/Strings_{currentLocale}.json";
             if (!File.Exists(fileName)) {
@@ -32,6 +36,17 @@ namespace CraftMagicItems {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
                 LoadL10NStrings();
+            }
+        }
+
+        [HarmonyPatch(typeof(MainMenu), "Start")]
+        private static class MainMenuStartPatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Prefix() {
+                // Kingmaker Mod Loader doesn't appear to patch the game before LocalizationManager.CurrentLocale has been set.
+                if (!initialLoad) {
+                    LoadL10NStrings();
+                }
             }
         }
 
