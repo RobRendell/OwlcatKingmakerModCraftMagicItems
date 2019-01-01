@@ -29,14 +29,14 @@
 	},
 	{
 		"key": "craftMagicItems-feat-wondrous-description",
-		"value": "You can create a wide variety of magic wondrous items, such as amulets, belts, boots, cloaks, gloves and headbands, but not rings. Wondrous items have a minimum caster level of 3."
+		"value": "You can create a wide variety of magic wondrous items, such as amulets, belts, boots, cloaks, gloves and headbands, but not rings."
 	},
 	{
 		"key": "craftMagicItems-feat-arms-armour-displayName",
 		"value": "Crafting (Arms and Armor)"
 	},
 	{
-		"value": "You can upgrade weapons, armor, or shields with magical enhancements. Weapons to be enchanted must be at least masterwork quality. Enchanting arms or armor has a minimum caster level of 5.",
+		"value": "You can upgrade weapons, armor, or shields with magical enhancements. Weapons to be enchanted must be at least masterwork quality.",
 		"key": "craftMagicItems-feat-arms-armour-description"
 	},
 	{

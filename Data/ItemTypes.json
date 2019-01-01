@@ -4,6 +4,7 @@
     "Name": "Scroll",
     "NameId": "92f72bcd-5598-4aef-b943-51910a0d519c",
     "FeatGuid": "f180e72e4a9cbaa4da8be9bc958132ef#CraftMagicItems(feat=scroll)",
+    "MinimumCasterLevel": 1,
     "PrerequisitesMandatory": true,
     "NewItemBaseIDs": [
       "17959707c7004bd4abad2983f8a4af66",
@@ -25,6 +26,7 @@
     "Name": "Potion",
     "NameId": "c5b3aeb3-891c-4346-8bbf-28da41434011",
     "FeatGuid": "2f5d1e705c7967546b72ad8218ccf99c#CraftMagicItems(feat=potion)",
+    "MinimumCasterLevel": 3,
     "PrerequisitesMandatory": true,
     "UsableItemType": "Potion",
     "NamePrefixId": "29197da2-2bd7-48a8-9c29-52fb5932afb0",
@@ -37,6 +39,7 @@
     "Name": "Wand",
     "NameId": "017d4f8d-08bb-4859-bc56-2cc73aab0fb4",
     "FeatGuid": "46fad72f54a33dc4692d3b62eca7bb78#CraftMagicItems(feat=wand)",
+    "MinimumCasterLevel": 5,
     "PrerequisitesMandatory": true,
     "NewItemBaseIDs": [
       "4bf15a56d9ade8f47bf93fda7aa84d8b",
@@ -60,6 +63,7 @@
     "Name": "WondrousItems",
     "NameId": "craftMagicItems-itemType-wondrous",
     "FeatGuid": "a1de1e4f92195b442adb946f0e2b9d4e#CraftMagicItems(feat=wondrous)",
+    "MinimumCasterLevel": 3,
     "PrerequisitesMandatory": false,
     "NewItemBaseIDs": [
       "ec34985b81b9f744488456e7009044ee",
@@ -92,17 +96,16 @@
       "9482c62934be44044918c3aac3730232"
     ],
     "RecipeFileName": "WondrousRecipes.json",
-    "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist"],
-    "MinimumCasterLevel": 3
+    "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist"]
   },
   {
     "DataType": "RecipeBased",
     "Name": "ArmsAndArmour",
     "NameId": "craftMagicItems-itemType-arms-armour",
     "FeatGuid": "7f2b282626862e345935bbea5e66424b#CraftMagicItems(feat=arms-armour)",
+    "MinimumCasterLevel": 5,
     "PrerequisitesMandatory": false,
     "RecipeFileName": "ArmsArmourRecipes.json",
-    "Slots": ["Armor", "Shield", "Weapon"],
-    "MinimumCasterLevel": 5
+    "Slots": ["Armor", "Shield", "Weapon"]
   }
 ]

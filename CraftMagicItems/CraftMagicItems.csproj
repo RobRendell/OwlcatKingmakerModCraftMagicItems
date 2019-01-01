@@ -80,6 +80,7 @@
     <Compile Include="L10n.cs" />
     <Compile Include="L10NString.cs" />
     <Compile Include="Main.cs" />
+      <Compile Include="PrerequisiteCasterLevel.cs"/>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

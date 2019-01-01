@@ -600,8 +600,7 @@ namespace CraftMagicItems {
                 return;
             }
             var selectedEnchantment = availableEnchantments[selectedEnchantmentIndex];
-            var casterLevel = Math.Max(craftingData.MinimumCasterLevel,
-                selectedRecipe.CasterLevelStart + selectedRecipe.Enchantments.IndexOf(selectedEnchantment) * selectedRecipe.CasterLevelMultiplier);
+            var casterLevel = selectedRecipe.CasterLevelStart + selectedRecipe.Enchantments.IndexOf(selectedEnchantment) * selectedRecipe.CasterLevelMultiplier;
             if (!string.IsNullOrEmpty(selectedEnchantment.Description)) {
                 RenderLabel(selectedEnchantment.Description);
             }
@@ -746,9 +745,12 @@ namespace CraftMagicItems {
             if (caster == null) {
                 return;
             }
-            var missingFeats = itemCraftingData.Where(data => !CasterHasFeat(caster, data.FeatGuid)).ToArray();
+            var casterLevel = caster.Descriptor.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
+            var missingFeats = itemCraftingData
+                .Where(data => !CasterHasFeat(caster, data.FeatGuid) && data.MinimumCasterLevel <= casterLevel)
+                .ToArray();
             if (missingFeats.Length == 0) {
-                RenderLabel($"{caster.CharacterName} already knows all crafting feats.");
+                RenderLabel($"{caster.CharacterName} does not currently qualify for any crafting feats.");
                 return;
             }
             RenderLabel("Use this section to reassign previous feat choices for this character to crafting feats.  <color=red>Warning:</color> This is a one-way assignment!");
@@ -1207,8 +1209,12 @@ namespace CraftMagicItems {
             Traverse.Create(blueprint).Field("m_Description").SetValue(new L10NString($"craftMagicItems-feat-{feat}-description"));
             var icon = Image2Sprite.Create($"{ModEntry.Path}/Icons/craft-{feat}.png");
             Traverse.Create(blueprint).Field("m_Icon").SetValue(icon);
-            blueprint.ComponentsArray = null;
-            return BuildCustomFeatGuid(blueprint.AssetGuid, feat);
+            var prerequisite = ScriptableObject.CreateInstance<PrerequisiteCasterLevel>();
+            var featGuid = BuildCustomFeatGuid(blueprint.AssetGuid, feat);
+            var itemData = itemCraftingData.First(data => data.FeatGuid == featGuid);
+            prerequisite.SetPrerequisiteCasterLevel(itemData.MinimumCasterLevel);
+            blueprint.ComponentsArray = new BlueprintComponent[] {prerequisite};
+            return featGuid;
         }
 
         private static string ApplySpellItemBlueprintPatch(BlueprintItemEquipmentUsable blueprint, Match match) {
@@ -1929,5 +1935,6 @@ namespace CraftMagicItems {
                 }
             }
         }
+    
     }
 }

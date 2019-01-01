@@ -19,6 +19,7 @@ namespace CraftMagicItems {
         [JsonProperty] public string Name;
         [JsonProperty] public string NameId;
         [JsonProperty] public string FeatGuid;
+        [JsonProperty] public int MinimumCasterLevel;
         [JsonProperty] public bool PrerequisitesMandatory;
         [JsonProperty] public string[] NewItemBaseIDs;
     }
@@ -34,7 +35,6 @@ namespace CraftMagicItems {
     public class RecipeBasedItemCraftingData : ItemCraftingData {
         [JsonProperty] public string RecipeFileName;
         [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public ItemsFilter.ItemType[] Slots;
-        [JsonProperty] public int MinimumCasterLevel;
         // Loaded manually from RecipeFileName
         public RecipeData[] Recipes;
         // Built after load
