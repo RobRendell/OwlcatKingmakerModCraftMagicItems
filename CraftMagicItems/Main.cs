@@ -56,6 +56,7 @@ namespace CraftMagicItems {
         public bool IgnoreCraftingFeats;
         public bool CraftingTakesNoTime;
         public bool CraftAtFullSpeedWhileAdventuring;
+        public bool IgnoreFeatCasterLevelRestriction;
 
         public override void Save(UnityModManager.ModEntry modEntry) {
             Save(this, modEntry);
@@ -100,7 +101,7 @@ namespace CraftMagicItems {
         public static UnityModManager.ModEntry ModEntry;
 
         private static bool modEnabled = true;
-        private static Settings settings;
+        public static Settings settings;
         private static ItemCraftingData[] itemCraftingData;
         private static OpenSection currentSection = OpenSection.CraftsSection;
         private static int selectedItemTypeIndex;
@@ -835,7 +836,7 @@ namespace CraftMagicItems {
             RenderCheckbox(ref settings.IgnoreCraftingFeats, "Crafting does not require characters to take crafting feats.");
             RenderCheckbox(ref settings.CraftingTakesNoTime, "Crafting takes no time to complete.");
             RenderCheckbox(ref settings.CraftAtFullSpeedWhileAdventuring, "Characters craft at full speed while adventuring (instead of 25% speed)");
-
+            RenderCheckbox(ref settings.IgnoreFeatCasterLevelRestriction, "Ignore Caster Level restrictions on crafting feats.");
         }
 
         private static void RenderLabel(string label) {

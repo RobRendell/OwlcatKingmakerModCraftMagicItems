@@ -19,7 +19,7 @@ namespace CraftMagicItems {
         
         public override bool Check(FeatureSelectionState selectionState, UnitDescriptor unit, LevelUpState state) {
             var highestCasterLevel = unit.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
-            return highestCasterLevel >= minimumCasterLevel;
+            return Main.settings.IgnoreFeatCasterLevelRestriction || highestCasterLevel >= minimumCasterLevel;
         }
 
         [HarmonyPatch(typeof(UIUtility), "GetPrerequisiteObject")]
