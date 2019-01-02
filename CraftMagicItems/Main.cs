@@ -337,6 +337,14 @@ namespace CraftMagicItems {
                     selectedCasterLevel = minCasterLevel;
                     RenderLabel($"Caster level: {selectedCasterLevel}");
                 }
+                if (RenderCraftingSkillInformation(caster, selectedCasterLevel)) {
+                    if (settings.CraftingTakesNoTime) {
+                        RenderLabel($"This project would be too hard for {caster.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
+                    } else {
+                        RenderLabel($"This project will be too hard for {caster.CharacterName}");
+                        return;
+                    }
+                }
                 foreach (var spell in spellOptions.OrderBy(spell => spell.Name).Distinct()) {
                     if (spell.MetamagicData != null && spell.MetamagicData.NotEmpty) {
                         GUILayout.Label($"Cannot craft {new L10NString(craftingData.NameId)} of {spell.Name} with metamagic applied.");
@@ -617,6 +625,15 @@ namespace CraftMagicItems {
             }
             GUILayout.Label(prerequisites, GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
+            if (RenderCraftingSkillInformation(caster, casterLevel, selectedRecipe.PrerequisiteSpells, selectedRecipe.AnyPrerequisite,
+                    selectedRecipe.CrafterPrerequisites)) {
+                if (settings.CraftingTakesNoTime) {
+                    RenderLabel($"This project would be too hard for {caster.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
+                } else {
+                    RenderLabel($"This project will be too hard for {caster.CharacterName}");
+                    return;
+                }
+            }
             // See if the selected enchantment (plus optional mundane base item) corresponds to a vanilla blueprint.
             var allItemBlueprintsWithEnchantment = IsEnchanted(upgradeItem) ? null : FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid);
             var matchingItem = allItemBlueprintsWithEnchantment?.FirstOrDefault(blueprint =>
@@ -670,6 +687,29 @@ namespace CraftMagicItems {
                     RenderLabel($"{itemToCraft.Name} has an equivalent enhancement bonus of more than +10");
                 }
             }
+        }
+
+        private static bool RenderCraftingSkillInformation(UnitEntityData caster, int casterLevel, BlueprintAbility[] prerequisiteSpells = null,
+                bool anyPrerequisite = false, CrafterPrerequisiteType[] crafterPrerequisites = null) {
+            var dc = 5 + casterLevel;
+            RenderLabel($"Base Crafting DC: {dc}");
+            var missing = CheckSpellPrerequisites(prerequisiteSpells, anyPrerequisite, caster.Descriptor, false, out var missingSpells, out var spellsToCast);
+            missing += GetMissingCrafterPrerequisites(crafterPrerequisites, caster.Descriptor).Count;
+            if (missing > 0) {
+                RenderLabel($"{caster.CharacterName} is unable to meet {missing} of the prerequisites, raising the DC by {MissingPrerequisiteDCModifier * missing}");
+            }
+            var crafterCasterLevel = caster.Descriptor.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
+            if (crafterCasterLevel < casterLevel) {
+                var casterLevelShortfall = casterLevel - crafterCasterLevel;
+                RenderLabel(L10NFormat("craftMagicItems-logMessage-low-caster-level", casterLevel, MissingPrerequisiteDCModifier * casterLevelShortfall));
+                missing += casterLevelShortfall;
+            }
+            if (missing > 0) {
+                dc += MissingPrerequisiteDCModifier * missing;
+            }
+            var skillCheck = 10 + caster.Stats.SkillKnowledgeArcana.ModifiedValue;
+            RenderLabel(L10NFormat("craftMagicItems-logMessage-made-progress-check", KnowledgeArcanaLocalized, skillCheck, dc));
+            return skillCheck < dc;
         }
 
         private static int GetMaterialComponentMultiplier(ItemCraftingData craftingData) {
@@ -1676,14 +1716,19 @@ namespace CraftMagicItems {
 
         private static int CheckSpellPrerequisites(CraftingProjectData project, UnitDescriptor caster, bool mustPrepare,
             out List<BlueprintAbility> missingSpells, out List<AbilityData> spellsToCast) {
+            return CheckSpellPrerequisites(project.Prerequisites, project.AnyPrerequisite, caster, mustPrepare, out missingSpells, out spellsToCast);
+        }
+
+        private static int CheckSpellPrerequisites(BlueprintAbility[] prerequisites, bool anyPrerequisite, UnitDescriptor caster, bool mustPrepare,
+            out List<BlueprintAbility> missingSpells, out List<AbilityData> spellsToCast) {
             spellsToCast = new List<AbilityData>();
             missingSpells = new List<BlueprintAbility>();
-            if (project.Prerequisites != null) {
-                foreach (var spellBlueprint in project.Prerequisites) {
+            if (prerequisites != null) {
+                foreach (var spellBlueprint in prerequisites) {
                     var spell = FindCasterSpell(caster, spellBlueprint, mustPrepare, spellsToCast);
                     if (spell != null) {
                         spellsToCast.Add(spell);
-                        if (project.AnyPrerequisite) {
+                        if (anyPrerequisite) {
                             missingSpells.Clear();
                             return 0;
                         }
@@ -1692,22 +1737,27 @@ namespace CraftMagicItems {
                     }
                 }
             }
-            return project.AnyPrerequisite ? Math.Min(1, missingSpells.Count) : missingSpells.Count;
+            return anyPrerequisite ? Math.Min(1, missingSpells.Count) : missingSpells.Count;
         }
 
         private static int CheckCrafterPrerequisites(CraftingProjectData project, UnitDescriptor caster) {
-            var missing = 0;
-            if (project.CrafterPrerequisites != null) {
-                foreach (var prerequisite in project.CrafterPrerequisites) {
-                    if (prerequisite == CrafterPrerequisiteType.AlignmentGood && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Good) == 0
-                        || prerequisite == CrafterPrerequisiteType.AlignmentEvil && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Evil) == 0) {
-                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-missing-crafter-prerequisite",
-                            new L10NString($"craftMagicItems-crafter-prerequisite-{prerequisite}"), MissingPrerequisiteDCModifier));
-                        missing++;
-                    }
-                }
+            var missing = GetMissingCrafterPrerequisites(project.CrafterPrerequisites, caster);
+            foreach (var prerequisite in missing) {
+                AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-missing-crafter-prerequisite",
+                    new L10NString($"craftMagicItems-crafter-prerequisite-{prerequisite}"), MissingPrerequisiteDCModifier));
             }
-            return missing;
+            return missing.Count;
+        }
+
+        private static List<CrafterPrerequisiteType> GetMissingCrafterPrerequisites(CrafterPrerequisiteType[] prerequisites, UnitDescriptor caster) {
+            var missingCrafterPrerequisites = new List<CrafterPrerequisiteType>();
+            if (prerequisites != null) {
+                missingCrafterPrerequisites.AddRange(prerequisites.Where(prerequisite =>
+                    prerequisite == CrafterPrerequisiteType.AlignmentGood && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Good) == 0
+                    || prerequisite == CrafterPrerequisiteType.AlignmentEvil && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Evil) == 0
+                ));
+            }
+            return missingCrafterPrerequisites;
         }
 
         private static void WorkOnProjects(UnitDescriptor caster, bool returningToCapital) {
@@ -1777,8 +1827,7 @@ namespace CraftMagicItems {
                 }
                 missing += CheckCrafterPrerequisites(project, caster);
                 var dc = 5 + project.CasterLevel + MissingPrerequisiteDCModifier * missing;
-                var highestSpellbook = caster.Spellbooks.Aggregate((highest, book) => book.CasterLevel > highest.CasterLevel ? book : highest);
-                var casterLevel = highestSpellbook.CasterLevel;
+                var casterLevel = caster.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
                 if (casterLevel < project.CasterLevel) {
                     // Rob's ruling... if you're below the prerequisite caster level, you're considered to be missing a prerequisite for each
                     // level you fall short.

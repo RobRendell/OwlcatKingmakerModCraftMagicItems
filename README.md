@@ -4,11 +4,11 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 * Add more weapon enchantments: Agile
+* Craft new arms and armor using special materials?
+* Forge Ring
 * Add more wondrous item recipes.
 * Enchanting bonded objects.  Requires some way to select a bonded object, and an enforcement that it's equipped thereafter.
-* Forge Ring
 * Craft Rod
 * In-game GUI
-* Craft new arms and armor using special materials?
 * Metamagic effects on spells
 * Enchantment: cast spell N times a day
