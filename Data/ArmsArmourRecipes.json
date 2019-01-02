@@ -118,6 +118,48 @@
     "CanApplyToMundaneItem": true
   },
   {
+    "Name": "WeaponAgile",
+    "NameId": "6e2f9198-bab2-4c2b-b3ab-3b0dc1412380",
+    "Enchantments": [
+      "a36ad92c51789b44fa8a1c5c116a1328"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["de7a025d48ad5da4991e7d3c682cf69d"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Weapon"],
+    "Restrictions": ["WeaponFinessable"]
+  },
+  {
+    "Name": "WeaponAnarchic",
+    "NameId": "dcaa75a3-c43a-4cbe-ab99-6c02c3c702c3",
+    "Enchantments": [
+      "57315bc1e1f62a741be0efde688087e9"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["ef16771cb05d1344989519e87f25b3c5"],
+    "CrafterPrerequisites": ["AlignmentChaotic"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 2,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
+    "Name": "WeaponAxiomatic",
+    "NameId": "2a3cbc34-6db0-44f7-bed4-931465e8d566",
+    "Enchantments": [
+      "0ca43051edefcad4b9b2240aa36dc8d4"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["ef16771cb05d1344989519e87f25b3c5"],
+    "CrafterPrerequisites": ["AlignmentLawful"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 2,
+    "OnlyForSlots": ["Weapon"]
+  },
+  {
     "Name": "WeaponBaneAberration",
     "NameId": "01f677ed-a814-4e69-b44c-ecd9bb2f2302",
     "ParentNameId": "d6a44a6b-2948-4075-8792-0530d23930ef",
@@ -488,7 +530,7 @@
     ],
     "CasterLevelStart": 7,
     "CasterLevelMultiplier": 0,
-    "PrerequisiteSpells": ["bf74b3b54c21a9344afe9947546e036f"],
+    "PrerequisiteSpells": ["ef16771cb05d1344989519e87f25b3c5"],
     "CrafterPrerequisites": ["AlignmentGood"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 2,
@@ -558,7 +600,7 @@
     ],
     "CasterLevelStart": 7,
     "CasterLevelMultiplier": 0,
-    "PrerequisiteSpells": ["b56521d58f996cd4299dab3f38d5fe31"],
+    "PrerequisiteSpells": ["ef16771cb05d1344989519e87f25b3c5"],
     "CrafterPrerequisites": ["AlignmentEvil"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 2,

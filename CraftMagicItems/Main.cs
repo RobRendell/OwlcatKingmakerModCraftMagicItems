@@ -502,6 +502,7 @@ namespace CraftMagicItems {
                             case ItemRestrictions.WeaponNotBludgeoning when (weapon.DamageType.Physical.Form & PhysicalDamageForm.Bludgeoning) != 0:
                             case ItemRestrictions.WeaponNotPiercing when (weapon.DamageType.Physical.Form & PhysicalDamageForm.Piercing) != 0:
                             case ItemRestrictions.WeaponNotSlashing when (weapon.DamageType.Physical.Form & PhysicalDamageForm.Slashing) != 0:
+                            case ItemRestrictions.WeaponFinessable when !weapon.Category.HasSubCategory(WeaponSubCategory.Finessable):
                                 return false;
                         }
                     }
@@ -1753,7 +1754,9 @@ namespace CraftMagicItems {
             var missingCrafterPrerequisites = new List<CrafterPrerequisiteType>();
             if (prerequisites != null) {
                 missingCrafterPrerequisites.AddRange(prerequisites.Where(prerequisite =>
-                    prerequisite == CrafterPrerequisiteType.AlignmentGood && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Good) == 0
+                    prerequisite == CrafterPrerequisiteType.AlignmentLawful && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Lawful) == 0
+                    || prerequisite == CrafterPrerequisiteType.AlignmentGood && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Good) == 0
+                    || prerequisite == CrafterPrerequisiteType.AlignmentChaotic && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Chaotic) == 0
                     || prerequisite == CrafterPrerequisiteType.AlignmentEvil && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Evil) == 0
                 ));
             }

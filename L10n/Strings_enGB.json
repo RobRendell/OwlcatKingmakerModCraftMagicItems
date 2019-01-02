@@ -184,8 +184,16 @@
 		"value": "Crafter must be {0}."
 	},
 	{
+		"key": "craftMagicItems-crafter-prerequisite-AlignmentLawful",
+		"value": "of Lawful alignment"
+	},
+	{
 		"key": "craftMagicItems-crafter-prerequisite-AlignmentGood",
 		"value": "of Good alignment"
+	},
+	{
+		"key": "craftMagicItems-crafter-prerequisite-AlignmentChaotic",
+		"value": "of Chaotic alignment"
 	},
 	{
 		"key": "craftMagicItems-crafter-prerequisite-AlignmentEvil",

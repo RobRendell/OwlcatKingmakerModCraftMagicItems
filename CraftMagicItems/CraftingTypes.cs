@@ -55,11 +55,14 @@ namespace CraftMagicItems {
         WeaponSlashing,
         WeaponNotBludgeoning,
         WeaponNotPiercing,
-        WeaponNotSlashing
+        WeaponNotSlashing,
+        WeaponFinessable
     }
     
     public enum CrafterPrerequisiteType {
+        AlignmentLawful,
         AlignmentGood,
+        AlignmentChaotic,
         AlignmentEvil
     }
     

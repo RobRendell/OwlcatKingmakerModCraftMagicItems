@@ -3,7 +3,6 @@ This is the source for my mod to add crafting of magic items to Owlcat's Pathfin
 For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmaker/mods/54
 
 ## To Do
-* Add more weapon enchantments: Agile
 * Craft new arms and armor using special materials?
 * Forge Ring
 * Add more wondrous item recipes.
