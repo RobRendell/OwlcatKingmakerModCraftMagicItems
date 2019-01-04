@@ -72,7 +72,7 @@ namespace CraftMagicItems {
             + @"|enchantments=\((?<enchantments>([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?"
             + @"|feat=(?<feat>[-a-z]+)"
             + @"|(?<timer>timer)"
-            + @"|(?<components>(Component\[(?<index>[0-9]+)\].(?<field>[a-zA-Z]+)=(?<value>[0-9a-zA-Z]+),?)+)"
+            + @"|(?<components>(Component\[(?<index>[0-9]+)\].(?<field>[^=]+)=(?<value>[^,)]+),?)+(,nameId=(?<nameId>[^,)]+))?(,descriptionId=(?<descriptionId>[^,)]+))?)"
             + @")\)");
 
         private const int CraftingProgressPerDay = 500;
@@ -82,7 +82,6 @@ namespace CraftMagicItems {
         private const string MasterworkGuid = "6b38844e2bffbac48b63036b66e735be";
         private static readonly LocalizedString KnowledgeArcanaLocalized = new L10NString("75941008-1ec4-4085-ab6d-17c18d15b662");
         private static readonly LocalizedString CasterLevelLocalized = new L10NString("dfb34498-61df-49b1-af18-0a84ce47fc98");
-        private static readonly LocalizedString BonusLocalized = new L10NString("1d5831d6-3d9a-430b-a9c0-acc141327f56");
         private static readonly LocalizedString CharacterUsedItemLocalized = new L10NString("be7942ed-3af1-4fc7-b20b-41966d2f80b7");
 
         private static readonly ItemsFilter.ItemType[] SlotsWhichShowEnchantments = {
@@ -577,7 +576,7 @@ namespace CraftMagicItems {
                 .OrderBy(recipe => new L10NString(recipe.ParentNameId ?? recipe.NameId).ToString())
                 .ToArray();
             var recipeNames = availableRecipes.Select(recipe => new L10NString(recipe.ParentNameId ?? recipe.NameId).ToString()).ToArray();
-            RenderSelection(ref selectedRecipeIndex, "Enchantment: ", recipeNames, 6);
+            RenderSelection(ref selectedRecipeIndex, "Enchantment: ", recipeNames, 6, ref selectedCustomName);
             var selectedRecipe = availableRecipes[selectedRecipeIndex];
             if (selectedRecipe.ParentNameId != null) {
                 var category = recipeNames[selectedRecipeIndex];
@@ -585,7 +584,7 @@ namespace CraftMagicItems {
                     .OrderBy(recipe => new L10NString(recipe.NameId).ToString())
                     .ToArray();
                 recipeNames = availableSubRecipes.Select(recipe => new L10NString(recipe.NameId).ToString()).ToArray();
-                RenderSelection(ref selectedSubRecipeIndex, category + ": ", recipeNames, 6);
+                RenderSelection(ref selectedSubRecipeIndex, category + ": ", recipeNames, 6, ref selectedCustomName);
                 selectedRecipe = availableSubRecipes[selectedSubRecipeIndex];
             }
             // Pick specific enchantment from the recipe
@@ -1127,34 +1126,35 @@ namespace CraftMagicItems {
                     AddBattleLogMessage(project.LastMessage);
                     currentSection = OpenSection.ProjectsSection;
                 }
+                // Reset base GUID for next item
+                selectedBaseGuid = null;
             }
         }
 
-        private static LocalizedString BuildCustomRecipeItemDescription(BlueprintItem blueprint, IEnumerable<BlueprintItemEnchantment> enchantments, IList<BlueprintItemEnchantment> removed) {
-            string description;
+        private static LocalizedString BuildCustomRecipeItemDescription(BlueprintItem blueprint, IEnumerable<BlueprintItemEnchantment> enchantments,
+                IList<BlueprintItemEnchantment> removed) {
             var allKnown = blueprint.Enchantments.All(enchantment => EnchantmentIdToRecipe.ContainsKey(enchantment.AssetGuid));
-            if (allKnown) {
-                description = new L10NString("craftMagicItems-custom-description-start");
-                foreach (var enchantment in blueprint.Enchantments) {
-                    var recipe = EnchantmentIdToRecipe[enchantment.AssetGuid];
+            var description = allKnown
+                ? new L10NString("craftMagicItems-custom-description-start")
+                : blueprint.Description + new L10NString("craftMagicItems-custom-description-additional");
+            foreach (var enchantment in allKnown ? blueprint.Enchantments : enchantments) {
+                var recipe = EnchantmentIdToRecipe[enchantment.AssetGuid];
+                if (!string.IsNullOrEmpty(enchantment.Name)) {
+                    description += "\n * " + enchantment.Name;
+                } else if (recipe.Enchantments.Length > 1) {
                     var bonus = recipe.Enchantments.IndexOf(enchantment) + 1;
-                    description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonus,
-                                       new L10NString(recipe.BonusTypeId), BonusLocalized, new L10NString(recipe.NameId));
-                }
-            } else {
-                description = blueprint.Description + new L10NString("craftMagicItems-custom-description-additional");
-                foreach (var enchantment in enchantments) {
-                    var recipe = EnchantmentIdToRecipe[enchantment.AssetGuid];
-                    var bonus = recipe.Enchantments.IndexOf(enchantment) + 1;
-                    var upgradeFrom = removed.FirstOrDefault(remove => EnchantmentIdToRecipe[remove.AssetGuid] == recipe);
+                    var bonusString = recipe.BonusTypeId != null
+                        ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.BonusTypeId), new L10NString(recipe.NameId))
+                        : L10NFormat("craftMagicItems-custom-description-bonus", new L10NString(recipe.NameId));
+                    var upgradeFrom = allKnown ? null : removed.FirstOrDefault(remove => EnchantmentIdToRecipe[remove.AssetGuid] == recipe);
                     if (upgradeFrom == null) {
-                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonus,
-                                           new L10NString(recipe.BonusTypeId), BonusLocalized, new L10NString(recipe.NameId));
+                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonus, bonusString);
                     } else {
                         var oldBonus = recipe.Enchantments.IndexOf(upgradeFrom) + 1;
-                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-upgrade-template",
-                                           new L10NString(recipe.BonusTypeId), BonusLocalized, new L10NString(recipe.NameId), oldBonus, bonus);
+                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-upgrade-template", bonusString, oldBonus, bonus);
                     }
+                } else {
+                    description += "\n * " + new L10NString(recipe.NameId);
                 }
             }
             return new FakeL10NString(description);
@@ -1223,12 +1223,12 @@ namespace CraftMagicItems {
                    $"{(activatableAbility == null ? "" : $",activatableAbility={activatableAbility}")})";
         }
 
-        private static string BuildCustomComponentsItemGuid(string originalGuid, params string[] values) {
+        private static string BuildCustomComponentsItemGuid(string originalGuid, string[] values, string nameId, string descriptionId) {
             var components = "";
             for (var index = 0; index < values.Length; index += 3) {
                 components += $"{(index > 0 ? "," : "")}Component[{values[index]}].{values[index + 1]}={values[index + 2]}";
             }
-            return $"{originalGuid}{BlueprintPrefix}({components})";
+            return $"{originalGuid}{BlueprintPrefix}({components}{(nameId == null ? "" : $",nameId={nameId}")}{(descriptionId == null ? "" : $",descriptionId={descriptionId}")})";
         }
         
         private static string BuildCustomFeatGuid(string originalGuid, string feat) {
@@ -1376,12 +1376,69 @@ namespace CraftMagicItems {
             }
             if (!SlotsWhichShowEnchantments.Contains(blueprint.ItemType)) {
                 Traverse.Create(blueprint).Field("m_DescriptionText").SetValue(BuildCustomRecipeItemDescription(blueprint, enchantments, removed));
+                Traverse.Create(blueprint).Field("m_FlavorText").SetValue(new L10NString(""));
             }
             Traverse.Create(blueprint).Field("m_Cost").SetValue(RulesRecipeItemCost(blueprint) + priceDelta);
             return BuildCustomRecipeItemGuid(blueprint.AssetGuid, enchantmentIds, removedIds, name, ability, activatableAbility);
         }
+
+        private static T TraverseCloneAndSetField<T>(T original, string field, string value) {
+            var clone = CustomBlueprintBuilder.CloneObject(original);
+            var fieldNameEnd = field.IndexOf('.');
+            if (fieldNameEnd < 0) {
+                var fieldAccess = Traverse.Create(clone).Field(field);
+                if (!fieldAccess.FieldExists()) {
+                    throw new Exception($"Field {field} does not exist on original of type {clone.GetType().FullName}, available fields: {Traverse.Create(clone).Fields().Join()}");
+                }
+                if (value == "null") {
+                    fieldAccess.SetValue(null);
+                } else if (typeof(BlueprintScriptableObject).IsAssignableFrom(fieldAccess.GetValueType())) {
+                    fieldAccess.SetValue(ResourcesLibrary.TryGetBlueprint(value));
+                } else if (fieldAccess.GetValueType() == typeof(LocalizedString)) {
+                    fieldAccess.SetValue(new L10NString(value));
+                } else if (fieldAccess.GetValueType() == typeof(bool)) {
+                    fieldAccess.SetValue(value == "true");
+                } else if (fieldAccess.GetValueType() == typeof(int)) {
+                    fieldAccess.SetValue(int.Parse(value));
+                } else if (fieldAccess.GetValueType().IsEnum) {
+                    fieldAccess.SetValue(Enum.Parse(fieldAccess.GetValueType(), value));
+                } else {
+                    fieldAccess.SetValue(value);
+                }
+            } else {
+                var thisField = field.Substring(0, fieldNameEnd);
+                var remainingFields = field.Substring(fieldNameEnd + 1);
+                var arrayPos = thisField.IndexOf('[');
+                if (arrayPos < 0) {
+                    var fieldAccess = Traverse.Create(clone).Field(thisField);
+                    if (!fieldAccess.FieldExists()) {
+                        throw new Exception($"Field {thisField} does not exist on original of type {clone.GetType().FullName}, available fields: {Traverse.Create(clone).Fields().Join()}");
+                    }
+                    if (fieldAccess.GetValueType().IsArray) {
+                        throw new Exception($"Field {thisField} is an array but overall access {field} did not index the array");
+                    }
+                    fieldAccess.SetValue(TraverseCloneAndSetField(fieldAccess.GetValue(), remainingFields, value));
+                } else {
+                    var index = int.Parse(new string(thisField.Skip(arrayPos + 1).TakeWhile(char.IsDigit).ToArray()));
+                    thisField = field.Substring(0, arrayPos);
+                    var fieldAccess = Traverse.Create(clone).Field(thisField);
+                    if (!fieldAccess.FieldExists()) {
+                        throw new Exception($"Field {thisField} does not exist on original of type {clone.GetType().FullName}, available fields: {Traverse.Create(clone).Fields().Join()}");
+                    }
+                    if (!fieldAccess.GetValueType().IsArray) {
+                        throw new Exception($"Field {thisField} is of type {fieldAccess.GetValueType().FullName} but overall access {field} used an array index");
+                    }
+                    // TODO if I use fieldAccess.GetValue<object[]>().ToArray() to make this universally applicable, the SetValue fails saying it can't
+                    // convert object[] to e.g. BlueprintComponent[].  Hard-code to only support BlueprintComponent for array for now.
+                    var arrayClone = fieldAccess.GetValue<BlueprintComponent[]>().ToArray();
+                    arrayClone[index] = TraverseCloneAndSetField(arrayClone[index], remainingFields, value);
+                    fieldAccess.SetValue(arrayClone);
+                }
+            }
+            return clone;
+        }
         
-        private static string ApplyComponentsBlueprintPatch(BlueprintScriptableObject blueprint, Match match) {
+        private static string ApplyItemEnchantmentBlueprintPatch(BlueprintScriptableObject blueprint, Match match) {
             var values = new List<string>();
             // Ensure Components array is not shared with base blueprint
             var componentsCopy = blueprint.ComponentsArray.ToArray();
@@ -1395,22 +1452,20 @@ namespace CraftMagicItems {
                 var componentIndex = int.Parse(indexCaptures[index].Value);
                 var field = fieldCaptures[index].Value;
                 var value = valueCaptures[index].Value;
-                var component = (BlueprintComponent)CustomBlueprintBuilder.CloneObject(componentsCopy[componentIndex]);
-                var fieldAccess = Traverse.Create(component).Field(field);
-                if (fieldAccess == null) {
-                    throw new Exception($"Field {field} does not exist on component");
-                }
-                if (fieldAccess.GetValueType() == typeof(int)) {
-                    fieldAccess.SetValue(int.Parse(value));
-                } else if (fieldAccess.GetValueType().IsEnum) {
-                    fieldAccess.SetValue(Enum.Parse(fieldAccess.GetValueType(), value));
-                } else {
-                    fieldAccess.SetValue(value);
-                }
-                componentsCopy[componentIndex] = component;
+                componentsCopy[componentIndex] = TraverseCloneAndSetField(componentsCopy[componentIndex], field, value);
             }
             blueprint.ComponentsArray = componentsCopy;
-            return BuildCustomComponentsItemGuid(blueprint.AssetGuid, values.ToArray());
+            string nameId = null;
+            if (match.Groups["nameId"].Success) {
+                nameId = match.Groups["nameId"].Value;
+                Traverse.Create(blueprint).Field("m_EnchantName").SetValue(new L10NString(nameId));
+            }
+            string descriptionId = null;
+            if (match.Groups["descriptionId"].Success) {
+                descriptionId = match.Groups["descriptionId"].Value;
+                Traverse.Create(blueprint).Field("m_Description").SetValue(new L10NString(descriptionId));
+            }
+            return BuildCustomComponentsItemGuid(blueprint.AssetGuid, values.ToArray(), nameId, descriptionId);
         }
 
         // Make our mod-specific updates to the blueprint based on the data stored in assetId.  Return a string which
@@ -1427,7 +1482,7 @@ namespace CraftMagicItems {
             } else if (match.Groups["enchantments"].Success) {
                 result = ApplyRecipeItemBlueprintPatch((BlueprintItemEquipment) blueprint, match);
             } else if (match.Groups["components"].Success) {
-                result = ApplyComponentsBlueprintPatch(blueprint, match);
+                result = ApplyItemEnchantmentBlueprintPatch(blueprint, match);
             } else {
                 throw new Exception($"Match of assetId {match.Value} didn't matching any sub-type");
             }
@@ -1566,6 +1621,7 @@ namespace CraftMagicItems {
                 }
             }
 
+            [HarmonyPriority(Priority.Last)]
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
                 mainMenuStarted = true;

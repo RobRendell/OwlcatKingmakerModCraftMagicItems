@@ -3,8 +3,9 @@ This is the source for my mod to add crafting of magic items to Owlcat's Pathfin
 For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmaker/mods/54
 
 ## To Do
+* Fortification enchantment
+* Energy Resistance isn't working on shields.
 * Craft new arms and armor using special materials?
-* Forge Ring
 * Add more wondrous item recipes.
 * Enchanting bonded objects.  Requires some way to select a bonded object, and an enforcement that it's equipped thereafter.
 * Craft Rod

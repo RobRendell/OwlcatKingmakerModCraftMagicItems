@@ -36,8 +36,16 @@
 		"value": "Crafting (Arms and Armor)"
 	},
 	{
-		"value": "You can upgrade weapons, armor, or shields with magical enhancements. Weapons to be enchanted must be at least masterwork quality.",
-		"key": "craftMagicItems-feat-arms-armour-description"
+		"key": "craftMagicItems-feat-arms-armour-description",
+		"value": "You can upgrade weapons, armor, or shields with magical enhancements. Weapons to be enchanted must be at least masterwork quality."
+	},
+	{
+		"key": "craftMagicItems-feat-ring-displayName",
+		"value": "Crafting (Forge Ring)"
+	},
+	{
+		"key": "craftMagicItems-feat-ring-description",
+		"value": "You can create or upgrade magic rings."
 	},
 	{
 		"key": "craftMagicItems-itemType-wondrous",
@@ -172,12 +180,20 @@
 		"value": "\nIn addition, you have had further enchanting done:"
 	},
 	{
+		"key": "craftMagicItems-custom-description-bonus",
+		"value": "{0} bonus"
+	},
+	{
+		"key": "craftMagicItems-custom-description-bonus-to",
+		"value": "{0} bonus to {1}"
+	},
+	{
 		"key": "craftMagicItems-custom-description-enchantment-template",
-		"value": "+{0} {1} {2} to {3}"
+		"value": "+{0} {1}"
 	},
 	{
 		"key": "craftMagicItems-custom-description-enchantment-upgrade-template",
-		"value": "{0} {1} to {2} upgraded from +{3} to +{4}"
+		"value": "{0} upgraded from +{1} to +{2}"
 	},
 	{
 		"key": "craftMagicItems-crafter-prerequisite-required",
@@ -198,5 +214,13 @@
 	{
 		"key": "craftMagicItems-crafter-prerequisite-AlignmentEvil",
 		"value": "of Evil alignment"
+	},
+	{
+		"key": "craftMagicItems-enchantment-sustenance-name",
+		"value": "Sustenance"
+	},
+	{
+		"key": "craftMagicItems-enchantment-sustenance-description",
+		"value": "This ring continually provides its wearer with life-sustaining nourishment. The ring also refreshes the body and mind, so that its wearer needs only sleep 2 hours per day to gain the benefit of 8 hours of sleep. This allows them to perform two roles in camp, although they cannot take both watches."
 	}
 ]

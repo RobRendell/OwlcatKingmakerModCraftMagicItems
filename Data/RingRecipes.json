@@ -1,0 +1,142 @@
+[
+  {
+    "Name": "DeflectionBonus",
+    "NameId": "10f0872b-4b8f-46e1-b25d-6a95c0b73115",
+    "BonusTypeId": "10f0872b-4b8f-46e1-b25d-6a95c0b73115",
+    "Enchantments": [
+      "990dcac8a5af75340916324383deac53",
+      "9205b68509ff1db41915bb4f3aba3a04",
+      "770ff94f548368743a5fc63f2cf5b0b6",
+      "be195c1cea964e745a198ddadecbaec5",
+      "d86770714ac85d64793b264f755b1764"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 3,
+    "PrerequisiteSpells": ["183d5bb91dea3a1489a6db6c9cb64445"],
+    "CostType": "LevelSquared",
+    "CostFactor": 2000
+  },
+  {
+    "Name": "Evasion",
+    "NameId": "3ccb1d48-6688-43a2-89b5-a81bc4f69fa7",
+    "Enchantments": [
+      "b359e4aa7c2d01e46bcd827cdec8d5b4"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["486eaff58293f6441a5c2759c4872f98"],
+    "CostType": "LevelSquared",
+    "CostFactor": 25000
+  },
+  {
+    "Name": "FreedomOfMovement",
+    "NameId": "f9d59f46-64e9-4eb2-b219-6bec0337a32c",
+    "Enchantments": [
+      "8eb9d1c94b1e4894a88c228aa71b79e5"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["4c349361d720e844e846ad8c19959b1e"],
+    "CostType": "LevelSquared",
+    "CostFactor": 40000
+  },
+  {
+    "Name": "ResistanceAcid",
+    "NameId": "44a3d9ea-b381-4947-b7fc-d0b105c83440",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "dd0e096412423d646929d9b945fd6d4c",
+      "fcfd9515adbd07a43b490280c06203f9#CraftMagicItems(Component[0].Feature.Components[0].Type=Acid,nameId=55a76098-e043-4c15-93f4-8022e50f8224)",
+      "e6fa2f59c7f1bb14ebfc429f17d0a4c6"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 4000
+  },
+  {
+    "Name": "ResistanceCold",
+    "NameId": "04cfed03-5a15-4aa0-80a1-835bd4b3a4e3",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "c872314ecfab32949ad2e0eebd834919",
+      "fcfd9515adbd07a43b490280c06203f9#CraftMagicItems(Component[0].Feature.Components[0].Type=Cold,nameId=9559197f-bd23-4584-87fa-ad192d4a2737)",
+      "7ef70c319ca74fe4cb5eddea792bb353"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 4000
+  },
+  {
+    "Name": "ResistanceElectricity",
+    "NameId": "7e911471-ddb8-47c7-9266-5277a2beb7c7",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "1e4dcaf8ffa56c24788e392dae886166",
+      "fcfd9515adbd07a43b490280c06203f9",
+      "26b91513989a653458986fabce24ba95"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 4000
+  },
+  {
+    "Name": "ResistanceFire",
+    "NameId": "20b623d7-1685-4612-b280-5e38cd59614f",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "47f45701cc9545049b3745ef949d7446",
+      "fcfd9515adbd07a43b490280c06203f9#CraftMagicItems(Component[0].Feature.Components[0].Type=Fire,nameId=e8da229b-4149-44d2-8089-86a3bc6f82cb)",
+      "0e98403449de8ce4c846361c6df30d1f"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 4000
+  },
+  {
+    "Name": "ResistanceSonic",
+    "NameId": "6f88299b-7090-4980-822f-d78ecf6a79eb/ 10//10//",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "1e4dcaf8ffa56c24788e392dae886166#CraftMagicItems(Component[0].Feature.Components[0].Type=Sonic,nameId=6f88299b-7090-4980-822f-d78ecf6a79eb)",
+      "fcfd9515adbd07a43b490280c06203f9#CraftMagicItems(Component[0].Feature.Components[0].Type=Sonic,nameId=e8dc05e9-8031-4a31-beff-162ac0b5e981)",
+      "26b91513989a653458986fabce24ba95#CraftMagicItems(Component[0].Feature.Components[0].Type=Sonic,nameId=0355a0ec-4776-4230-8d03-ff2db2346d0e)"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 4000
+  },
+  {
+    "Name": "Regeneration",
+    "NameId": "ccae5edb-c94b-4144-9397-1b1f762a0b19",
+    "Enchantments": [
+      "8eb9d1c94b1e4894a88c228aa71b79e5#CraftMagicItems(Component[0].Blueprint=318ce88da1832744c87fd15be5010dc0,Component[0].Blueprint.m_Description=fc2e359c-9395-433d-ae6e-73d641bf6480,Component[0].Blueprint.Components[0].Buff.m_DisplayName=a259cc67-ac04-43f4-ac0b-fda0f3170a50/5/1/,Component[0].Blueprint.Components[0].Buff.Components[0].Heal=1,nameId=a259cc67-ac04-43f4-ac0b-fda0f3170a50/5/1/)"
+    ],
+    "CasterLevelStart": 15,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["ff8f1534f66559c478448723e16b6624"],
+    "CostType": "LevelSquared",
+    "CostFactor": 90000
+  },
+  {
+    "Name": "Sustenance",
+    "NameId": "craftMagicItems-enchantment-sustenance-name",
+    "Enchantments": [
+      "8eb9d1c94b1e4894a88c228aa71b79e5#CraftMagicItems(sustenanceEnchantment)"
+    ],
+    "CasterLevelStart": 5,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["faabd2cc67efa4646ac58c7bb3e40fcc"],
+    "CostType": "LevelSquared",
+    "CostFactor": 2500
+  }
+]

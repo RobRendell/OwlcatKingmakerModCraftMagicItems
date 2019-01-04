@@ -23,7 +23,7 @@
     "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
     "Enchantments": [
       "dd0e096412423d646929d9b945fd6d4c",
-      "09e0be00530efec4693a913d6a7efe23",
+      "09e0be00530efec4693a913d6a7efe23#CraftMagicItems(Component[0].Feature.Components[0].Value.Value=20,nameId=55a76098-e043-4c15-93f4-8022e50f8224,descriptionId=693fb20a-3529-4ae9-b09a-cb796470ca82)",
       "e6fa2f59c7f1bb14ebfc429f17d0a4c6"
     ],
     "CasterLevelStart": 3,
@@ -39,7 +39,7 @@
     "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
     "Enchantments": [
       "c872314ecfab32949ad2e0eebd834919",
-      "581c22e55f03e4e4f9f9ea619d89af5f",
+      "581c22e55f03e4e4f9f9ea619d89af5f#CraftMagicItems(Component[0].Feature.Components[0].Value.Value=20,nameId=9559197f-bd23-4584-87fa-ad192d4a2737,descriptionId=b6eb5b0d-369e-473c-b798-55cea6cadfdb)",
       "7ef70c319ca74fe4cb5eddea792bb353"
     ],
     "CasterLevelStart": 3,
@@ -71,8 +71,24 @@
     "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
     "Enchantments": [
       "47f45701cc9545049b3745ef949d7446",
-      "85c2f44721922e4409130791f913d4b4",
+      "85c2f44721922e4409130791f913d4b4#CraftMagicItems(Component[0].Feature.Components[0].Value.Value=20,nameId=e8da229b-4149-44d2-8089-86a3bc6f82cb,descriptionId=341afa17-d11f-40b6-a071-0ddc5469843f)",
       "0e98403449de8ce4c846361c6df30d1f"
+    ],
+    "CasterLevelStart": 3,
+    "CasterLevelMultiplier": 4,
+    "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
+    "CostType": "CasterLevel",
+    "CostFactor": 6000,
+    "OnlyForSlots": ["Armor", "Shield"]
+  },
+  {
+    "Name": "ArmourShieldResistanceSonic",
+    "NameId": "6f88299b-7090-4980-822f-d78ecf6a79eb/ 10//10//",
+    "ParentNameId": "13a0271b-84d9-4dc2-9304-6b5c36f7131e",
+    "Enchantments": [
+      "1e4dcaf8ffa56c24788e392dae886166#CraftMagicItems(Component[0].Feature.Components[0].Type=Sonic,nameId=6f88299b-7090-4980-822f-d78ecf6a79eb,descriptionId=e55b5c25-ed09-4424-b737-cc5845a95abf)",
+      "fcfd9515adbd07a43b490280c06203f9#CraftMagicItems(Component[0].Feature.Components[0].Type=Sonic,nameId=e8dc05e9-8031-4a31-beff-162ac0b5e981,descriptionId=eb90d5af-40c8-4e25-80c3-c7522b84a607)",
+      "26b91513989a653458986fabce24ba95#CraftMagicItems(Component[0].Feature.Components[0].Type=Sonic,nameId=0355a0ec-4776-4230-8d03-ff2db2346d0e,descriptionId=9023e8cc-a2ca-46cd-ab6d-499d9d62a76c)"
     ],
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 4,

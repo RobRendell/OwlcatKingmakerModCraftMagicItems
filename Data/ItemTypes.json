@@ -107,5 +107,23 @@
     "PrerequisitesMandatory": false,
     "RecipeFileName": "ArmsArmourRecipes.json",
     "Slots": ["Armor", "Shield", "Weapon"]
+  },
+  {
+    "DataType": "RecipeBased",
+    "Name": "Rings",
+    "NameId": "04d0daf3-ba89-44d5-8b6e-84b544e6748d",
+    "FeatGuid": "a1de1e4f92195b442adb946f0e2b9d4e#CraftMagicItems(feat=ring)",
+    "MinimumCasterLevel": 7,
+    "PrerequisitesMandatory": false,
+    "NewItemBaseIDs": [
+      "60b987c6fc96c264c8b0521036b5e975",
+      "ec4c8aa06b5f46e4f961c5bc3526da04",
+      "66ab84747fa8c5f43851b4bd02ed3f85",
+      "072ddfdddd30f3c428e18cb70b566493",
+      "70dadcb5b5184e746a7ee1b8e43b8b63",
+      "cd59e06babb67514da00e94b3269a639"
+    ],
+    "RecipeFileName": "RingRecipes.json",
+    "Slots": ["Ring"]
   }
 ]
