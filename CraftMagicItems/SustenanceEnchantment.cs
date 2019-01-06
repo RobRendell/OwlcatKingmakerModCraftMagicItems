@@ -119,20 +119,6 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch(typeof(CampManager), "HandleSetCompanionRole")]
-        private static class CampManagerHandleSetCompanionRolePatch {
-            // ReSharper disable once UnusedMember.Local
-            private static void Postfix(CampManager __instance, UnitEntityData unit, CampZone.ZoneType zone, int? index) {
-                if (zone == CampZone.ZoneType.Guards && index.HasValue) {
-                    // Ensure no-one is assigned to both guard shifts.
-                    var otherShift = 1 - index.Value;
-                    if (Game.Instance.Player.Camping.Guards[otherShift].Remove((UnitReference) unit)) {
-                        __instance.SetupCharactersAndSlots(CampZone.ZoneType.Guards, otherShift);
-                    }
-                }
-            }
-        }
-
         private static List<UnitReference> FindBestRoleToDrop(UnitEntityData unit, List<UnitReference> current, List<UnitReference> best) {
             return current.Contains(unit) && (best == null || current.Count > best.Count) ? current : best;
         }
@@ -141,7 +127,7 @@ namespace CraftMagicItems {
         private static class CampingStateCleanupRolesPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
-                // Ensure that anyone assigned to multiple roles still has Sustenance
+                // Ensure that anyone assigned to multiple roles actually has Sustenance
                 foreach (var unit in Game.Instance.Player.Party) {
                     if (CountRoles(unit) > 1 && !UnitHasSustenance(unit)) {
                         // Need to drop one role - prefer roles that others are doing.
