@@ -48,18 +48,6 @@ namespace CraftMagicItems {
             instance = this;
         }
 
-        public static T CloneObject<T>(T originalObject) {
-            var type = originalObject.GetType();
-            var clone = (T) (typeof(ScriptableObject).IsAssignableFrom(type) ? ScriptableObject.CreateInstance(type) : Activator.CreateInstance(type));
-            for (; type != null && type != typeof(Object); type = type.BaseType) {
-                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                foreach (var field in fields) {
-                    field.SetValue(clone, field.GetValue(originalObject));
-                }
-            }
-            return clone;
-        }
-        
         private BlueprintScriptableObject PatchBlueprint(string assetId, BlueprintScriptableObject blueprint) {
             var match = blueprintRegex.Match(assetId);
             if (!match.Success) {
@@ -67,7 +55,7 @@ namespace CraftMagicItems {
             }
             if (blueprint.AssetGuid.Length == VanillaAssetIdLength) {
                 // We have the original blueprint - clone it so we can make modifications which won't affect the original.
-                blueprint = CloneObject(blueprint);
+                blueprint = Object.Instantiate(blueprint);
             }
             // Patch the blueprint
             var newAssetId = patchBlueprint(blueprint, match);

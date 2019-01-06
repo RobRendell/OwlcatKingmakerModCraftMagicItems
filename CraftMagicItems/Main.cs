@@ -35,6 +35,7 @@ using Kingmaker.UI;
 using Kingmaker.UI.ActionBar;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.Log;
+using Kingmaker.UI.Tooltip;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
@@ -83,6 +84,7 @@ namespace CraftMagicItems {
         private static readonly LocalizedString KnowledgeArcanaLocalized = new L10NString("75941008-1ec4-4085-ab6d-17c18d15b662");
         private static readonly LocalizedString CasterLevelLocalized = new L10NString("dfb34498-61df-49b1-af18-0a84ce47fc98");
         private static readonly LocalizedString CharacterUsedItemLocalized = new L10NString("be7942ed-3af1-4fc7-b20b-41966d2f80b7");
+        private static readonly LocalizedString ShieldBashLocalized = new L10NString("314ff56d-e93b-4915-8ca4-24a7670ad436");
 
         private static readonly ItemsFilter.ItemType[] SlotsWhichShowEnchantments = {
             ItemsFilter.ItemType.Weapon,
@@ -121,7 +123,7 @@ namespace CraftMagicItems {
         private static readonly CustomBlueprintBuilder CustomBlueprintBuilder = new CustomBlueprintBuilder(BlueprintRegex, ApplyBlueprintPatch);
         private static readonly Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>> SpellIdToItem = new Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>>();
         private static readonly Dictionary<string, List<BlueprintItemEquipment>> EnchantmentIdToItem = new Dictionary<string, List<BlueprintItemEquipment>>();
-        private static readonly Dictionary<string, RecipeData> EnchantmentIdToRecipe = new Dictionary<string, RecipeData>();
+        private static readonly Dictionary<string, List<RecipeData>> EnchantmentIdToRecipe = new Dictionary<string, List<RecipeData>>();
         private static readonly Dictionary<string, int> EnchantmentIdToCost = new Dictionary<string, int>();
         private static readonly Random RandomGenerator = new Random();
         private static readonly List<LogDataManager.LogItemData> PendingLogItems = new List<LogDataManager.LogItemData>();
@@ -389,11 +391,30 @@ namespace CraftMagicItems {
             }
         }
 
+        private static IEnumerable<BlueprintItemEnchantment> GetEnchantments(BlueprintItem blueprint, RecipeData sourceRecipe = null) {
+            if (blueprint is BlueprintItemShield shield) {
+                // A shield can be treated as armour or as a weapon... assume armour unless being used by a recipe which applies to weapons.
+                var shieldWeapon = sourceRecipe?.OnlyForSlots?.Contains(ItemsFilter.ItemType.Weapon) ?? false;
+                return shieldWeapon
+                    ? shield.WeaponComponent != null ? shield.WeaponComponent.Enchantments : Enumerable.Empty<BlueprintItemEnchantment>()
+                    : shield.ArmorComponent.Enchantments;
+            }
+            return blueprint.Enchantments;
+        }
+
+        private static RecipeData FindSourceRecipe(string selectedEnchantmentId, ItemsFilter.ItemType slot) {
+            if (!EnchantmentIdToRecipe.ContainsKey(selectedEnchantmentId)) {
+                return null;
+            }
+            var recipes = EnchantmentIdToRecipe[selectedEnchantmentId];
+            return recipes.FirstOrDefault(recipe => recipe.OnlyForSlots == null || recipe.OnlyForSlots.Contains(slot));
+        }
+        
         private static string FindSupersededEnchantmentId(BlueprintItem blueprint, string selectedEnchantmentId) {
             if (blueprint != null) {
-                var selectedRecipe = EnchantmentIdToRecipe[selectedEnchantmentId];
-                foreach (var enchantment in blueprint.Enchantments) {
-                    if (EnchantmentIdToRecipe.ContainsKey(enchantment.AssetGuid) && EnchantmentIdToRecipe[enchantment.AssetGuid] == selectedRecipe) {
+                var selectedRecipe = FindSourceRecipe(selectedEnchantmentId, blueprint.ItemType);
+                foreach (var enchantment in GetEnchantments(blueprint, selectedRecipe)) {
+                    if (FindSourceRecipe(enchantment.AssetGuid, blueprint.ItemType) == selectedRecipe) {
                         return enchantment.AssetGuid;
                     }
                 }
@@ -405,36 +426,34 @@ namespace CraftMagicItems {
             return null;
         }
         
-        private static bool DoesItemMatchEnchantments(BlueprintItemEquipment item, string selectedEnchantmentId, BlueprintItemEquipment upgradeItem = null) {
+        private static bool DoesItemMatchEnchantments(BlueprintItemEquipment blueprint, string selectedEnchantmentId, BlueprintItemEquipment upgradeItem = null) {
             var isNotable = upgradeItem && upgradeItem.IsNotable;
             var ability = upgradeItem ? upgradeItem.Ability : null;
             var activatableAbility = upgradeItem ? upgradeItem.ActivatableAbility : null;
             // If item is notable or has an ability that upgradeItem does not, it's not a match.
-            if (item.IsNotable != isNotable || item.Ability != ability || item.ActivatableAbility != activatableAbility) {
+            if (blueprint.IsNotable != isNotable || blueprint.Ability != ability || blueprint.ActivatableAbility != activatableAbility) {
                 return false;
             }
             var supersededEnchantmentId = FindSupersededEnchantmentId(upgradeItem, selectedEnchantmentId);
-            var enchantmentCount = (upgradeItem ? upgradeItem.Enchantments.Count : 0) + (supersededEnchantmentId == null ? 1 : 0);
-            if (item.Enchantments.Count != enchantmentCount) {
+            var enchantmentCount = (upgradeItem ? GetEnchantments(upgradeItem).Count() : 0) + (supersededEnchantmentId == null ? 1 : 0);
+            if (GetEnchantments(blueprint).Count() != enchantmentCount) {
                 return false;
             }
-            foreach (var enchantment in item.Enchantments) {
-                // If an enchantment isn't the new enchantment, isn't superseded and doesn't exist in upgradeItem, then it doesn't match.
-                if (enchantment.AssetGuid != selectedEnchantmentId && enchantment.AssetGuid != supersededEnchantmentId
-                                                                     && (!upgradeItem || !upgradeItem.Enchantments.Contains(enchantment))) {
-                    return false;
-                }
+            if (GetEnchantments(blueprint).Any(enchantment => enchantment.AssetGuid != selectedEnchantmentId
+                                                              && enchantment.AssetGuid != supersededEnchantmentId
+                                                              && (!upgradeItem || !GetEnchantments(upgradeItem).Contains(enchantment)))) {
+                return false;
             }
             if (upgradeItem != null) {
                 // If upgradeItem is armour or a shield or a weapon, item is not a match if it's not the same type of armour/shield/weapon
                 switch (upgradeItem) {
-                    case BlueprintItemArmor upgradeItemArmour when !(item is BlueprintItemArmor itemArmour) || itemArmour.Type != upgradeItemArmour.Type:
-                    case BlueprintItemShield upgradeItemShield when !(item is BlueprintItemShield itemShield) || itemShield.Type != upgradeItemShield.Type:
-                    case BlueprintItemWeapon upgradeItemWeapon when !(item is BlueprintItemWeapon itemWeapon) || itemWeapon.Type != upgradeItemWeapon.Type:
+                    case BlueprintItemArmor upgradeItemArmour when !(blueprint is BlueprintItemArmor itemArmour) || itemArmour.Type != upgradeItemArmour.Type:
+                    case BlueprintItemShield upgradeItemShield when !(blueprint is BlueprintItemShield itemShield) || itemShield.Type != upgradeItemShield.Type:
+                    case BlueprintItemWeapon upgradeItemWeapon when !(blueprint is BlueprintItemWeapon itemWeapon) || itemWeapon.Type != upgradeItemWeapon.Type:
                         return false;
                 }
                 // Special handler for heavy shield, because the game data has some very messed up shields in it.
-                if (item.AssetGuid == "6989ca8e0d28af643b908468ead16922") {
+                if (blueprint.AssetGuid == "6989ca8e0d28af643b908468ead16922") {
                     return false;
                 }
             }
@@ -463,21 +482,24 @@ namespace CraftMagicItems {
         }
 
         private static bool IsMasterwork(BlueprintItem blueprint) {
-            return blueprint.Enchantments.Exists(enchantment => enchantment.AssetGuid == MasterworkGuid);
+            return GetEnchantments(blueprint).Any(enchantment => enchantment.AssetGuid == MasterworkGuid);
         }
 
-        // I don't agree with the results from UIUtility.IsMagicItem, so here's my version
-        private static bool IsEnchanted(ItemEntity item) {
+        // Use instead of UIUtility.IsMagicItem.
+        private static bool IsEnchanted(ItemEntity item, RecipeData recipe = null) {
             if (item == null) {
                 return false;
             }
             switch (item.Blueprint) {
                 case BlueprintItemArmor armor:
-                case BlueprintItemShield shield:
                 case BlueprintItemWeapon weapon:
                     return ItemPlusEquivalent(item.Blueprint) > 0;
+                case BlueprintItemShield shield:
+                    var isWeaponEnchantmentRecipe = recipe?.OnlyForSlots?.Contains(ItemsFilter.ItemType.Weapon) ?? false;
+                    return !isWeaponEnchantmentRecipe && ItemPlusEquivalent(shield.ArmorComponent, shield.ItemType) > 0
+                           || isWeaponEnchantmentRecipe && ItemPlusEquivalent(shield.WeaponComponent, shield.ItemType) > 0;
                 default:
-                    return item.Blueprint.Enchantments.Count > 0;
+                    return GetEnchantments(item.Blueprint).Any();
             }
         }
         
@@ -515,8 +537,11 @@ namespace CraftMagicItems {
         }
 
         private static bool RecipeAppliesToItem(RecipeData recipe, ItemEntity item) {
-            return item == null ||
-                   (IsEnchanted(item) || recipe.CanApplyToMundaneItem) && ItemMatchesRestrictions(item, recipe.Restrictions);
+            return item == null
+                   || (IsEnchanted(item, recipe) || recipe.CanApplyToMundaneItem)
+                   && ItemMatchesRestrictions(item, recipe.Restrictions)
+                   && (!(item.Blueprint is BlueprintItemShield shield) || shield.WeaponComponent != null ||
+                       !(recipe.OnlyForSlots?.Contains(ItemsFilter.ItemType.Weapon) ?? true));
         }
 
         private static ItemEntity BuildItemEntity(BlueprintItem blueprint, ItemCraftingData craftingData) {
@@ -525,6 +550,13 @@ namespace CraftMagicItems {
             if (craftingData is SpellBasedItemCraftingData spellBased) {
                 item.Charges = spellBased.Charges; // Set the charges, since wand blueprints have random values.
             }
+            if (item is ItemEntityShield shield) {
+                shield.ArmorComponent.IsIdentified = item.IsIdentified;
+                if (shield.WeaponComponent != null) {
+                    shield.WeaponComponent.IsIdentified = item.IsIdentified;
+                }
+            }
+            item.PostLoad();
             return item;
         }
         
@@ -613,6 +645,11 @@ namespace CraftMagicItems {
             if (!string.IsNullOrEmpty(selectedEnchantment.Description)) {
                 RenderLabel(selectedEnchantment.Description);
             }
+            if (upgradeItem?.Blueprint.ItemType == ItemsFilter.ItemType.Shield && (selectedRecipe.OnlyForSlots?.Contains(ItemsFilter.ItemType.Weapon) ?? false)
+                                                                               && selectedRecipe.CanApplyToMundaneItem) {
+                RenderLabel("<color=red><b>Warning:</b></color> placing weapon enchantments on a shield is only useful if you are able to shield-bash, using " +
+                            "the shield as a weapon.  To improve the shield's bonus to AC, use \"Shield enhancment\" instead.");
+            }
             GUILayout.BeginHorizontal();
             GUILayout.Label("Prerequisites: ", GUILayout.ExpandWidth(false));
             var prerequisites = $"{CasterLevelLocalized} {casterLevel}";
@@ -658,7 +695,8 @@ namespace CraftMagicItems {
                     supersededEnchantmentId = FindSupersededEnchantmentId(upgradeItem.Blueprint, selectedEnchantment.AssetGuid);
                 }
                 itemGuid = BuildCustomRecipeItemGuid(upgradeItem.Blueprint.AssetGuid, enchantments,
-                    supersededEnchantmentId == null ? null : new List<string> {supersededEnchantmentId}, selectedCustomName == upgradeItem.Blueprint.Name ? null : selectedCustomName);
+                    supersededEnchantmentId == null ? null : new [] {supersededEnchantmentId},
+                    selectedCustomName == upgradeItem.Blueprint.Name ? null : selectedCustomName);
                 itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
             } else {
                 // Crafting a new custom blueprint from scratch.
@@ -673,16 +711,15 @@ namespace CraftMagicItems {
                     guid => ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(guid)?.ItemType == selectedSlot);
                 baseBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(selectedBaseGuid);
                 RenderCustomNameField($"{new L10NString(selectedRecipe.NameId)} {new L10NString(GetSlotStringKey(selectedSlot))}");
-                itemGuid = BuildCustomRecipeItemGuid(selectedBaseGuid, new List<string> {selectedEnchantment.AssetGuid},
-                    baseBlueprint && baseBlueprint.Enchantments.Count > 0 ? baseBlueprint.Enchantments.Select(enchantment => enchantment.AssetGuid) : null,
+                var enchantmentsToRemove = GetEnchantments(baseBlueprint, selectedRecipe).Select(enchantment => enchantment.AssetGuid).ToArray();
+                itemGuid = BuildCustomRecipeItemGuid(selectedBaseGuid, new List<string> {selectedEnchantment.AssetGuid}, enchantmentsToRemove,
                     selectedCustomName ?? "[custom item]", "null", "null");
                 itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
             }
             if (!itemToCraft) {
                 RenderLabel($"Error: null custom item from looking up blueprint ID {itemGuid}");
             } else {
-                var plusEquivalent = ItemPlusEquivalent(itemToCraft);
-                if (plusEquivalent <= 10) {
+                if (IsItemLegalEnchantmentLevel(itemToCraft)) {
                     RenderRecipeBasedCraftItemControl(caster, craftingData, selectedRecipe, casterLevel, itemToCraft, upgradeItem);
                 } else {
                     RenderLabel($"{itemToCraft.Name} has an equivalent enhancement bonus of more than +10");
@@ -937,12 +974,24 @@ namespace CraftMagicItems {
         }
 
         private static void AddItemIdForEnchantment(BlueprintItemEquipment itemBlueprint) {
-            foreach (var enchantment in itemBlueprint.Enchantments) {
-                if (!EnchantmentIdToItem.ContainsKey(enchantment.AssetGuid)) {
-                    EnchantmentIdToItem[enchantment.AssetGuid] = new List<BlueprintItemEquipment>();
+            if (itemBlueprint is BlueprintItemShield shield) {
+                AddItemIdForEnchantment(shield.ArmorComponent);
+                AddItemIdForEnchantment(shield.WeaponComponent);
+            } else if (itemBlueprint != null) {
+                foreach (var enchantment in GetEnchantments(itemBlueprint)) {
+                    if (!EnchantmentIdToItem.ContainsKey(enchantment.AssetGuid)) {
+                        EnchantmentIdToItem[enchantment.AssetGuid] = new List<BlueprintItemEquipment>();
+                    }
+                    EnchantmentIdToItem[enchantment.AssetGuid].Add(itemBlueprint);
                 }
-                EnchantmentIdToItem[enchantment.AssetGuid].Add(itemBlueprint);
             }
+        }
+
+        private static void AddRecipeForEnchantment(string enchantmentId, RecipeData recipe) {
+            if (!EnchantmentIdToRecipe.ContainsKey(enchantmentId)) {
+                EnchantmentIdToRecipe.Add(enchantmentId, new List<RecipeData>());
+            }
+            EnchantmentIdToRecipe[enchantmentId].Add(recipe);
         }
 
         private static IEnumerable<BlueprintItemEquipment> FindItemBlueprintForEnchantmentId(string assetGuid) {
@@ -1138,7 +1187,7 @@ namespace CraftMagicItems {
                 ? new L10NString("craftMagicItems-custom-description-start")
                 : blueprint.Description + new L10NString("craftMagicItems-custom-description-additional");
             foreach (var enchantment in allKnown ? blueprint.Enchantments : enchantments) {
-                var recipe = EnchantmentIdToRecipe[enchantment.AssetGuid];
+                var recipe = FindSourceRecipe(enchantment.AssetGuid, blueprint.ItemType);
                 if (!string.IsNullOrEmpty(enchantment.Name)) {
                     description += "\n * " + enchantment.Name;
                 } else if (recipe.Enchantments.Length > 1) {
@@ -1146,7 +1195,7 @@ namespace CraftMagicItems {
                     var bonusString = recipe.BonusTypeId != null
                         ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.BonusTypeId), new L10NString(recipe.NameId))
                         : L10NFormat("craftMagicItems-custom-description-bonus", new L10NString(recipe.NameId));
-                    var upgradeFrom = allKnown ? null : removed.FirstOrDefault(remove => EnchantmentIdToRecipe[remove.AssetGuid] == recipe);
+                    var upgradeFrom = allKnown ? null : removed.FirstOrDefault(remove => FindSourceRecipe(remove.AssetGuid, blueprint.ItemType) == recipe);
                     if (upgradeFrom == null) {
                         description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonus, bonusString);
                     } else {
@@ -1181,14 +1230,14 @@ namespace CraftMagicItems {
             return $"{originalGuid}{BlueprintPrefix}(CL={casterLevel}{spellLevelString}{spellIdString})";
         }
 
-        private static string BuildCustomRecipeItemGuid(string originalGuid, IEnumerable<string> enchantments, IEnumerable<string> remove = null, string name = null, string ability = null, string activatableAbility = null) {
+        private static string BuildCustomRecipeItemGuid(string originalGuid, IEnumerable<string> enchantments, string[] remove = null, string name = null, string ability = null, string activatableAbility = null) {
             if (originalGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength) {
                 // Check if GUID is already customised by this mod
                 var match = BlueprintRegex.Match(originalGuid);
                 if (match.Success && match.Groups["enchantments"].Success) {
                     var enchantmentsList = enchantments.Concat(match.Groups["enchantments"].Value.Split(';')).Distinct().ToList();
                     var removeList = match.Groups["remove"].Success
-                        ? (remove ?? new List<string>()).Concat(match.Groups["remove"].Value.Split(';')).Distinct().ToList()
+                        ? (remove ?? Enumerable.Empty<string>()).Concat(match.Groups["remove"].Value.Split(';')).Distinct().ToList()
                         : remove?.ToList();
                     if (removeList != null) {
                         foreach (var guid in removeList.ToArray()) {
@@ -1202,7 +1251,7 @@ namespace CraftMagicItems {
                         }
                     }
                     enchantments = enchantmentsList;
-                    remove = removeList?.Count == 0 ? null : removeList;
+                    remove = removeList?.Count > 0 ? removeList.ToArray() : null;
                     if (name == null && match.Groups["name"].Success) {
                         name = match.Groups["name"].Value;
                     }
@@ -1217,7 +1266,7 @@ namespace CraftMagicItems {
                 }
             }
             return $"{originalGuid}{BlueprintPrefix}(enchantments=({enchantments.Join(null, ";")})" +
-                   $"{(remove == null ? "" : ",remove="+remove.Join(null, ";"))}" +
+                   $"{(remove == null || remove.Length == 0 ? "" : ",remove="+remove.Join(null, ";"))}" +
                    $"{(name == null ? "" : $",name={name.Replace('✔', '_')}✔")}" +
                    $"{(ability == null ? "" : $",ability={ability}")}" +
                    $"{(activatableAbility == null ? "" : $",activatableAbility={activatableAbility}")})";
@@ -1285,13 +1334,16 @@ namespace CraftMagicItems {
             return BuildCustomSpellItemGuid(blueprint.AssetGuid, casterLevel, spellLevel, spellId);
         }
 
-        private static int ItemPlusEquivalent(BlueprintItem blueprint) {
+        private static int ItemPlusEquivalent(BlueprintItem blueprint, ItemsFilter.ItemType? slot = null) {
+            if (blueprint == null || blueprint.Enchantments == null) {
+                return 0;
+            }
             var enhancementLevel = 0;
             var cumulative = new Dictionary<RecipeData, int>();
             foreach (var enchantment in blueprint.Enchantments) {
                 if (EnchantmentIdToRecipe.ContainsKey(enchantment.AssetGuid)) {
-                    var recipe = EnchantmentIdToRecipe[enchantment.AssetGuid];
-                    if (recipe.CostType == RecipeCostType.EnhancementLevelSquared) {
+                    var recipe = FindSourceRecipe(enchantment.AssetGuid, slot ?? blueprint.ItemType);
+                    if (recipe != null && recipe.CostType == RecipeCostType.EnhancementLevelSquared) {
                         var level = recipe.Enchantments.IndexOf(enchantment) + 1;
                         if (recipe.EnchantmentsCumulative) {
                             cumulative[recipe] = cumulative.ContainsKey(recipe) ? Math.Max(level, cumulative[recipe]) : level;
@@ -1306,27 +1358,77 @@ namespace CraftMagicItems {
             }
             return enhancementLevel;
         }
+
+        private static bool IsItemLegalEnchantmentLevel(BlueprintItem blueprint) {
+            if (blueprint == null) {
+                return true;
+            }
+            if (blueprint is BlueprintItemShield shield) {
+                return IsItemLegalEnchantmentLevel(shield.ArmorComponent) && IsItemLegalEnchantmentLevel(shield.WeaponComponent);
+            }
+            var plusEquivalent = ItemPlusEquivalent(blueprint);
+            return plusEquivalent <= 10;
+        }
+
+        private static int GetEnchantmentCost(string enchantmentId, ItemsFilter.ItemType slot) {
+            var recipe = FindSourceRecipe(enchantmentId, slot);
+            if (recipe != null) {
+                var index = recipe.Enchantments.FindIndex(enchantment => enchantment.AssetGuid == enchantmentId);
+                switch (recipe.CostType) {
+                    case RecipeCostType.CasterLevel:
+                        return recipe.CostFactor * (recipe.CasterLevelStart + index * recipe.CasterLevelMultiplier);
+                    case RecipeCostType.LevelSquared:
+                        return recipe.CostFactor * (index + 1) * (index + 1);
+                    default:
+                        return 0;
+                }
+            }
+            return EnchantmentIdToCost.ContainsKey(enchantmentId) ? EnchantmentIdToCost[enchantmentId] : 0;
+        }
         
-        private static int RulesRecipeItemCost(BlueprintItem blueprint) {
+        private static int RulesRecipeItemCost(BlueprintItem blueprint, ItemsFilter.ItemType? slot = null) {
+            if (blueprint == null) {
+                return 0;
+            }
+            if (blueprint is BlueprintItemShield shield) {
+                return RulesRecipeItemCost(shield.ArmorComponent, shield.ItemType) + RulesRecipeItemCost(shield.WeaponComponent, shield.ItemType);
+            }
             var mostExpensiveEnchantmentCost = 0;
             var cost = 0;
             foreach (var enchantment in blueprint.Enchantments) {
-                if (EnchantmentIdToRecipe.ContainsKey(enchantment.AssetGuid) && EnchantmentIdToRecipe[enchantment.AssetGuid].CostType != RecipeCostType.EnhancementLevelSquared) {
-                    var enchantmentCost = EnchantmentIdToCost[enchantment.AssetGuid];
+                var recipe = FindSourceRecipe(enchantment.AssetGuid, slot ?? blueprint.ItemType);
+                if (recipe != null && recipe.CostType != RecipeCostType.EnhancementLevelSquared
+                                   && (slot == null || blueprint.ItemType == ItemsFilter.ItemType.Armor || recipe.OnlyForSlots.Contains(blueprint.ItemType))) {
+                    var enchantmentCost = GetEnchantmentCost(enchantment.AssetGuid, slot ?? blueprint.ItemType);
                     cost += enchantmentCost;
                     if (mostExpensiveEnchantmentCost < enchantmentCost) {
                         mostExpensiveEnchantmentCost = enchantmentCost;
                     }
                 }
             }
-            var enhancementLevel = ItemPlusEquivalent(blueprint);
-            var factor = blueprint is BlueprintItemWeapon ? 2000 : 1000;
-            return enhancementLevel > 0 ? cost + enhancementLevel * enhancementLevel * factor : (3 * cost - mostExpensiveEnchantmentCost) / 2;
+            if (blueprint is BlueprintItemArmor || blueprint is BlueprintItemWeapon) {
+                var enhancementLevel = ItemPlusEquivalent(blueprint, slot);
+                var factor = blueprint is BlueprintItemWeapon ? 2000 : 1000;
+                return cost + enhancementLevel * enhancementLevel * factor;
+            }
+            return (3 * cost - mostExpensiveEnchantmentCost) / 2;
         }
         
-        private static string ApplyRecipeItemBlueprintPatch(BlueprintItemEquipment blueprint, Match match) {
+        private static string ApplyRecipeItemBlueprintPatch(BlueprintItemEquipment blueprint, Match match, BlueprintItemShield parentShield = null) {
             var priceDelta = blueprint.Cost - RulesRecipeItemCost(blueprint);
-            // Ensure Enchantments is not shared with base blueprint
+            BlueprintItemShield topLevelShield = null;
+            if (parentShield == null && blueprint is BlueprintItemShield shield) {
+                topLevelShield = shield;
+                var armourComponentClone = UnityEngine.Object.Instantiate(shield.ArmorComponent);
+                ApplyRecipeItemBlueprintPatch(armourComponentClone, match, shield);
+                Traverse.Create(shield).Field("m_ArmorComponent").SetValue(armourComponentClone);
+                if (shield.WeaponComponent) {
+                    var weaponComponentClone = UnityEngine.Object.Instantiate(shield.WeaponComponent);
+                    ApplyRecipeItemBlueprintPatch(weaponComponentClone, match, shield);
+                    Traverse.Create(shield).Field("m_WeaponComponent").SetValue(weaponComponentClone);
+                }
+            }
+            // Copy Enchantments so we leave base blueprint alone
             var enchantmentsCopy = blueprint.Enchantments.ToList();
             Traverse.Create(blueprint).Field("m_CachedEnchantments").SetValue(enchantmentsCopy);
             // Remove enchantments first, to see if we end up with an item with no abilities.
@@ -1340,7 +1442,7 @@ namespace CraftMagicItems {
                         throw new Exception($"Failed to load enchantment {guid}");
                     }
                     removed.Add(enchantment);
-                    blueprint.Enchantments.Remove(enchantment);
+                    enchantmentsCopy.Remove(enchantment);
                 }
             }
             string ability = null;
@@ -1355,19 +1457,29 @@ namespace CraftMagicItems {
                     ? null
                     : ResourcesLibrary.TryGetBlueprint<BlueprintActivatableAbility>(activatableAbility);
             }
-            if (blueprint.Enchantments.Count == 0 && blueprint.Ability == null && blueprint.ActivatableAbility == null) {
+            if (topLevelShield == null && enchantmentsCopy.Count == 0 && blueprint.Ability == null && blueprint.ActivatableAbility == null) {
                 // We're down to a base item with no abilities - reset priceDelta.
                 priceDelta = 0;
             }
             var enchantmentIds = match.Groups["enchantments"].Value.Split(';');
-            var enchantments = new List<BlueprintItemEnchantment>();
+            var enchantmentsForDescription = new List<BlueprintItemEnchantment>();
             foreach (var guid in enchantmentIds) {
                 var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>(guid);
                 if (!enchantment) {
                     throw new Exception($"Failed to load enchantment {guid}");
                 }
-                enchantments.Add(enchantment);
-                blueprint.Enchantments.Add(enchantment);
+                enchantmentsForDescription.Add(enchantment);
+                if (parentShield != null) {
+                    // For shields, only add enchantments in the appropriate sub-blueprint (weapon or armor)
+                    var fromRecipe = FindSourceRecipe(guid, parentShield.ItemType);
+                    var isWeaponEnchantment = fromRecipe?.OnlyForSlots?.Contains(ItemsFilter.ItemType.Weapon) ?? false;
+                    if (isWeaponEnchantment != blueprint is BlueprintItemWeapon) {
+                        continue;
+                    }
+                }
+                if (topLevelShield == null) {
+                    enchantmentsCopy.Add(enchantment);
+                }
             }
             string name = null;
             if (match.Groups["name"].Success) {
@@ -1375,15 +1487,30 @@ namespace CraftMagicItems {
                 Traverse.Create(blueprint).Field("m_DisplayNameText").SetValue(new FakeL10NString(name));
             }
             if (!SlotsWhichShowEnchantments.Contains(blueprint.ItemType)) {
-                Traverse.Create(blueprint).Field("m_DescriptionText").SetValue(BuildCustomRecipeItemDescription(blueprint, enchantments, removed));
+                Traverse.Create(blueprint).Field("m_DescriptionText").SetValue(BuildCustomRecipeItemDescription(blueprint, enchantmentsForDescription, removed));
                 Traverse.Create(blueprint).Field("m_FlavorText").SetValue(new L10NString(""));
             }
             Traverse.Create(blueprint).Field("m_Cost").SetValue(RulesRecipeItemCost(blueprint) + priceDelta);
             return BuildCustomRecipeItemGuid(blueprint.AssetGuid, enchantmentIds, removedIds, name, ability, activatableAbility);
         }
 
+        private static T CloneObject<T>(T originalObject) {
+            var type = originalObject.GetType();
+            if (typeof(ScriptableObject).IsAssignableFrom(type)) {
+                return (T)(object)UnityEngine.Object.Instantiate(originalObject as UnityEngine.Object);
+            }
+            var clone = (T) Activator.CreateInstance(type);
+            for (; type != null && type != typeof(UnityEngine.Object); type = type.BaseType) {
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (var field in fields) {
+                    field.SetValue(clone, field.GetValue(originalObject));
+                }
+            }
+            return clone;
+        }
+        
         private static T TraverseCloneAndSetField<T>(T original, string field, string value) {
-            var clone = CustomBlueprintBuilder.CloneObject(original);
+            var clone = CloneObject(original);
             var fieldNameEnd = field.IndexOf('.');
             if (fieldNameEnd < 0) {
                 var fieldAccess = Traverse.Create(clone).Field(field);
@@ -1489,9 +1616,15 @@ namespace CraftMagicItems {
             return result;
         }
 
+        // Attempt to work out the cost of enchantments which aren't in recipes by checking if blueprint, which contains the enchantment, contains only other
+        // enchantments whose cost is know.
         private static bool ReverseEngineerEnchantmentCost(BlueprintItemEquipment blueprint, string enchantmentId) {
-            if (blueprint.IsNotable || blueprint.Ability != null || blueprint.ActivatableAbility != null) {
+            if (blueprint == null || blueprint.IsNotable || blueprint.Ability != null || blueprint.ActivatableAbility != null) {
                 return false;
+            }
+            if (blueprint is BlueprintItemShield || blueprint is BlueprintItemWeapon || blueprint is BlueprintItemArmor) {
+                // Cost of enchantments on arms and armor is different, and can be treated as a straight delta.
+                return true;
             }
             var mostExpensiveEnchantmentCost = 0;
             var costSum = 0;
@@ -1499,10 +1632,10 @@ namespace CraftMagicItems {
                 if (enchantment.AssetGuid == enchantmentId) {
                     continue;
                 }
-                if (!EnchantmentIdToCost.ContainsKey(enchantment.AssetGuid)) {
+                if (!EnchantmentIdToRecipe.ContainsKey(enchantment.AssetGuid) && !EnchantmentIdToCost.ContainsKey(enchantment.AssetGuid)) {
                     return false;
                 }
-                var enchantmentCost = EnchantmentIdToCost[enchantment.AssetGuid];
+                var enchantmentCost = GetEnchantmentCost(enchantment.AssetGuid, blueprint.ItemType);
                 costSum += enchantmentCost;
                 if (mostExpensiveEnchantmentCost < enchantmentCost) {
                     mostExpensiveEnchantmentCost = enchantmentCost;
@@ -1510,7 +1643,7 @@ namespace CraftMagicItems {
             }
             var remainder = blueprint.Cost - 3 * costSum / 2;
             if (remainder >= mostExpensiveEnchantmentCost) {
-                // enchantment is most expensive enchantment
+                // enchantmentId is the most expensive enchantment
                 EnchantmentIdToCost[enchantmentId] = remainder;
             } else {
                 // mostExpensiveEnchantmentCost is the most expensive enchantment
@@ -1532,19 +1665,8 @@ namespace CraftMagicItems {
                     if (itemData is RecipeBasedItemCraftingData recipeBased) {
                         recipeBased.Recipes = ReadJsonFile<RecipeData[]>($"{ModEntry.Path}/Data/{recipeBased.RecipeFileName}");
                         foreach (var recipe in recipeBased.Recipes) {
-                            for (var index = 0; index < recipe.Enchantments.Length; ++index) {
-                                var enchantment = recipe.Enchantments[index];
-                                EnchantmentIdToRecipe[enchantment.AssetGuid] = recipe;
-                                var costScale = 1;
-                                switch (recipe.CostType) {
-                                    case RecipeCostType.LevelSquared:
-                                        costScale = (index + 1) * (index + 1);
-                                        break;
-                                    case RecipeCostType.CasterLevel:
-                                        costScale = recipe.CasterLevelStart + recipe.CasterLevelMultiplier * index;
-                                        break;
-                                }
-                                EnchantmentIdToCost[enchantment.AssetGuid] = recipe.CostFactor * costScale;
+                            foreach (var enchantment in recipe.Enchantments) {
+                                AddRecipeForEnchantment(enchantment.AssetGuid, recipe);
                             }
                             if (recipe.ParentNameId != null) {
                                 recipeBased.SubRecipes = recipeBased.SubRecipes ?? new Dictionary<string, List<RecipeData>>();
@@ -1558,26 +1680,24 @@ namespace CraftMagicItems {
                 }
                 var allUsableItems = Resources.FindObjectsOfTypeAll<BlueprintItemEquipment>();
                 foreach (var item in allUsableItems) {
-                    if (item.Enchantments != null) {
-                        AddItemIdForEnchantment(item);
-                    }
+                    AddItemIdForEnchantment(item);
                 }
-                var allEnchantments = Resources.FindObjectsOfTypeAll<BlueprintEquipmentEnchantment>().Where(enchantment => !(enchantment is BlueprintArmorEnchantment)).ToArray();
+                var allNonRecipeEnchantmentsInItems = Resources.FindObjectsOfTypeAll<BlueprintEquipmentEnchantment>()
+                    .Where(enchantment => !EnchantmentIdToRecipe.ContainsKey(enchantment.AssetGuid) && EnchantmentIdToItem.ContainsKey(enchantment.AssetGuid))
+                    .ToArray();
                 // BlueprintEnchantment.EnchantmentCost seems to be full of nonsense values - attempt to set cost of each enchantment by using the prices of
                 // items with enchantments.
-                foreach (var enchantment in allEnchantments) {
-                    if (!EnchantmentIdToCost.ContainsKey(enchantment.AssetGuid) && EnchantmentIdToItem.ContainsKey(enchantment.AssetGuid)) {
-                        var itemsWithEnchantment = EnchantmentIdToItem[enchantment.AssetGuid];
-                        foreach (var item in itemsWithEnchantment) {
-                            if (DoesItemMatchEnchantments(item, enchantment.AssetGuid)) {
-                                EnchantmentIdToCost[enchantment.AssetGuid] = item.Cost;
-                                break;
-                            }
+                foreach (var enchantment in allNonRecipeEnchantmentsInItems) {
+                    var itemsWithEnchantment = EnchantmentIdToItem[enchantment.AssetGuid];
+                    foreach (var item in itemsWithEnchantment) {
+                        if (DoesItemMatchEnchantments(item, enchantment.AssetGuid)) {
+                            EnchantmentIdToCost[enchantment.AssetGuid] = item.Cost;
+                            break;
                         }
                     }
                 }
-                foreach (var enchantment in allEnchantments) {
-                    if (!EnchantmentIdToCost.ContainsKey(enchantment.AssetGuid) && EnchantmentIdToItem.ContainsKey(enchantment.AssetGuid)) {
+                foreach (var enchantment in allNonRecipeEnchantmentsInItems) {
+                    if (!EnchantmentIdToCost.ContainsKey(enchantment.AssetGuid)) {
                         var itemsWithEnchantment = EnchantmentIdToItem[enchantment.AssetGuid];
                         foreach (var item in itemsWithEnchantment) {
                             if (ReverseEngineerEnchantmentCost(item, enchantment.AssetGuid)) {
@@ -2044,6 +2164,50 @@ namespace CraftMagicItems {
                 }
             }
         }
-    
+
+        // Reverse the explicit code to hide weapon enchantments on shields - sorry, Owlcat.
+        [HarmonyPatch(typeof(UIUtilityItem), "GetQualities")]
+        private static class UIUtilityItemGetQualitiesPatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Prefix(ItemEntity item) {
+                if (item is ItemEntityShield shield && shield.IsIdentified) {
+                    // It appears that shields are not properly identified when found.
+                    shield.ArmorComponent.IsIdentified = true;
+                    if (shield.WeaponComponent != null) {
+                        shield.WeaponComponent.IsIdentified = true;
+                    }
+                }
+            }
+            
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix(ItemEntity item, ref string __result) {
+                if (!item.IsIdentified) {
+                    return;
+                }
+                if (item is ItemEntityShield shield && shield.WeaponComponent != null) {
+                    var weaponQualities = Traverse.Create(typeof(UIUtilityItem)).Method("GetQualities", new [] { typeof(ItemEntity) }).GetValue<string>(shield.WeaponComponent);
+                    if (!string.IsNullOrEmpty(weaponQualities)) {
+                        __result = string.IsNullOrEmpty(__result) ? $"{ShieldBashLocalized}: {weaponQualities}"
+                            : $"{__result}{(__result.LastIndexOf(',') < __result.Length - 2 ? ", ": "")} {ShieldBashLocalized}: {weaponQualities}";
+                    }
+                }
+                // Remove trailing commas while we're here.
+                __result = __result.Trim();
+                if (!string.IsNullOrEmpty(__result) && __result.LastIndexOf(',') == __result.Length - 1) {
+                    __result = __result.Substring(0, __result.Length - 1);
+                }
+            }
+        }
+        [HarmonyPatch(typeof(UIUtilityItem), "FillShieldEnchantments")]
+        private static class UIUtilityItemFillShieldEnchantmentsPatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix(ItemEntityShield shield, ref string __result) {
+                if (shield.IsIdentified && shield.WeaponComponent != null) {
+                    __result = Traverse.Create(typeof(UIUtilityItem)).Method("FillWeaponQualities", new [] { typeof(TooltipData), typeof(ItemEntityWeapon), typeof(string) })
+                        .GetValue<string>(new TooltipData(), shield.WeaponComponent, __result);
+                }
+            }
+        }
+
     }
 }

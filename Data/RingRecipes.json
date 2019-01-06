@@ -14,7 +14,8 @@
     "CasterLevelMultiplier": 3,
     "PrerequisiteSpells": ["183d5bb91dea3a1489a6db6c9cb64445"],
     "CostType": "LevelSquared",
-    "CostFactor": 2000
+    "CostFactor": 2000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "Evasion",
@@ -26,7 +27,8 @@
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["486eaff58293f6441a5c2759c4872f98"],
     "CostType": "LevelSquared",
-    "CostFactor": 25000
+    "CostFactor": 25000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "FreedomOfMovement",
@@ -38,7 +40,8 @@
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["4c349361d720e844e846ad8c19959b1e"],
     "CostType": "LevelSquared",
-    "CostFactor": 40000
+    "CostFactor": 40000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "ResistanceAcid",
@@ -53,7 +56,8 @@
     "CasterLevelMultiplier": 4,
     "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
     "CostType": "CasterLevel",
-    "CostFactor": 4000
+    "CostFactor": 4000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "ResistanceCold",
@@ -68,7 +72,8 @@
     "CasterLevelMultiplier": 4,
     "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
     "CostType": "CasterLevel",
-    "CostFactor": 4000
+    "CostFactor": 4000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "ResistanceElectricity",
@@ -83,7 +88,8 @@
     "CasterLevelMultiplier": 4,
     "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
     "CostType": "CasterLevel",
-    "CostFactor": 4000
+    "CostFactor": 4000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "ResistanceFire",
@@ -98,7 +104,8 @@
     "CasterLevelMultiplier": 4,
     "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
     "CostType": "CasterLevel",
-    "CostFactor": 4000
+    "CostFactor": 4000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "ResistanceSonic",
@@ -113,7 +120,8 @@
     "CasterLevelMultiplier": 4,
     "PrerequisiteSpells": ["21ffef7791ce73f468b6fca4d9371e8b"],
     "CostType": "CasterLevel",
-    "CostFactor": 4000
+    "CostFactor": 4000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "Regeneration",
@@ -125,7 +133,8 @@
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["ff8f1534f66559c478448723e16b6624"],
     "CostType": "LevelSquared",
-    "CostFactor": 90000
+    "CostFactor": 90000,
+    "OnlyForSlots": ["Ring"]
   },
   {
     "Name": "Sustenance",
@@ -137,6 +146,7 @@
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["faabd2cc67efa4646ac58c7bb3e40fcc"],
     "CostType": "LevelSquared",
-    "CostFactor": 2500
+    "CostFactor": 2500,
+    "OnlyForSlots": ["Ring"]
   }
 ]

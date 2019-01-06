@@ -1,7 +1,7 @@
 [
   {
     "Name": "ArmourEnhancementBonus",
-    "NameId": "696d7c0e-f960-4b92-a703-01d8ff9c0674",
+    "NameId": "6620ac4a-61b1-43fa-b6d9-69ed34009422",
     "Enchantments": [
       "a9ea95c5e02f9b7468447bc1010fe152",
       "758b77a97640fd747abf149f5bf538d0",
@@ -99,7 +99,7 @@
   },
   {
     "Name": "ShieldEnhancementBonus",
-    "NameId": "696d7c0e-f960-4b92-a703-01d8ff9c0674",
+    "NameId": "7901b076-42d2-401e-a8e3-9ce0d4aa12df",
     "Enchantments": [
       "e90c252e08035294eba39bafce76c119",
       "7b9f2f78a83577d49927c78be0f7fbc1",
@@ -130,7 +130,7 @@
     "PrerequisiteSpells": [],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"],
+    "OnlyForSlots": ["Weapon", "Shield"],
     "CanApplyToMundaneItem": true
   },
   {
@@ -159,7 +159,7 @@
     "CrafterPrerequisites": ["AlignmentChaotic"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 2,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponAxiomatic",
@@ -173,7 +173,7 @@
     "CrafterPrerequisites": ["AlignmentLawful"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 2,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneAberration",
@@ -187,7 +187,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneAnimal",
@@ -201,7 +201,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneConstruct",
@@ -215,7 +215,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneDragon",
@@ -229,7 +229,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneFey",
@@ -243,7 +243,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneGiant",
@@ -257,7 +257,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneReptilian",
@@ -271,7 +271,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneLongshank",
@@ -285,7 +285,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneLycanthrope",
@@ -299,7 +299,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneMagicalBeast",
@@ -313,7 +313,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneMonstrousHumanoid",
@@ -327,7 +327,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneOutsiderChaotic",
@@ -341,7 +341,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneOutsiderEvil",
@@ -355,7 +355,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneOutsideGood",
@@ -369,7 +369,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneOutsiderLawful",
@@ -383,7 +383,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneOutsiderNeutral",
@@ -397,7 +397,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBanePlant",
@@ -411,7 +411,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneUndead",
@@ -425,7 +425,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBaneVermin",
@@ -439,7 +439,7 @@
     "PrerequisiteSpells": ["8fd74eddd9b6c224693d9ab241f25e84"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponBrilliantEnergy",
@@ -465,7 +465,7 @@
     "PrerequisiteSpells": ["9a46dfd390f943647ab4395fc997936d"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponDisruption",
@@ -478,7 +478,7 @@
     "PrerequisiteSpells": ["ff8f1534f66559c478448723e16b6624"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 2,
-    "OnlyForSlots": ["Weapon"],
+    "OnlyForSlots": ["Weapon", "Shield"],
     "Restrictions": ["WeaponMelee", "WeaponBludgeoning"]
   },
   {
@@ -495,7 +495,7 @@
     "AnyPrerequisite": true,
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponFrost",
@@ -510,7 +510,7 @@
     "PrerequisiteSpells": ["fcb028205a71ee64d98175ff39a0abf9"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponFurious",
@@ -523,7 +523,7 @@
     "PrerequisiteSpells": ["97b991256e43bb140b263c326f690ce2"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponGhostTouch",
@@ -536,7 +536,7 @@
     "PrerequisiteSpells": ["95f7cdcec94e293489a85afdf5af1fd7"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponHoly",
@@ -550,7 +550,7 @@
     "CrafterPrerequisites": ["AlignmentGood"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 2,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponKeen",
@@ -580,7 +580,7 @@
     "AnyPrerequisite": true,
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponSpeed",
@@ -593,7 +593,7 @@
     "PrerequisiteSpells": ["486eaff58293f6441a5c2759c4872f98"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 3,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponThundering",
@@ -606,7 +606,7 @@
     "PrerequisiteSpells": ["f09453607e683784c8fca646eec49162"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponUnholy",
@@ -620,7 +620,7 @@
     "CrafterPrerequisites": ["AlignmentEvil"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 2,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   },
   {
     "Name": "WeaponVicious",
@@ -633,6 +633,6 @@
     "PrerequisiteSpells": ["f34fb78eaaec141469079af124bcfa0f"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
-    "OnlyForSlots": ["Weapon"]
+    "OnlyForSlots": ["Weapon", "Shield"]
   }
 ]
