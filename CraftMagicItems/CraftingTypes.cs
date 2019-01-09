@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Kingmaker.Blueprints.Items.Ecnchantments;
 using Kingmaker.Blueprints.Items.Equipment;
+using Kingmaker.Enums.Damage;
 using Kingmaker.UI.Common;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Newtonsoft.Json;
@@ -25,7 +26,9 @@ namespace CraftMagicItems {
     }
 
     public class SpellBasedItemCraftingData : ItemCraftingData {
-        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))] public UsableItemType UsableItemType;
+        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))]
+        public UsableItemType UsableItemType;
+
         [JsonProperty] public string NamePrefixId;
         [JsonProperty] public int MaxSpellLevel;
         [JsonProperty] public int BaseItemGoldCost;
@@ -34,9 +37,15 @@ namespace CraftMagicItems {
 
     public class RecipeBasedItemCraftingData : ItemCraftingData {
         [JsonProperty] public string RecipeFileName;
-        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public ItemsFilter.ItemType[] Slots;
+
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public ItemsFilter.ItemType[] Slots;
+
+        [JsonProperty] public int MundaneBaseDC;
+
         // Loaded manually from RecipeFileName
         public RecipeData[] Recipes;
+
         // Built after load
         public Dictionary<string, List<RecipeData>> SubRecipes;
     }
@@ -56,16 +65,22 @@ namespace CraftMagicItems {
         WeaponNotBludgeoning,
         WeaponNotPiercing,
         WeaponNotSlashing,
-        WeaponFinessable
+        WeaponFinessable,
+        WeaponMetal,
+        ArmourMetal,
+        ArmourNotMetal,
+        ArmourLight,
+        ArmourMedium,
+        ArmourHeavy
     }
-    
+
     public enum CrafterPrerequisiteType {
         AlignmentLawful,
         AlignmentGood,
         AlignmentChaotic,
         AlignmentEvil
     }
-    
+
     public class RecipeData {
         [JsonProperty] public string Name;
         [JsonProperty] public string NameId;
@@ -75,14 +90,29 @@ namespace CraftMagicItems {
         [JsonProperty] public bool EnchantmentsCumulative;
         [JsonProperty] public int CasterLevelStart;
         [JsonProperty] public int CasterLevelMultiplier;
+        [JsonProperty] public int MundaneDC;
+        [JsonProperty] public PhysicalDamageMaterial Material;
         [JsonProperty] public BlueprintAbility[] PrerequisiteSpells;
-        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public CrafterPrerequisiteType[] CrafterPrerequisites;
+
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public CrafterPrerequisiteType[] CrafterPrerequisites;
+
         [JsonProperty] public bool AnyPrerequisite;
-        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))] public RecipeCostType CostType;
+
+        [JsonProperty] [JsonConverter(typeof(StringEnumConverter))]
+        public RecipeCostType CostType;
+
         [JsonProperty] public int CostFactor;
-        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public ItemsFilter.ItemType[] OnlyForSlots;
-        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public ItemRestrictions[] Restrictions;
+
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public ItemsFilter.ItemType[] OnlyForSlots;
+
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public ItemRestrictions[] Restrictions;
+
         [JsonProperty] public bool CanApplyToMundaneItem;
+
+        [JsonProperty] public string[] VisualMappings;
     }
 
     public class CraftingTypeConverter : CustomCreationConverter<ICraftingData> {

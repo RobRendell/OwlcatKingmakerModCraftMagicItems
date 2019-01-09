@@ -13,52 +13,44 @@ using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Newtonsoft.Json.Converters;
 
 namespace CraftMagicItems {
-
     public class CraftingProjectData {
         // Not serialized
         public UnitEntityData Crafter;
-        
-        [JsonProperty]
-        public int Progress;
 
-        [JsonProperty]
-        public int TargetCost;
+        [JsonProperty] public int Progress;
 
-        [JsonProperty]
-        public int CasterLevel;
+        [JsonProperty] public int TargetCost;
 
-        [JsonProperty]
-        public BlueprintAbility[] Prerequisites;
+        [JsonProperty] public int CasterLevel;
+
+        [JsonProperty] public BlueprintAbility[] Prerequisites;
 
         [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
         public CrafterPrerequisiteType[] CrafterPrerequisites;
-        
-        [JsonProperty]
-        public bool AnyPrerequisite;
-        
-        [JsonProperty]
-        public BlueprintItem ItemBlueprint; // TODO remove eventually
-        
-        [JsonProperty]
-        public ItemEntity ResultItem;
 
-        [JsonProperty]
-        public string ItemType;
+        [JsonProperty] public bool AnyPrerequisite;
 
-        [JsonProperty]
-        public string LastMessage;
+        [JsonProperty] public BlueprintItem ItemBlueprint; // TODO remove eventually
 
-        [JsonProperty]
-        public ItemEntity UpgradeItem;
+        [JsonProperty] public ItemEntity ResultItem;
 
-        public CraftingProjectData(UnitEntityData crafter, int targetCost, int casterLevel, ItemEntity resultItem, string itemType,
-                BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, ItemEntity upgradeItem = null,
-                CrafterPrerequisiteType[] crafterPrerequisites = null) {
+        [JsonProperty] public string ItemType;
+
+        [JsonProperty] public string RecipeName;
+
+        [JsonProperty] public string LastMessage;
+
+        [JsonProperty] public ItemEntity UpgradeItem;
+
+        public CraftingProjectData(UnitEntityData crafter, int targetCost, int casterLevel, ItemEntity resultItem, string itemType, string recipeName = null,
+            BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, ItemEntity upgradeItem = null,
+            CrafterPrerequisiteType[] crafterPrerequisites = null) {
             Crafter = crafter;
             TargetCost = targetCost;
             CasterLevel = casterLevel;
             ResultItem = resultItem;
             ItemType = itemType;
+            RecipeName = recipeName;
             Prerequisites = prerequisites;
             AnyPrerequisite = anyPrerequisite;
             Progress = 0;
@@ -73,11 +65,9 @@ namespace CraftMagicItems {
 
     [AllowedOn(typeof(BlueprintBuff))]
     public class CraftingTimerComponent : BuffLogic {
-        [JsonProperty]
-        public List<CraftingProjectData> CraftingProjects;
+        [JsonProperty] public List<CraftingProjectData> CraftingProjects;
 
-        [JsonProperty]
-        public TimeSpan LastUpdated;
+        [JsonProperty] public TimeSpan LastUpdated;
 
         public CraftingTimerComponent() {
             CraftingProjects = new List<CraftingProjectData>();
@@ -88,9 +78,8 @@ namespace CraftMagicItems {
             if (!CraftingProjects.Any()) {
                 LastUpdated = Game.Instance.Player.GameTime;
             }
+
             CraftingProjects.Add(project);
         }
     }
-
-
 }

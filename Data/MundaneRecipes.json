@@ -1,0 +1,182 @@
+[
+  {
+    "Name": "Standard",
+    "NameId": "80ad0aba-45a1-42ec-911a-9d326c9e57f3",
+    "Enchantments": [],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 0,
+    "MundaneDC": 0,
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "MasterworkWeapon",
+    "NameId": "639f8bf7-9d34-4b7b-9e2a-1976e13b6899",
+    "Enchantments": [
+      "6b38844e2bffbac48b63036b66e735be"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 300,
+    "MundaneDC": 5,
+    "OnlyForSlots": ["Weapon"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "MithralLightArmour",
+    "NameId": "36eda69a-8d5b-4096-85f9-187552ca3220",
+    "Enchantments": [
+      "7b95a819181574a4799d93939aa99aff"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 1000,
+    "MundaneDC": 7,
+    "OnlyForSlots": ["Armor"],
+    "Restrictions": ["ArmourMetal", "ArmourLight"],
+    "CanApplyToMundaneItem": true,
+    "VisualMappings": [
+      "c65f6fc979d5556489b20e478189cbdd:ab96348a993683c41b1e9fce187fb034"
+    ]
+  },
+  {
+    "Name": "MithralMediumArmour",
+    "NameId": "36eda69a-8d5b-4096-85f9-187552ca3220",
+    "Enchantments": [
+      "7b95a819181574a4799d93939aa99aff"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 4000,
+    "MundaneDC": 7,
+    "OnlyForSlots": ["Armor"],
+    "Restrictions": ["ArmourMetal", "ArmourMedium"],
+    "CanApplyToMundaneItem": true,
+    "VisualMappings": [
+      "9809987cc12d94545a64ff20e6fdb216:b28af61add4b90f4db51e9ae9280150d"
+    ]
+  },
+  {
+    "Name": "MithralHeavyArmour",
+    "NameId": "36eda69a-8d5b-4096-85f9-187552ca3220",
+    "Enchantments": [
+      "7b95a819181574a4799d93939aa99aff"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 9000,
+    "MundaneDC": 7,
+    "OnlyForSlots": ["Armor"],
+    "Restrictions": ["ArmourMetal", "ArmourHeavy"],
+    "CanApplyToMundaneItem": true,
+    "VisualMappings": [
+      "559b0b6f194656c428c403a000ceee78:feb844f3ace1aec4ba4f27e5b7172e4f"
+    ]
+  },
+  {
+    "Name": "MithralShield",
+    "NameId": "36eda69a-8d5b-4096-85f9-187552ca3220",
+    "Enchantments": [
+      "7b95a819181574a4799d93939aa99aff"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 1000,
+    "MundaneDC": 7,
+    "OnlyForSlots": ["Shield"],
+    "CanApplyToMundaneItem": true,
+    "VisualMappings": [
+      "78aef04821150bd479314bc974ea73e2:null",
+      "a85d51d0fb905f940b951eec60388bac:2a298726445c2184bbeab9f34ece55eb",
+      "f4cef3ba1a15b0f4fa7fd66b602ff32b:7ab0c34a329421045b61d2f15f91b6b1",
+      "6a1a429f023e5134fb16a4962cb79257:294e15227b2c1d245ab1ff99922f339f"
+    ]
+  },
+  {
+    "Name": "AdamantineLightArmour",
+    "NameId": "6eb38cc4-f3ff-4ac2-844e-a3714214a55d",
+    "Enchantments": [
+      "5faa3aaee432ac444b101de2b7b0faf7"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 5000,
+    "MundaneDC": 10,
+    "OnlyForSlots": ["Armor"],
+    "Restrictions": ["ArmourMetal", "ArmourLight"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "AdamantineMediumArmour",
+    "NameId": "6eb38cc4-f3ff-4ac2-844e-a3714214a55d",
+    "Enchantments": [
+      "aa25531ab5bb58941945662aa47b73e7"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 10000,
+    "MundaneDC": 10,
+    "OnlyForSlots": ["Armor"],
+    "Restrictions": ["ArmourMetal", "ArmourMedium"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "AdamantineHeavyArmour",
+    "NameId": "6eb38cc4-f3ff-4ac2-844e-a3714214a55d",
+    "Enchantments": [
+      "933456ff83c454146a8bf434e39b1f93"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 15000,
+    "MundaneDC": 10,
+    "OnlyForSlots": ["Armor"],
+    "Restrictions": ["ArmourMetal", "ArmourHeavy"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "ColdIronWeapon",
+    "NameId": "aead3835-1773-440e-86c5-ae99a535450e",
+    "Enchantments": [
+      "6b38844e2bffbac48b63036b66e735be"
+    ],
+    "Material": "ColdIron",
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 300,
+    "MundaneDC": 5,
+    "OnlyForSlots": ["Weapon"],
+    "Restrictions": ["WeaponMelee", "WeaponMetal"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "SilverWeapon",
+    "NameId": "28efe9ff-4335-4fba-946c-61099352d42b",
+    "Enchantments": [
+      "6b38844e2bffbac48b63036b66e735be"
+    ],
+    "Material": "Silver",
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 300,
+    "MundaneDC": 5,
+    "OnlyForSlots": ["Weapon"],
+    "Restrictions": ["WeaponMelee", "WeaponMetal"],
+    "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "AdamantineWeapon",
+    "NameId": "6eb38cc4-f3ff-4ac2-844e-a3714214a55d",
+    "Enchantments": [
+      "6b38844e2bffbac48b63036b66e735be"
+    ],
+    "Material": "Adamantite",
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 300,
+    "MundaneDC": 10,
+    "OnlyForSlots": ["Weapon"],
+    "Restrictions": ["WeaponMelee", "WeaponMetal"],
+    "CanApplyToMundaneItem": true
+  }
+]
