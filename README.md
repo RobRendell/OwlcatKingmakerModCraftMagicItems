@@ -13,4 +13,5 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 * In-game GUI
 * Metamagic effects on spells
 * Enchantment: cast spell N times a day
+* Add "Fabricate" custom spell to instantly do mundane crafting, and to add special materials to existing items.
 * Fortification enchantment - doesn't appear to be in the base game?

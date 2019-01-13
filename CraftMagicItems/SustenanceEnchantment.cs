@@ -17,7 +17,6 @@ using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.UnitLogic.Mechanics;
 
 namespace CraftMagicItems {
-
     // A living character with a SustenanceFact does not need rations when they camp, and can perform two camp roles (not both guard shifts though).
     public class SustenanceFact : BlueprintBuff {
     }
@@ -32,7 +31,6 @@ namespace CraftMagicItems {
 
         [HarmonyPatch(typeof(MainMenu), "Start")]
         private static class MainMenuStartPatch {
-
             private static void AddBlueprint(string guid, BlueprintScriptableObject blueprint) {
                 Traverse.Create(blueprint).Field("m_AssetGuid").SetValue(guid);
                 ResourcesLibrary.LibraryObject.BlueprintsByAssetId?.Add(guid, blueprint);
@@ -83,12 +81,15 @@ namespace CraftMagicItems {
         }
 
         private static int CountRoles(UnitEntityData unit) {
-            return (Game.Instance.Player.Camping.Builders.Contains(unit) ? 1 : 0)
-                   + (Game.Instance.Player.Camping.Hunters.Contains(unit) ? 1 : 0)
-                   + (Game.Instance.Player.Camping.Cookers.Contains(unit) ? 1 : 0)
-                   + (Game.Instance.Player.Camping.Special.Contains(unit) ? 1 : 0)
-                   + (Game.Instance.Player.Camping.Guards[0].Contains(unit) ? 1 : 0)
-                   + (Game.Instance.Player.Camping.Guards[1].Contains(unit) ? 1 : 0);
+            var roles = (Game.Instance.Player.Camping.Builders.Contains(unit) ? 1 : 0)
+                        + (Game.Instance.Player.Camping.Hunters.Contains(unit) ? 1 : 0)
+                        + (Game.Instance.Player.Camping.Cookers.Contains(unit) ? 1 : 0)
+                        + (Game.Instance.Player.Camping.Special.Contains(unit) ? 1 : 0);
+            foreach (var guardShift in Game.Instance.Player.Camping.Guards) {
+                roles += guardShift.Contains(unit) ? 1 : 0;
+            }
+
+            return roles;
         }
 
         [HarmonyPatch(typeof(CampManager), "RemoveAllCompanionRoles")]
@@ -99,6 +100,7 @@ namespace CraftMagicItems {
                     // Only return true (and thus remove their roles) if they're already doing 2 roles.
                     return CountRoles(unit) >= 2;
                 }
+
                 return true;
             }
         }
@@ -115,6 +117,7 @@ namespace CraftMagicItems {
                     __result = false;
                     return false;
                 }
+
                 return true;
             }
         }
@@ -122,7 +125,7 @@ namespace CraftMagicItems {
         private static List<UnitReference> FindBestRoleToDrop(UnitEntityData unit, List<UnitReference> current, List<UnitReference> best) {
             return current.Contains(unit) && (best == null || current.Count > best.Count) ? current : best;
         }
-        
+
         [HarmonyPatch(typeof(CampingState), "CleanupRoles")]
         private static class CampingStateCleanupRolesPatch {
             // ReSharper disable once UnusedMember.Local
@@ -135,8 +138,10 @@ namespace CraftMagicItems {
                         roleToDrop = FindBestRoleToDrop(unit, Game.Instance.Player.Camping.Hunters, roleToDrop);
                         roleToDrop = FindBestRoleToDrop(unit, Game.Instance.Player.Camping.Cookers, roleToDrop);
                         roleToDrop = FindBestRoleToDrop(unit, Game.Instance.Player.Camping.Special, roleToDrop);
-                        roleToDrop = FindBestRoleToDrop(unit, Game.Instance.Player.Camping.Guards[0], roleToDrop);
-                        roleToDrop = FindBestRoleToDrop(unit, Game.Instance.Player.Camping.Guards[1], roleToDrop);
+                        foreach (var guardShift in Game.Instance.Player.Camping.Guards) {
+                            roleToDrop = FindBestRoleToDrop(unit, guardShift, roleToDrop);
+                        }
+
                         roleToDrop.Remove(unit);
                     }
                 }
@@ -151,9 +156,6 @@ namespace CraftMagicItems {
                 __result = 0.Hours();
                 return false;
             }
-            
         }
-
-        
     }
 }
