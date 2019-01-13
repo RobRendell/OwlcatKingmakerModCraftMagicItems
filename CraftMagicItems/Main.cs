@@ -345,11 +345,11 @@ namespace CraftMagicItems {
                 selectedShowPreparedSpells = false;
             }
 
-            var spellOptions = spellbook.GetSpecialSpells(spellLevel);
+            List<AbilityData> spellOptions;
             if (selectedShowPreparedSpells) {
                 // Prepared spellcaster
-                spellOptions = spellOptions.Concat(spellbook.GetMemorizedSpells(spellLevel).Where(slot => slot.Spell != null && slot.Available)
-                    .Select(slot => slot.Spell));
+                spellOptions = spellbook.GetMemorizedSpells(spellLevel).Where(slot => slot.Spell != null && slot.Available).Select(slot => slot.Spell)
+                    .ToList();
             } else {
                 // Cantrips/Orisons or Spontaneous spellcaster or showing all known spells
                 if (spellLevel > 0 && spellbook.Blueprint.Spontaneous) {
@@ -360,7 +360,7 @@ namespace CraftMagicItems {
                     }
                 }
 
-                spellOptions = spellOptions.Concat(spellbook.GetKnownSpells(spellLevel));
+                spellOptions = spellbook.GetSpecialSpells(spellLevel).Concat(spellbook.GetKnownSpells(spellLevel)).ToList();
             }
 
             if (!spellOptions.Any()) {
@@ -389,7 +389,21 @@ namespace CraftMagicItems {
                     }
                 }
 
-                foreach (var spell in spellOptions.OrderBy(spell => spell.Name).Distinct()) {
+                if (selectedShowPreparedSpells && spellbook.GetSpontaneousConversionSpells(spellLevel).Any()) {
+                    var firstSpell = spellbook.Blueprint.Spontaneous
+                        ? spellbook.GetKnownSpells(spellLevel).First(spell => true)
+                        : spellbook.GetMemorizedSpells(spellLevel).FirstOrDefault(slot => slot.Spell != null && slot.Available)?.Spell;
+                    if (firstSpell != null) {
+                        foreach (var spontaneousBlueprint in spellbook.GetSpontaneousConversionSpells(spellLevel)) {
+                            // Only add spontaneous spells that aren't already in the list.
+                            if (!spellOptions.Any(spell => spell.Blueprint == spontaneousBlueprint)) {
+                                spellOptions.Add(new AbilityData(firstSpell, spontaneousBlueprint));
+                            }
+                        }
+                    }
+                }
+
+                foreach (var spell in spellOptions.OrderBy(spell => spell.Name).GroupBy(spell => spell.Name).Select(group => group.First())) {
                     if (spell.MetamagicData != null && spell.MetamagicData.NotEmpty) {
                         GUILayout.Label($"Cannot craft {new L10NString(craftingData.NameId)} of {spell.Name} with metamagic applied.");
                     } else if (spell.Blueprint.HasVariants) {
@@ -1394,14 +1408,14 @@ namespace CraftMagicItems {
 
                 if (itemBlueprint == null) {
                     throw new Exception(
-                        $"Unable to build blueprint for spellId {spell.Blueprint.AssetGuid}, spell level {spellLevel}, caster level {casterLevel}");
+                        $"Unable to build blueprint for spellId {spellBlueprint.AssetGuid}, spell level {spellLevel}, caster level {casterLevel}");
                 }
 
                 // Pay gold and material components up front.
                 if (!ModSettings.CraftingCostsNoGold) {
                     Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
                     Game.Instance.Player.SpendMoney(goldCost);
-                    if (spell.RequireMaterialComponent) {
+                    if (spellBlueprint.MaterialComponent.Item != null) {
                         Game.Instance.Player.Inventory.Remove(spellBlueprint.MaterialComponent.Item,
                             spellBlueprint.MaterialComponent.Count * craftingData.Charges);
                     }
@@ -1410,6 +1424,7 @@ namespace CraftMagicItems {
                 var resultItem = BuildItemEntity(itemBlueprint, craftingData);
                 AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-crafting", cost, itemBlueprint.Name), resultItem);
                 if (ModSettings.CraftingTakesNoTime) {
+                    AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-expend-spell", spell.Name));
                     spell.SpendFromSpellbook();
                     CraftItem(resultItem);
                 } else {
