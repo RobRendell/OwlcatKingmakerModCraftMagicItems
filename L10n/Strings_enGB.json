@@ -108,8 +108,16 @@
 		"value": "Spent {0} to begin crafting <b>{1}</b>."
 	},
 	{
-		"key": "craftMagicItems-startMessage",
+		"key": "craftMagicItems-time-estimate-single-rate",
 		"value": "Crafting should take about {count} {count_form|day|days}."
+	},
+	{
+		"key": "craftMagicItems-time-estimate-one-day",
+		"value": "Crafting should take about 1 day."
+	},
+	{
+		"key": "craftMagicItems-time-estimate-adventuring-capital",
+		"value": "Crafting should take about {0} days while adventuring, or {count} {count_form|day|days} somewhere safe."
 	},
 	{
 		"key": "craftMagicItems-logMessage-not-full-day",

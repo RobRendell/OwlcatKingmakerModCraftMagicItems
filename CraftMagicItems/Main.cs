@@ -87,6 +87,7 @@ namespace CraftMagicItems {
         private const int MagicCraftingProgressPerDay = 500;
         private const int MundaneCraftingProgressPerDay = 5;
         private const int MissingPrerequisiteDCModifier = 5;
+        private const int AdventuringProgressPenalty = 4;
         private const int MasterworkCost = 300;
         private const int WeaponPlusCost = 2000;
         private const int ArmourPlusCost = 1000;
@@ -380,7 +381,7 @@ namespace CraftMagicItems {
                     RenderLabel($"Caster level: {selectedCasterLevel}");
                 }
 
-                if (RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + selectedCasterLevel, selectedCasterLevel)) {
+                if (RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + selectedCasterLevel, selectedCasterLevel) < 0) {
                     if (ModSettings.CraftingTakesNoTime) {
                         RenderLabel($"This project would be too hard for {caster.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
                     } else {
@@ -782,7 +783,7 @@ namespace CraftMagicItems {
             GUILayout.Label(prerequisites, GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
             if (RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + casterLevel, casterLevel,
-                selectedRecipe.PrerequisiteSpells, selectedRecipe.AnyPrerequisite, selectedRecipe.CrafterPrerequisites)) {
+                    selectedRecipe.PrerequisiteSpells, selectedRecipe.AnyPrerequisite, selectedRecipe.CrafterPrerequisites) < 0) {
                 if (ModSettings.CraftingTakesNoTime) {
                     RenderLabel($"This project would be too hard for {caster.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
                 } else {
@@ -851,12 +852,13 @@ namespace CraftMagicItems {
             }
         }
 
-        private static bool RenderCraftingSkillInformation(UnitEntityData caster, StatType skill, int dc, int casterLevel = 0,
-            BlueprintAbility[] prerequisiteSpells = null, bool anyPrerequisite = false, CrafterPrerequisiteType[] crafterPrerequisites = null) {
+        private static int RenderCraftingSkillInformation(UnitEntityData caster, StatType skill, int dc, int casterLevel = 0,
+            BlueprintAbility[] prerequisiteSpells = null, bool anyPrerequisite = false, CrafterPrerequisiteType[] crafterPrerequisites = null,
+            bool render = true) {
             RenderLabel($"Base Crafting DC: {dc}");
             var missing = CheckSpellPrerequisites(prerequisiteSpells, anyPrerequisite, caster.Descriptor, false, out var missingSpells, out var spellsToCast);
             missing += GetMissingCrafterPrerequisites(crafterPrerequisites, caster.Descriptor).Count;
-            if (missing > 0) {
+            if (missing > 0 && render) {
                 RenderLabel(
                     $"{caster.CharacterName} is unable to meet {missing} of the prerequisites, raising the DC by {MissingPrerequisiteDCModifier * missing}");
             }
@@ -864,7 +866,10 @@ namespace CraftMagicItems {
             var crafterCasterLevel = caster.Descriptor.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
             if (crafterCasterLevel < casterLevel) {
                 var casterLevelShortfall = casterLevel - crafterCasterLevel;
-                RenderLabel(L10NFormat("craftMagicItems-logMessage-low-caster-level", casterLevel, MissingPrerequisiteDCModifier * casterLevelShortfall));
+                if (render) {
+                    RenderLabel(L10NFormat("craftMagicItems-logMessage-low-caster-level", casterLevel, MissingPrerequisiteDCModifier * casterLevelShortfall));
+                }
+
                 missing += casterLevelShortfall;
             }
 
@@ -873,8 +878,11 @@ namespace CraftMagicItems {
             }
 
             var skillCheck = 10 + caster.Stats.GetStat(skill).ModifiedValue;
-            RenderLabel(L10NFormat("craftMagicItems-logMessage-made-progress-check", LocalizedTexts.Instance.Stats.GetText(skill), skillCheck, dc));
-            return skillCheck < dc;
+            if (render) {
+                RenderLabel(L10NFormat("craftMagicItems-logMessage-made-progress-check", LocalizedTexts.Instance.Stats.GetText(skill), skillCheck, dc));
+            }
+
+            return skillCheck - dc;
         }
 
         private static int GetMaterialComponentMultiplier(ItemCraftingData craftingData) {
@@ -1003,7 +1011,7 @@ namespace CraftMagicItems {
             }
 
             var dc = CalculateMundaneCraftingDC(craftingData, selectedRecipe, baseBlueprint, crafter.Descriptor);
-            if (RenderCraftingSkillInformation(crafter, StatType.SkillKnowledgeWorld, dc)) {
+            if (RenderCraftingSkillInformation(crafter, StatType.SkillKnowledgeWorld, dc) < 0) {
                 if (ModSettings.CraftingTakesNoTime) {
                     RenderLabel($"This project would be too hard for {crafter.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
                 } else {
@@ -1373,6 +1381,40 @@ namespace CraftMagicItems {
             }
         }
 
+        private static void CalculateProjectEstimate(CraftingProjectData project) {
+            var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
+            StatType craftingSkill;
+            int dc;
+            int progressRate;
+            if (IsMundaneCraftingData(craftingData)) {
+                craftingSkill = StatType.SkillKnowledgeWorld;
+                var recipeBasedItemCraftingData = (RecipeBasedItemCraftingData) craftingData;
+                var projectRecipe = recipeBasedItemCraftingData.Recipes.First(recipe => recipe.Name == project.RecipeName);
+                dc = CalculateMundaneCraftingDC(recipeBasedItemCraftingData, projectRecipe, project.ResultItem.Blueprint, project.Crafter.Descriptor);
+                progressRate = MundaneCraftingProgressPerDay;
+            } else {
+                craftingSkill = StatType.SkillKnowledgeArcana;
+                dc = 5 + project.CasterLevel;
+                progressRate = MagicCraftingProgressPerDay;
+            }
+
+            var skillMargin = RenderCraftingSkillInformation(project.Crafter, craftingSkill, dc, project.CasterLevel, project.Prerequisites,
+                project.AnyPrerequisite, project.CrafterPrerequisites, false);
+            var progressPerDayCapital = (int) (progressRate * (1 + (float) skillMargin / 5));
+            GameLogContext.Count = (project.TargetCost + progressPerDayCapital - 1) / progressPerDayCapital;
+            if (ModSettings.CraftAtFullSpeedWhileAdventuring) {
+                project.AddMessage(new L10NString("craftMagicItems-time-estimate-single-rate"));
+            } else {
+                var progressPerDayAdventuring = (int) (progressRate * (1 + (float) skillMargin / 5) / AdventuringProgressPenalty);
+                var adventuringDayCount = (project.TargetCost + progressPerDayAdventuring - 1) / progressPerDayAdventuring;
+                project.AddMessage(adventuringDayCount == 1
+                    ? new L10NString("craftMagicItems-time-estimate-one-day")
+                    : L10NFormat("craftMagicItems-time-estimate-adventuring-capital", adventuringDayCount));
+            }
+
+            AddBattleLogMessage(project.LastMessage);
+        }
+
         private static void RenderSpellBasedCraftItemControl(UnitEntityData caster, SpellBasedItemCraftingData craftingData, AbilityData spell,
             BlueprintAbility spellBlueprint, int spellLevel, int casterLevel) {
             var itemBlueprintList = FindItemBlueprintsForSpell(spellBlueprint, craftingData.UsableItemType);
@@ -1430,10 +1472,7 @@ namespace CraftMagicItems {
                 } else {
                     var project = new CraftingProjectData(caster, goldCost, casterLevel, resultItem, craftingData.Name, null, new[] {spellBlueprint});
                     AddNewProject(caster.Descriptor, project);
-                    var progressRate = MagicCraftingProgressPerDay / (IsPlayerInCapital() ? 1 : 4);
-                    GameLogContext.Count = (goldCost + progressRate - 1) / progressRate;
-                    project.AddMessage(new L10NString("craftMagicItems-startMessage"));
-                    AddBattleLogMessage(project.LastMessage);
+                    CalculateProjectEstimate(project);
                     currentSection = OpenSection.ProjectsSection;
                 }
             }
@@ -1490,11 +1529,7 @@ namespace CraftMagicItems {
                     var project = new CraftingProjectData(caster, requiredProgress, casterLevel, resultItem, craftingData.Name, recipe.Name,
                         recipe.PrerequisiteSpells, recipe.AnyPrerequisite, upgradeItem, recipe.CrafterPrerequisites);
                     AddNewProject(caster.Descriptor, project);
-                    var progressRate = (IsMundaneCraftingData(craftingData) ? MundaneCraftingProgressPerDay : MagicCraftingProgressPerDay) /
-                                       (IsPlayerInCapital() ? 1 : 4);
-                    GameLogContext.Count = (requiredProgress + progressRate - 1) / progressRate;
-                    project.AddMessage(new L10NString("craftMagicItems-startMessage"));
-                    AddBattleLogMessage(project.LastMessage);
+                    CalculateProjectEstimate(project);
                     currentSection = OpenSection.ProjectsSection;
                 }
 
@@ -2502,7 +2537,7 @@ namespace CraftMagicItems {
 
                 // Cleared the last hurdle, so caster is going to make progress on this project.
                 // You only work at 1/4 speed if you're crafting while adventuring.
-                var adventuringPenalty = !isAdventuring || ModSettings.CraftAtFullSpeedWhileAdventuring ? 1 : 4;
+                var adventuringPenalty = !isAdventuring || ModSettings.CraftAtFullSpeedWhileAdventuring ? 1 : AdventuringProgressPenalty;
                 var progressRate = IsMundaneCraftingData(craftingData) ? MundaneCraftingProgressPerDay : MagicCraftingProgressPerDay;
                 // Each 1 by which the skill check exceeds the DC increases the crafting rate by 20% of the base progressRate
                 var progressPerDay = (int) (progressRate * (1 + (float) (skillCheck - dc) / 5) / adventuringPenalty);
