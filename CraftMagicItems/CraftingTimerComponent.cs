@@ -4,6 +4,7 @@ using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.UnitLogic.Buffs.Components;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Kingmaker;
 using Kingmaker.Blueprints.Items;
@@ -20,6 +21,9 @@ namespace CraftMagicItems {
         [JsonProperty] public int Progress;
 
         [JsonProperty] public int TargetCost;
+
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)] [DefaultValue(-1)]
+        public int GoldSpent;
 
         [JsonProperty] public int CasterLevel;
 
@@ -42,11 +46,13 @@ namespace CraftMagicItems {
 
         [JsonProperty] public ItemEntity UpgradeItem;
 
-        public CraftingProjectData(UnitEntityData crafter, int targetCost, int casterLevel, ItemEntity resultItem, string itemType, string recipeName = null,
+        public CraftingProjectData(UnitEntityData crafter, int targetCost, int goldSpent, int casterLevel, ItemEntity resultItem, string itemType,
+            string recipeName = null,
             BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, ItemEntity upgradeItem = null,
             CrafterPrerequisiteType[] crafterPrerequisites = null) {
             Crafter = crafter;
             TargetCost = targetCost;
+            GoldSpent = goldSpent;
             CasterLevel = casterLevel;
             ResultItem = resultItem;
             ItemType = itemType;

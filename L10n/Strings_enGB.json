@@ -153,7 +153,7 @@
 	},
 	{
 		"key": "craftMagicItems-logMessage-made-progress",
-		"value": "{Source} made {0} gold progress towards completing <b>{1}</b>."
+		"value": "{Source} made {0} progress of {1} remaining towards completing <b>{2}</b>."
 	},
 	{
 		"key": "craftMagicItems-logMessage-made-progress-check",

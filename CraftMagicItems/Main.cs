@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -59,6 +60,7 @@ namespace CraftMagicItems {
         public bool CraftingCostsNoGold;
         public bool IgnoreCraftingFeats;
         public bool CraftingTakesNoTime;
+        public float CraftingPriceScale = 1;
         public bool CraftAtFullSpeedWhileAdventuring;
         public bool IgnoreFeatCasterLevelRestriction;
 
@@ -91,6 +93,13 @@ namespace CraftMagicItems {
         private const int MasterworkCost = 300;
         private const int WeaponPlusCost = 2000;
         private const int ArmourPlusCost = 1000;
+
+        private static readonly string[] CraftingPriceStrings = {
+            "100% (Owlcat prices)",
+            "200% (Tabletop prices)",
+            "Custom"
+        };
+
         private static readonly FeatureGroup[] CraftingFeatGroups = {FeatureGroup.Feat, FeatureGroup.WizardFeat};
         private const string TimerBlueprintGuid = "52e4be2ba79c8c94d907bdbaf23ec15f#CraftMagicItems(timer)";
         private const string MasterworkGuid = "6b38844e2bffbac48b63036b66e735be";
@@ -119,6 +128,7 @@ namespace CraftMagicItems {
         public static Settings ModSettings;
         private static ItemCraftingData[] itemCraftingData;
         private static OpenSection currentSection = OpenSection.CraftMagicItemsSection;
+        private static int selectedCustomPriceScaleIndex;
         private static int selectedItemTypeIndex;
         private static int selectedSpellcasterIndex;
         private static int selectedSpellbookIndex;
@@ -151,6 +161,8 @@ namespace CraftMagicItems {
         private static void Load(UnityModManager.ModEntry modEntry) {
             ModEntry = modEntry;
             ModSettings = UnityModManager.ModSettings.Load<Settings>(modEntry);
+            selectedCustomPriceScaleIndex = Mathf.Abs(ModSettings.CraftingPriceScale - 1f) < 0.001 ? 0 :
+                Mathf.Abs(ModSettings.CraftingPriceScale - 2f) < 0.001 ? 1 : 2;
             try {
                 HarmonyInstance.Create("kingmaker.craftMagicItems").PatchAll(Assembly.GetExecutingAssembly());
             } catch (Exception e) {
@@ -894,14 +906,13 @@ namespace CraftMagicItems {
         }
 
         private static void CancelCraftingProject(CraftingProjectData project) {
-            // Refund gold and material components.  Yes, the player could exploit this by toggling "crafting costs no gold" between
-            // queueing up a crafting project and cancelling it, but there are much more direct ways to cheat with mods, so I don't
-            // particularly care.
+            // Refund gold and material components.
             if (!ModSettings.CraftingCostsNoGold) {
                 Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
-                Game.Instance.Player.GainMoney(project.TargetCost);
+                var goldRefund = project.GoldSpent >= 0 ? project.GoldSpent : project.TargetCost;
+                Game.Instance.Player.GainMoney(goldRefund);
                 var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
-                BuildCostString(out var cost, craftingData, project.TargetCost, project.Prerequisites);
+                BuildCostString(out var cost, craftingData, goldRefund, project.Prerequisites);
                 var factor = GetMaterialComponentMultiplier(craftingData);
                 if (factor > 0) {
                     foreach (var prerequisiteSpell in project.Prerequisites) {
@@ -1148,6 +1159,25 @@ namespace CraftMagicItems {
 
         private static void RenderCheatsSection() {
             RenderCheckbox(ref ModSettings.CraftingCostsNoGold, "Crafting costs no gold and no material components.");
+            if (!ModSettings.CraftingCostsNoGold) {
+                RenderSelection(ref selectedCustomPriceScaleIndex, "Crafting Cost: ", CraftingPriceStrings, 4);
+                if (selectedCustomPriceScaleIndex == 2) {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Custom Cost Factor: ", GUILayout.ExpandWidth(false));
+                    ModSettings.CraftingPriceScale = GUILayout.HorizontalSlider(ModSettings.CraftingPriceScale * 100, 0, 500, GUILayout.Width(300)) / 100;
+                    GUILayout.Label(Mathf.Round(ModSettings.CraftingPriceScale * 100).ToString(CultureInfo.InvariantCulture));
+                    GUILayout.EndHorizontal();
+                } else {
+                    ModSettings.CraftingPriceScale = 1 + selectedCustomPriceScaleIndex;
+                }
+
+                if (selectedCustomPriceScaleIndex != 0) {
+                    RenderLabel(
+                        "<b>Note:</b> The sale price of custom crafted items will also be scaled by this factor, but vanilla items crafted by this mod" +
+                        " will continue to use Owlcat's sale price, creating a price difference between the cost of crafting and sale price.");
+                }
+            }
+
             RenderCheckbox(ref ModSettings.IgnoreCraftingFeats, "Crafting does not require characters to take crafting feats.");
             RenderCheckbox(ref ModSettings.CraftingTakesNoTime, "Crafting takes no time to complete.");
             RenderCheckbox(ref ModSettings.CraftAtFullSpeedWhileAdventuring, "Characters craft at full speed while adventuring (instead of 25% speed)");
@@ -1424,7 +1454,8 @@ namespace CraftMagicItems {
             }
 
             var existingItemBlueprint = itemBlueprintList?.Find(bp => bp.SpellLevel == spellLevel && bp.CasterLevel == casterLevel);
-            var goldCost = CalculateSpellBasedGoldCost(craftingData, spellLevel, casterLevel);
+            var requiredProgress = CalculateSpellBasedGoldCost(craftingData, spellLevel, casterLevel);
+            var goldCost = (int) Mathf.Round(requiredProgress * ModSettings.CraftingPriceScale);
             var canAfford = BuildCostString(out var cost, craftingData, goldCost, spellBlueprint);
             var custom = (existingItemBlueprint == null || existingItemBlueprint.AssetGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength)
                 ? new L10NString("craftMagicItems-label-custom").ToString()
@@ -1454,7 +1485,9 @@ namespace CraftMagicItems {
                 }
 
                 // Pay gold and material components up front.
-                if (!ModSettings.CraftingCostsNoGold) {
+                if (ModSettings.CraftingCostsNoGold) {
+                    goldCost = 0;
+                } else {
                     Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
                     Game.Instance.Player.SpendMoney(goldCost);
                     if (spellBlueprint.MaterialComponent.Item != null) {
@@ -1470,7 +1503,8 @@ namespace CraftMagicItems {
                     spell.SpendFromSpellbook();
                     CraftItem(resultItem);
                 } else {
-                    var project = new CraftingProjectData(caster, goldCost, casterLevel, resultItem, craftingData.Name, null, new[] {spellBlueprint});
+                    var project = new CraftingProjectData(caster, requiredProgress, goldCost, casterLevel, resultItem, craftingData.Name, null,
+                        new[] {spellBlueprint});
                     AddNewProject(caster.Descriptor, project);
                     CalculateProjectEstimate(project);
                     currentSection = OpenSection.ProjectsSection;
@@ -1484,8 +1518,8 @@ namespace CraftMagicItems {
 
         private static void RenderRecipeBasedCraftItemControl(UnitEntityData caster, ItemCraftingData craftingData, RecipeData recipe, int casterLevel,
             BlueprintItem itemBlueprint, ItemEntity upgradeItem = null) {
-            var goldCost = (itemBlueprint.Cost - (upgradeItem?.Blueprint.Cost ?? 0)) / 4;
-            var requiredProgress = goldCost;
+            var requiredProgress = (itemBlueprint.Cost - (upgradeItem?.Blueprint.Cost ?? 0)) / 4;
+            var goldCost = (int) Mathf.Round(requiredProgress * ModSettings.CraftingPriceScale);
             if (IsMundaneCraftingData(craftingData)) {
                 // For mundane crafting, the gold cost is less, and the cost of the recipe doesn't increase the required progress.
                 goldCost = Math.Max(1, (goldCost * 2 + 2) / 3);
@@ -1508,7 +1542,9 @@ namespace CraftMagicItems {
                 GUILayout.Label(label);
             } else if (GUILayout.Button(label, GUILayout.ExpandWidth(false))) {
                 // Pay gold and material components up front.
-                if (!ModSettings.CraftingCostsNoGold) {
+                if (ModSettings.CraftingCostsNoGold) {
+                    goldCost = 0;
+                } else {
                     Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
                     Game.Instance.Player.SpendMoney(goldCost);
                     var factor = GetMaterialComponentMultiplier(craftingData);
@@ -1526,7 +1562,7 @@ namespace CraftMagicItems {
                 if (ModSettings.CraftingTakesNoTime) {
                     CraftItem(resultItem, upgradeItem);
                 } else {
-                    var project = new CraftingProjectData(caster, requiredProgress, casterLevel, resultItem, craftingData.Name, recipe.Name,
+                    var project = new CraftingProjectData(caster, requiredProgress, goldCost, casterLevel, resultItem, craftingData.Name, recipe.Name,
                         recipe.PrerequisiteSpells, recipe.AnyPrerequisite, upgradeItem, recipe.CrafterPrerequisites);
                     AddNewProject(caster.Descriptor, project);
                     CalculateProjectEstimate(project);
@@ -2596,6 +2632,11 @@ namespace CraftMagicItems {
                     }
                 }
 
+                var progress = L10NFormat("craftMagicItems-logMessage-made-progress", progressGold, project.TargetCost - project.Progress,
+                    project.ResultItem.Name);
+                var checkResult = L10NFormat("craftMagicItems-logMessage-made-progress-check", LocalizedTexts.Instance.Stats.GetText(craftingSkill),
+                    skillCheck, dc);
+                AddBattleLogMessage(progress, checkResult);
                 daysAvailableToCraft -= daysCrafting;
                 project.Progress += progressGold;
                 if (project.Progress >= project.TargetCost) {
@@ -2609,12 +2650,8 @@ namespace CraftMagicItems {
                         ItemUpgradeProjects.Remove(project.UpgradeItem);
                     }
                 } else {
-                    var progress = L10NFormat("craftMagicItems-logMessage-made-progress", progressGold, project.ResultItem.Name);
-                    var checkResult = L10NFormat("craftMagicItems-logMessage-made-progress-check", LocalizedTexts.Instance.Stats.GetText(craftingSkill),
-                        skillCheck, dc);
                     var amountComplete = L10NFormat("craftMagicItems-logMessage-made-progress-amount-complete", project.ResultItem.Name,
                         100 * project.Progress / project.TargetCost);
-                    AddBattleLogMessage(progress, checkResult);
                     AddBattleLogMessage(amountComplete, project.ResultItem);
                     project.AddMessage($"{progress} {checkResult}");
                 }
