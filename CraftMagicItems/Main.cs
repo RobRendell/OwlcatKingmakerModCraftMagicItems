@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -282,23 +282,21 @@ namespace CraftMagicItems {
 
         private static CraftingTimerComponent GetCraftingTimerComponentForCaster(UnitDescriptor caster, bool create = false) {
             var timerBlueprint = (BlueprintBuff) ResourcesLibrary.TryGetBlueprint(TimerBlueprintGuid);
-            var timer = (Buff) caster.GetFact(timerBlueprint);
-            if (timer == null) {
+            var timerBuff = (Buff) caster.GetFact(timerBlueprint);
+            if (timerBuff == null) {
                 if (!create) {
                     return null;
                 }
 
                 caster.AddFact<Buff>(timerBlueprint);
-                timer = (Buff) caster.GetFact(timerBlueprint);
-            } else if (timer.Blueprint.AssetGuid.Length == CustomBlueprintBuilder.VanillaAssetIdLength && CustomBlueprintBuilder.Downgrade) {
+                timerBuff = (Buff) caster.GetFact(timerBlueprint);
+            } else if (timerBuff.Blueprint.AssetGuid.Length == CustomBlueprintBuilder.VanillaAssetIdLength && CustomBlueprintBuilder.Downgrade) {
                 // Clean up
-                caster.RemoveFact(timer);
+                caster.RemoveFact(timerBuff);
                 return null;
             }
 
-            CraftingTimerComponent result = null;
-            timer.CallComponents((CraftingTimerComponent component) => { result = component; });
-            return result;
+            return timerBuff.SelectComponents<CraftingTimerComponent>().First();
         }
 
         private static void RenderCraftMagicItemsSection() {
@@ -1344,6 +1342,7 @@ namespace CraftMagicItems {
             }
 
             Game.Instance.Player.Inventory.Add(resultItem);
+
             if (resultItem is ItemEntityUsable usable) {
                 switch (usable.Blueprint.Type) {
                     case UsableItemType.Scroll:
@@ -2712,11 +2711,14 @@ namespace CraftMagicItems {
                                     project.ItemBlueprint = null;
                                 }
 
+                                project.ResultItem.PostLoad();
+
                                 project.Crafter = caster;
                                 if (project.UpgradeItem == null) {
                                     ItemCreationProjects.Add(project);
                                 } else {
                                     ItemUpgradeProjects[project.UpgradeItem] = project;
+                                    project.UpgradeItem.PostLoad();
                                 }
                             }
                         }
@@ -2746,8 +2748,8 @@ namespace CraftMagicItems {
                 }
 
                 if (item is ItemEntityWeapon weapon) {
-                    var description = new StringBuilder();
                     if (weapon.Blueprint.DamageType.Physical.Material != 0) {
+                        var description = new StringBuilder();
                         description.Append(LocalizedTexts.Instance.DamageMaterial.GetText(weapon.Blueprint.DamageType.Physical.Material));
                         if (!string.IsNullOrEmpty(__result)) {
                             description.Append(", ");
