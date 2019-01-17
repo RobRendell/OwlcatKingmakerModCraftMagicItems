@@ -149,6 +149,7 @@ namespace CraftMagicItems {
 
         private static readonly Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>> SpellIdToItem =
             new Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>>();
+
         private static readonly Dictionary<string, List<ItemCraftingData>> SubCraftingData = new Dictionary<string, List<ItemCraftingData>>();
         private static readonly Dictionary<string, List<BlueprintItemEquipment>> EnchantmentIdToItem = new Dictionary<string, List<BlueprintItemEquipment>>();
         private static readonly Dictionary<string, List<RecipeData>> EnchantmentIdToRecipe = new Dictionary<string, List<RecipeData>>();
@@ -214,9 +215,7 @@ namespace CraftMagicItems {
 
                 RenderLabel($"Number of custom Craft Magic Items blueprints loaded: {CustomBlueprintBuilder.CustomBlueprintIDs.Count}");
 
-                if (currentSection != OpenSection.CraftMundaneItemsSection) {
-                    GetSelectedCaster(true);
-                }
+                GetSelectedCrafter(true);
 
                 if (RenderToggleSection(ref currentSection, OpenSection.CraftMagicItemsSection, "Craft Magic Items")) {
                     RenderCraftMagicItemsSection();
@@ -246,7 +245,7 @@ namespace CraftMagicItems {
 
         private static string L10NFormat(string key, params object[] args) {
             // Set GameLogContext so the caster will be used when generating localized strings.
-            GameLogContext.SourceUnit = currentCaster ?? GetSelectedCaster(false);
+            GameLogContext.SourceUnit = currentCaster ?? GetSelectedCrafter(false);
             var template = new L10NString(key);
             return string.Format(template.ToString(), args);
         }
@@ -301,7 +300,7 @@ namespace CraftMagicItems {
         }
 
         private static void RenderCraftMagicItemsSection() {
-            var caster = GetSelectedCaster(false);
+            var caster = GetSelectedCrafter(false);
             if (caster == null) {
                 return;
             }
@@ -964,17 +963,7 @@ namespace CraftMagicItems {
         }
 
         private static void RenderCraftMundaneItemsSection() {
-            currentCaster = null;
-            // Only allow remote companions if the player is in the capital.
-            var remote = IsPlayerInCapital();
-            var partyCharacters = UIUtility.GetGroup(remote).Where(character => character.IsPlayerFaction
-                                                                                && !character.Descriptor.IsPet
-                                                                                && !character.Descriptor.State.IsDead
-                                                                                && !character.Descriptor.State.IsFinallyDead)
-                .ToArray();
-            var partyNames = partyCharacters.Select(entity => entity.CharacterName).ToArray();
-            RenderSelection(ref selectedSpellcasterIndex, "Crafter: ", partyNames, 8);
-            var crafter = partyCharacters[selectedSpellcasterIndex];
+            var crafter = GetSelectedCrafter(false);
 
             // Choose crafting data
             var itemTypes = itemCraftingData
@@ -989,7 +978,7 @@ namespace CraftMagicItems {
                 RenderSelection(ref selectedItemSubTypeIndex, $"{new L10NString(selectedCraftingData.ParentNameId)}: ", itemTypeNames, 6);
                 selectedCraftingData = SubCraftingData[selectedCraftingData.ParentNameId][selectedItemSubTypeIndex];
             }
-            
+
             if (!(selectedCraftingData is RecipeBasedItemCraftingData craftingData)) {
                 RenderLabel("Unable to find mundane crafting recipe.");
                 return;
@@ -1076,7 +1065,7 @@ namespace CraftMagicItems {
         }
 
         private static void RenderProjectsSection() {
-            var caster = GetSelectedCaster(false);
+            var caster = GetSelectedCrafter(false);
             if (caster == null) {
                 return;
             }
@@ -1109,7 +1098,7 @@ namespace CraftMagicItems {
         }
 
         private static void RenderFeatReassignmentSection() {
-            var caster = GetSelectedCaster(false);
+            var caster = GetSelectedCrafter(false);
             if (caster == null) {
                 return;
             }
@@ -1204,31 +1193,29 @@ namespace CraftMagicItems {
                    (Game.Instance.CurrentMode == GameModeType.Kingdom && KingdomTimelineManager.CanAdvanceTime());
         }
 
-        private static UnitEntityData GetSelectedCaster(bool render) {
+        private static UnitEntityData GetSelectedCrafter(bool render) {
             currentCaster = null;
             // Only allow remote companions if the player is in the capital.
             var remote = IsPlayerInCapital();
-            var partySpellCasters = UIUtility.GetGroup(remote).Where(character => character.IsPlayerFaction
-                                                                                  && !character.Descriptor.IsPet
-                                                                                  && character.Descriptor.Spellbooks != null
-                                                                                  && character.Descriptor.Spellbooks.Any()
-                                                                                  && !character.Descriptor.State.IsDead
-                                                                                  && !character.Descriptor.State.IsFinallyDead)
+            var characters = UIUtility.GetGroup(remote).Where(character => character.IsPlayerFaction
+                                                                           && !character.Descriptor.IsPet
+                                                                           && !character.Descriptor.State.IsDead
+                                                                           && !character.Descriptor.State.IsFinallyDead)
                 .ToArray();
-            if (partySpellCasters.Length == 0) {
+            if (characters.Length == 0) {
                 if (render) {
-                    RenderLabel("No characters with spells available.");
+                    RenderLabel("No living characters available.");
                 }
 
                 return null;
             }
 
             if (render) {
-                var partyNames = partySpellCasters.Select(entity => entity.CharacterName).ToArray();
-                RenderSelection(ref selectedSpellcasterIndex, "Caster: ", partyNames, 8);
+                var partyNames = characters.Select(entity => entity.CharacterName).ToArray();
+                RenderSelection(ref selectedSpellcasterIndex, "Crafter: ", partyNames, 8);
             }
 
-            return selectedSpellcasterIndex < partySpellCasters.Length ? partySpellCasters[selectedSpellcasterIndex] : null;
+            return characters[selectedSpellcasterIndex];
         }
 
         private static void RenderSelection(ref int index, string label, string[] options, int xCount) {
@@ -2086,17 +2073,20 @@ namespace CraftMagicItems {
                     if (componentType == null) {
                         throw new Exception($"Failed to create object with type {value}");
                     }
+
                     var component = Activator.CreateInstance(componentType) as BlueprintComponent;
                     if (component == null) {
                         throw new Exception($"Failed to create BlueprintComponent with type {value}, " +
                                             $"result is {componentType.FullName}");
                     }
-                    componentsCopy = componentsCopy.Concat(new [] {component}).ToArray();
+
+                    componentsCopy = componentsCopy.Concat(new[] {component}).ToArray();
                 } else {
                     // Strip leading . of field
                     if (field.StartsWith(".")) {
                         field = field.Substring(1);
                     }
+
                     componentsCopy[componentIndex] = TraverseCloneAndSetField(componentsCopy[componentIndex], field, value);
                 }
             }
@@ -2213,6 +2203,7 @@ namespace CraftMagicItems {
                         if (!SubCraftingData.ContainsKey(itemData.ParentNameId)) {
                             SubCraftingData[itemData.ParentNameId] = new List<ItemCraftingData>();
                         }
+
                         SubCraftingData[itemData.ParentNameId].Add(itemData);
                     }
                 }
