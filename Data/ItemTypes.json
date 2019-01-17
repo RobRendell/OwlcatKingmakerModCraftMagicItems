@@ -165,6 +165,7 @@
     "DataType": "RecipeBased",
     "Name": "CraftMundaneSimpleWeapons",
     "NameId": "21d4f223-f2e1-42d0-a04f-ad7410e90de3",
+    "ParentNameId": "e5e94f49-4bf6-4813-b4d7-8e4e9ede3d11",
     "NewItemBaseIDs": [
       "aa514dbf4c3d61f4e9c0738bd4d373cb",
       "766689ccb57d9eb4f8fc88e2e85a919f",
@@ -186,6 +187,7 @@
     "DataType": "RecipeBased",
     "Name": "CraftMundaneMartialWeapons",
     "NameId": "16878322-a6ee-4094-aaac-e9a4404f4c59",
+    "ParentNameId": "e5e94f49-4bf6-4813-b4d7-8e4e9ede3d11",
     "NewItemBaseIDs": [
       "5bfdaaa6416cc604cba121d003db11ef",
       "6080738f7e97b5646980a0efad2da676",
@@ -221,6 +223,7 @@
     "DataType": "RecipeBased",
     "Name": "CraftMundaneExoticWeapons",
     "NameId": "d6b810a1-5bf4-4df5-9d97-722ae5fff7b7",
+    "ParentNameId": "e5e94f49-4bf6-4813-b4d7-8e4e9ede3d11",
     "NewItemBaseIDs": [
       "07531989333442348b7d0102b24af236",
       "4697667a33a6774489e5265a955675a5",

@@ -4,10 +4,10 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 * Mundane crafting - craft shields with shield spikes?  Tricky, the base spiked shield assets are weapons rather than shields...
+* Mundane crafting - oversize weapons.
 * Enchanting bonded objects.  Requires some way to select a bonded object, and an enforcement that it's equipped thereafter.
 * Add more wondrous item recipes, including adding Robes, Ioun Stones
-* Cheat: slider to customise crafting costs and item sale price from 0% (current "costs nothing" cheat) to 100% (Owlcat
-    item prices) to 200% (tabletop item prices) to... more?
+* New cheat: remove +10 maximum to arms and armor.
 * Add new magic items to random loot drops?  They don't seem to go very high in CR...
 * Craft Rod
 * In-game GUI

@@ -83,7 +83,7 @@ namespace CraftMagicItems {
                       + @"(,visual=(?<visual>null|[0-9a-f]+))?"
                       + @"|feat=(?<feat>[-a-z]+)"
                       + @"|(?<timer>timer)"
-                      + @"|(?<components>(Component\[(?<index>[0-9]+)\].(?<field>[^=]+)=(?<value>[^,)]+),?)+(,nameId=(?<nameId>[^,)]+))?(,descriptionId=(?<descriptionId>[^,)]+))?)"
+                      + @"|(?<components>(Component\[(?<index>[0-9]+)\](?<field>[^=]*)?=(?<value>[^,)]+),?)+(,nameId=(?<nameId>[^,)]+))?(,descriptionId=(?<descriptionId>[^,)]+))?)"
                       + @")\)");
 
         private const int MagicCraftingProgressPerDay = 500;
@@ -130,6 +130,7 @@ namespace CraftMagicItems {
         private static OpenSection currentSection = OpenSection.CraftMagicItemsSection;
         private static int selectedCustomPriceScaleIndex;
         private static int selectedItemTypeIndex;
+        private static int selectedItemSubTypeIndex;
         private static int selectedSpellcasterIndex;
         private static int selectedSpellbookIndex;
         private static int selectedSpellLevelIndex;
@@ -148,7 +149,7 @@ namespace CraftMagicItems {
 
         private static readonly Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>> SpellIdToItem =
             new Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>>();
-
+        private static readonly Dictionary<string, List<ItemCraftingData>> SubCraftingData = new Dictionary<string, List<ItemCraftingData>>();
         private static readonly Dictionary<string, List<BlueprintItemEquipment>> EnchantmentIdToItem = new Dictionary<string, List<BlueprintItemEquipment>>();
         private static readonly Dictionary<string, List<RecipeData>> EnchantmentIdToRecipe = new Dictionary<string, List<RecipeData>>();
         private static readonly Dictionary<string, int> EnchantmentIdToCost = new Dictionary<string, int>();
@@ -975,12 +976,21 @@ namespace CraftMagicItems {
             RenderSelection(ref selectedSpellcasterIndex, "Crafter: ", partyNames, 8);
             var crafter = partyCharacters[selectedSpellcasterIndex];
 
-
             // Choose crafting data
-            var itemTypes = itemCraftingData.Where(data => data.FeatGuid == null).ToArray();
-            var itemTypeNames = itemTypes.Select(data => new L10NString(data.NameId).ToString()).ToArray();
+            var itemTypes = itemCraftingData
+                .Where(data => data.FeatGuid == null
+                               && (data.ParentNameId == null || SubCraftingData[data.ParentNameId][0] == data))
+                .ToArray();
+            var itemTypeNames = itemTypes.Select(data => new L10NString(data.ParentNameId ?? data.NameId).ToString()).ToArray();
             RenderSelection(ref selectedItemTypeIndex, "Crafting: ", itemTypeNames, 6, ref selectedCustomName);
-            if (!(itemTypes[selectedItemTypeIndex] is RecipeBasedItemCraftingData craftingData)) {
+            var selectedCraftingData = itemTypes[selectedItemTypeIndex];
+            if (selectedCraftingData.ParentNameId != null) {
+                itemTypeNames = SubCraftingData[selectedCraftingData.ParentNameId].Select(data => new L10NString(data.NameId).ToString()).ToArray();
+                RenderSelection(ref selectedItemSubTypeIndex, $"{new L10NString(selectedCraftingData.ParentNameId)}: ", itemTypeNames, 6);
+                selectedCraftingData = SubCraftingData[selectedCraftingData.ParentNameId][selectedItemSubTypeIndex];
+            }
+            
+            if (!(selectedCraftingData is RecipeBasedItemCraftingData craftingData)) {
                 RenderLabel("Unable to find mundane crafting recipe.");
                 return;
             }
@@ -1689,7 +1699,7 @@ namespace CraftMagicItems {
         private static string BuildCustomComponentsItemGuid(string originalGuid, string[] values, string nameId, string descriptionId) {
             var components = "";
             for (var index = 0; index < values.Length; index += 3) {
-                components += $"{(index > 0 ? "," : "")}Component[{values[index]}].{values[index + 1]}={values[index + 2]}";
+                components += $"{(index > 0 ? "," : "")}Component[{values[index]}]{values[index + 1]}={values[index + 2]}";
             }
 
             return
@@ -2064,13 +2074,31 @@ namespace CraftMagicItems {
             var fieldCaptures = match.Groups["field"].Captures;
             var valueCaptures = match.Groups["value"].Captures;
             for (var index = 0; index < indexCaptures.Count; ++index) {
-                values.Add(indexCaptures[index].Value);
-                values.Add(fieldCaptures[index].Value);
-                values.Add(valueCaptures[index].Value);
                 var componentIndex = int.Parse(indexCaptures[index].Value);
                 var field = fieldCaptures[index].Value;
                 var value = valueCaptures[index].Value;
-                componentsCopy[componentIndex] = TraverseCloneAndSetField(componentsCopy[componentIndex], field, value);
+                values.Add(indexCaptures[index].Value);
+                values.Add(field);
+                values.Add(value);
+                if (componentIndex >= componentsCopy.Length) {
+                    value = value.Replace("#", ", ");
+                    var componentType = Type.GetType(value);
+                    if (componentType == null) {
+                        throw new Exception($"Failed to create object with type {value}");
+                    }
+                    var component = Activator.CreateInstance(componentType) as BlueprintComponent;
+                    if (component == null) {
+                        throw new Exception($"Failed to create BlueprintComponent with type {value}, " +
+                                            $"result is {componentType.FullName}");
+                    }
+                    componentsCopy = componentsCopy.Concat(new [] {component}).ToArray();
+                } else {
+                    // Strip leading . of field
+                    if (field.StartsWith(".")) {
+                        field = field.Substring(1);
+                    }
+                    componentsCopy[componentIndex] = TraverseCloneAndSetField(componentsCopy[componentIndex], field, value);
+                }
             }
 
             blueprint.ComponentsArray = componentsCopy;
@@ -2179,6 +2207,13 @@ namespace CraftMagicItems {
                                 recipeBased.SubRecipes[recipe.ParentNameId].Add(recipe);
                             }
                         }
+                    }
+
+                    if (itemData.ParentNameId != null) {
+                        if (!SubCraftingData.ContainsKey(itemData.ParentNameId)) {
+                            SubCraftingData[itemData.ParentNameId] = new List<ItemCraftingData>();
+                        }
+                        SubCraftingData[itemData.ParentNameId].Add(itemData);
                     }
                 }
 

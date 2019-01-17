@@ -19,6 +19,7 @@ namespace CraftMagicItems {
         public string DataType { get; set; }
         [JsonProperty] public string Name;
         [JsonProperty] public string NameId;
+        [JsonProperty] public string ParentNameId;
         [JsonProperty] public string FeatGuid;
         [JsonProperty] public int MinimumCasterLevel;
         [JsonProperty] public bool PrerequisitesMandatory;
