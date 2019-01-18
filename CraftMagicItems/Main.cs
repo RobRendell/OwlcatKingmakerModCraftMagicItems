@@ -23,6 +23,7 @@ using Kingmaker.Blueprints.Items.Weapons;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Blueprints.Root.Strings.GameLog;
 using Kingmaker.Controllers.Rest;
+using Kingmaker.Designers.Mechanics.Facts;
 using Kingmaker.Designers.TempMapCode.Capital;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.EntitySystem.Persistence;
@@ -621,7 +622,6 @@ namespace CraftMagicItems {
             if (restrictions != null) {
                 var weapon = blueprint as BlueprintItemWeapon;
                 var armour = blueprint as BlueprintItemArmor;
-                var shield = blueprint as BlueprintItemShield;
                 foreach (var restriction in restrictions) {
                     switch (restriction) {
                         case ItemRestrictions.WeaponMelee when weapon == null || weapon.AttackType != AttackType.Melee:
@@ -640,6 +640,10 @@ namespace CraftMagicItems {
                         case ItemRestrictions.ArmourLight when armour == null || armour.Type.ProficiencyGroup != ArmorProficiencyGroup.Light:
                         case ItemRestrictions.ArmourMedium when armour == null || armour.Type.ProficiencyGroup != ArmorProficiencyGroup.Medium:
                         case ItemRestrictions.ArmourHeavy when armour == null || armour.Type.ProficiencyGroup != ArmorProficiencyGroup.Heavy:
+                        case ItemRestrictions.EnhancmentBonus2 when ItemPlus(blueprint) < 2:
+                        case ItemRestrictions.EnhancmentBonus3 when ItemPlus(blueprint) < 3:
+                        case ItemRestrictions.EnhancmentBonus4 when ItemPlus(blueprint) < 4:
+                        case ItemRestrictions.EnhancmentBonus5 when ItemPlus(blueprint) < 5:
                             return false;
                     }
                 }
@@ -1763,6 +1767,33 @@ namespace CraftMagicItems {
             }
 
             return BuildCustomSpellItemGuid(blueprint.AssetGuid, casterLevel, spellLevel, spellId);
+        }
+
+        private static int ItemPlus(BlueprintItem blueprint) {
+            switch (blueprint) {
+                case BlueprintItemWeapon weapon:
+                    foreach (var enchantment in weapon.Enchantments) {
+                        var weaponBonus = enchantment.GetComponent<WeaponEnhancementBonus>();
+                        if (weaponBonus != null) {
+                            return weaponBonus.EnhancementBonus;
+                        }
+                    }
+
+                    break;
+                case BlueprintItemArmor armour:
+                    foreach (var enchantment in armour.Enchantments) {
+                        var armourBonus = enchantment.GetComponent<ArmorEnhancementBonus>();
+                        if (armourBonus != null) {
+                            return armourBonus.EnhancementValue;
+                        }
+                    }
+
+                    break;
+                case BlueprintItemShield shield:
+                    return Math.Max(ItemPlus(shield.ArmorComponent), ItemPlus(shield.WeaponComponent));
+            }
+
+            return 0;
         }
 
         private static int ItemPlusEquivalent(BlueprintItem blueprint) {

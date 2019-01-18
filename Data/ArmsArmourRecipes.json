@@ -98,6 +98,21 @@
     "OnlyForSlots": ["Armor", "Shield"]
   },
   {
+    "Name": "ArmourCelestial",
+    "NameId": "45af0f94-877c-4830-99df-04976721ad37",
+    "Enchantments": [
+      "5ca7e021b4d379846b1eee042a3c7c55"
+    ],
+    "CasterLevelStart": 5,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": [],
+    "CrafterPrerequisites": ["AlignmentGood"],
+    "CostType": "LevelSquared",
+    "CostFactor": 13100,
+    "OnlyForSlots": ["Armor"],
+    "Restrictions": ["EnhancmentBonus3"]
+  },
+  {
     "Name": "ShieldEnhancementBonus",
     "NameId": "7901b076-42d2-401e-a8e3-9ce0d4aa12df",
     "Enchantments": [

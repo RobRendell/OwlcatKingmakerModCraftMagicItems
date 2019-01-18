@@ -72,7 +72,11 @@ namespace CraftMagicItems {
         ArmourNotMetal,
         ArmourLight,
         ArmourMedium,
-        ArmourHeavy
+        ArmourHeavy,
+        EnhancmentBonus2,
+        EnhancmentBonus3,
+        EnhancmentBonus4,
+        EnhancmentBonus5
     }
 
     public enum CrafterPrerequisiteType {
