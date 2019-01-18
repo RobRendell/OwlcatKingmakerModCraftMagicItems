@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -1308,7 +1308,9 @@ namespace CraftMagicItems {
                 EnchantmentIdToRecipe.Add(enchantmentId, new List<RecipeData>());
             }
 
-            EnchantmentIdToRecipe[enchantmentId].Add(recipe);
+            if (!EnchantmentIdToRecipe[enchantmentId].Contains(recipe)) {
+                EnchantmentIdToRecipe[enchantmentId].Add(recipe);
+            }
         }
 
         private static IEnumerable<BlueprintItemEquipment> FindItemBlueprintForEnchantmentId(string assetGuid) {
@@ -1584,7 +1586,9 @@ namespace CraftMagicItems {
                     var bonus = recipe.Enchantments.IndexOf(enchantment) + 1;
                     var bonusString = recipe.BonusTypeId != null
                         ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.BonusTypeId), new L10NString(recipe.NameId))
-                        : L10NFormat("craftMagicItems-custom-description-bonus", new L10NString(recipe.NameId));
+                        : recipe.BonusToId != null
+                            ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.NameId), new L10NString(recipe.BonusToId))
+                            : L10NFormat("craftMagicItems-custom-description-bonus", new L10NString(recipe.NameId));
                     var upgradeFrom = allKnown ? null : removed.FirstOrDefault(remove => FindSourceRecipe(remove.AssetGuid, blueprint) == recipe);
                     if (upgradeFrom == null) {
                         description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonus, bonusString);
@@ -2182,7 +2186,9 @@ namespace CraftMagicItems {
                 // Initialise lookup tables.
                 foreach (var itemData in itemCraftingData) {
                     if (itemData is RecipeBasedItemCraftingData recipeBased) {
-                        recipeBased.Recipes = ReadJsonFile<RecipeData[]>($"{ModEntry.Path}/Data/{recipeBased.RecipeFileName}");
+                        recipeBased.Recipes = recipeBased.RecipeFileNames.Aggregate(Enumerable.Empty<RecipeData>(),
+                            (all, fileName) => all.Concat(ReadJsonFile<RecipeData[]>($"{ModEntry.Path}/Data/{fileName}"))
+                        ).ToArray();
                         foreach (var recipe in recipeBased.Recipes) {
                             foreach (var enchantment in recipe.Enchantments) {
                                 AddRecipeForEnchantment(enchantment.AssetGuid, recipe);

@@ -95,7 +95,7 @@
       "01d51ff5f3db2164b88aaa662a9b0f2e",
       "9482c62934be44044918c3aac3730232"
     ],
-    "RecipeFileName": "WondrousRecipes.json",
+    "RecipeFileNames": ["CommonRecipes.json", "WondrousRecipes.json"],
     "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist"]
   },
   {
@@ -105,7 +105,7 @@
     "FeatGuid": "7f2b282626862e345935bbea5e66424b#CraftMagicItems(feat=arms-armour)",
     "MinimumCasterLevel": 5,
     "PrerequisitesMandatory": false,
-    "RecipeFileName": "ArmsArmourRecipes.json",
+    "RecipeFileNames": ["ArmsArmourRecipes.json"],
     "Slots": ["Armor", "Shield", "Weapon"]
   },
   {
@@ -123,7 +123,7 @@
       "70dadcb5b5184e746a7ee1b8e43b8b63",
       "cd59e06babb67514da00e94b3269a639"
     ],
-    "RecipeFileName": "RingRecipes.json",
+    "RecipeFileNames": ["CommonRecipes.json", "RingRecipes.json"],
     "Slots": ["Ring"]
   },
   {
@@ -144,7 +144,7 @@
       "afbe88d27a0eb544583e00fa78ffb2c7"
     ],
     "MundaneBaseDC": 10,
-    "RecipeFileName": "MundaneRecipes.json",
+    "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Armor"]
   },
   {
@@ -158,7 +158,7 @@
       "6a1a429f023e5134fb16a4962cb79257"
     ],
     "MundaneBaseDC": 10,
-    "RecipeFileName": "MundaneRecipes.json",
+    "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Shield"]
   },
   {
@@ -180,7 +180,7 @@
       "511c97c1ea111444aa186b1a58496664"
     ],
     "MundaneBaseDC": 12,
-    "RecipeFileName": "MundaneRecipes.json",
+    "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Weapon"]
   },
   {
@@ -216,7 +216,7 @@
       "6d40d84e239bdf345b349ff52e3c00a9"
     ],
     "MundaneBaseDC": 15,
-    "RecipeFileName": "MundaneRecipes.json",
+    "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Weapon"]
   },
   {
@@ -248,7 +248,7 @@
       "b50d6e17d6c3c244c84a42b49edda025"
     ],
     "MundaneBaseDC": 18,
-    "RecipeFileName": "MundaneRecipes.json",
+    "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Weapon"]
   }
 ]

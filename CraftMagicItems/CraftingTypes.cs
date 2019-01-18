@@ -37,7 +37,7 @@ namespace CraftMagicItems {
     }
 
     public class RecipeBasedItemCraftingData : ItemCraftingData {
-        [JsonProperty] public string RecipeFileName;
+        [JsonProperty] public string[] RecipeFileNames;
 
         [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
         public ItemsFilter.ItemType[] Slots;
@@ -87,6 +87,7 @@ namespace CraftMagicItems {
         [JsonProperty] public string NameId;
         [JsonProperty] public string ParentNameId;
         [JsonProperty] public string BonusTypeId;
+        [JsonProperty] public string BonusToId;
         [JsonProperty] public BlueprintItemEnchantment[] Enchantments;
         [JsonProperty] public bool EnchantmentsCumulative;
         [JsonProperty] public int CasterLevelStart;

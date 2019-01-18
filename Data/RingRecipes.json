@@ -2,7 +2,7 @@
   {
     "Name": "DeflectionBonus",
     "NameId": "10f0872b-4b8f-46e1-b25d-6a95c0b73115",
-    "BonusTypeId": "10f0872b-4b8f-46e1-b25d-6a95c0b73115",
+    "BonusToId": "3133f24d-1720-45cc-93cc-bbfb714942e4",
     "Enchantments": [
       "990dcac8a5af75340916324383deac53",
       "9205b68509ff1db41915bb4f3aba3a04",
