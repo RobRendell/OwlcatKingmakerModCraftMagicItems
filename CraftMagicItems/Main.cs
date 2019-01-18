@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -760,9 +760,10 @@ namespace CraftMagicItems {
             }
 
             if (availableEnchantments.Length > 0 && selectedRecipe.Enchantments.Length > 1) {
-                var counter = selectedRecipe.Enchantments.Length - availableEnchantments.Length;
+                var bonusMultiplier = selectedRecipe.BonusMultiplier > 0 ? selectedRecipe.BonusMultiplier : 1;
+                var counter = bonusMultiplier * (selectedRecipe.Enchantments.Length - availableEnchantments.Length);
                 var enchantmentNames = availableEnchantments.Select(enchantment => {
-                    counter++;
+                    counter += bonusMultiplier;
                     return enchantment.Name.Empty() ? $"+{counter}" : enchantment.Name;
                 });
                 RenderSelection(ref selectedEnchantmentIndex, "", enchantmentNames.ToArray(), 6);
@@ -1591,7 +1592,7 @@ namespace CraftMagicItems {
                 if (!string.IsNullOrEmpty(enchantment.Name)) {
                     description += "\n * " + enchantment.Name;
                 } else if (recipe.Enchantments.Length > 1) {
-                    var bonus = recipe.Enchantments.IndexOf(enchantment) + 1;
+                    var bonus = (recipe.Enchantments.IndexOf(enchantment) + 1) * (recipe.BonusMultiplier > 0 ? recipe.BonusMultiplier : 1);
                     var bonusString = recipe.BonusTypeId != null
                         ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.BonusTypeId), new L10NString(recipe.NameId))
                         : recipe.BonusToId != null

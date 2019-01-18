@@ -56,6 +56,10 @@
 		"value": "Arms and Armor"
 	},
 	{
+		"key": "craftMagicItems-recipeType-unarmed",
+		"value": "Unarmed Attacks"
+	},
+	{
 		"key": "craftMagicItems-buff-name",
 		"value": "Craft Magic Items project schedule"
 	},
