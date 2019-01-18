@@ -78,7 +78,7 @@ namespace CraftMagicItems {
             new Regex($"({OldBlueprintPrefix}|{BlueprintPrefix})"
                       + @"\(("
                       + @"CL=(?<casterLevel>\d+)(?<spellLevelMatch>,SL=(?<spellLevel>\d+))?(?<spellIdMatch>,spellId=\((?<spellId>([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\))?"
-                      + @"|enchantments=\((?<enchantments>([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?"
+                      + @"|enchantments=\((?<enchantments>|([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?"
                       + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?"
                       + @"(,visual=(?<visual>null|[0-9a-f]+))?"
                       + @"|feat=(?<feat>[-a-z]+)"
@@ -453,6 +453,8 @@ namespace CraftMagicItems {
                     return "823f1224-8a46-4a58-bcd6-2cce97cc1912";
                 case ItemsFilter.ItemType.Wrist:
                     return "e43de05a-754c-4fa4-991d-0d33fcf1c767";
+                case ItemsFilter.ItemType.Usable:
+                    return "6f22a0fb-f0d5-47c2-aa03-a6c299e85251";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
             }
@@ -594,6 +596,8 @@ namespace CraftMagicItems {
                     var isWeaponEnchantmentRecipe = recipe?.OnlyForSlots?.Contains(ItemsFilter.ItemType.Weapon) ?? false;
                     return !isWeaponEnchantmentRecipe && ItemPlusEquivalent(shield.ArmorComponent) > 0
                            || isWeaponEnchantmentRecipe && ItemPlusEquivalent(shield.WeaponComponent) > 0;
+                case BlueprintItemEquipmentUsable usable:
+                    return !usable.SpendCharges || usable.RestoreChargesOnRest;
                 default:
                     return GetEnchantments(blueprint).Any();
             }
@@ -678,6 +682,10 @@ namespace CraftMagicItems {
             return item;
         }
 
+        private static bool DoesBlueprintMatchSlot(BlueprintItemEquipment blueprint, ItemsFilter.ItemType slot) {
+            return blueprint.ItemType == slot || slot == ItemsFilter.ItemType.Usable && blueprint is BlueprintItemEquipmentUsable;
+        }
+
         private static void RenderRecipeBasedCrafting(UnitEntityData caster, RecipeBasedItemCraftingData craftingData) {
             // Choose slot/weapon type.
             if (craftingData.Slots.Length > 1) {
@@ -693,7 +701,7 @@ namespace CraftMagicItems {
             var items = Game.Instance.Player.Inventory
                 .Concat(ItemCreationProjects.Select(project => project.ResultItem))
                 .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
-                               && blueprint.ItemType == selectedSlot
+                               && DoesBlueprintMatchSlot(blueprint, selectedSlot)
                                && CanEnchant(item)
                                && (item.Wielder == null
                                    || playerInCapital
@@ -806,8 +814,8 @@ namespace CraftMagicItems {
             var allItemBlueprintsWithEnchantment =
                 IsEnchanted(upgradeItem?.Blueprint) ? null : FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid);
             var matchingItem = allItemBlueprintsWithEnchantment?.FirstOrDefault(blueprint =>
-                blueprint.ItemType == selectedSlot &&
-                DoesItemMatchEnchantments(blueprint, selectedEnchantment.AssetGuid, upgradeItem?.Blueprint as BlueprintItemEquipment)
+                DoesBlueprintMatchSlot(blueprint, selectedSlot)
+                && DoesItemMatchEnchantments(blueprint, selectedEnchantment.AssetGuid, upgradeItem?.Blueprint as BlueprintItemEquipment)
             );
             BlueprintItemEquipment itemToCraft;
             var itemGuid = "[not set]";
@@ -836,13 +844,13 @@ namespace CraftMagicItems {
                 BlueprintItemEquipment baseBlueprint;
                 if (selectedBaseGuid != null) {
                     baseBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(selectedBaseGuid);
-                    if (!baseBlueprint || baseBlueprint.ItemType != selectedSlot) {
+                    if (!baseBlueprint || !DoesBlueprintMatchSlot(baseBlueprint, selectedSlot)) {
                         selectedBaseGuid = null;
                     }
                 }
 
                 selectedBaseGuid = selectedBaseGuid ?? RandomBaseBlueprintId(craftingData,
-                                       guid => ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(guid)?.ItemType == selectedSlot);
+                                       guid => DoesBlueprintMatchSlot(ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(guid), selectedSlot));
                 baseBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(selectedBaseGuid);
                 RenderCustomNameField($"{new L10NString(selectedRecipe.NameId)} {new L10NString(GetSlotStringKey(selectedSlot))}");
                 var enchantmentsToRemove = GetEnchantments(baseBlueprint, selectedRecipe).Select(enchantment => enchantment.AssetGuid).ToArray();
@@ -1633,7 +1641,8 @@ namespace CraftMagicItems {
                 // Check if GUID is already customised by this mod
                 var match = BlueprintRegex.Match(originalGuid);
                 if (match.Success && match.Groups["enchantments"].Success) {
-                    var enchantmentsList = enchantments.Concat(match.Groups["enchantments"].Value.Split(';')).Distinct().ToList();
+                    var enchantmentsList = enchantments.Concat(match.Groups["enchantments"].Value.Split(';'))
+                        .Where(guid => guid.Length > 0).Distinct().ToList();
                     var removeList = match.Groups["remove"].Success
                         ? (remove ?? Enumerable.Empty<string>()).Concat(match.Groups["remove"].Value.Split(';')).Distinct().ToList()
                         : remove?.ToList();
@@ -1865,7 +1874,8 @@ namespace CraftMagicItems {
                 return cost + enhancementLevel * enhancementLevel * factor;
             }
 
-            return (3 * cost - mostExpensiveEnchantmentCost) / 2;
+            // Usable (belt slot) items cost double.
+            return (3 * cost - mostExpensiveEnchantmentCost) / (blueprint is BlueprintItemEquipmentUsable ? 1 : 2);
         }
 
         private static string ApplyRecipeItemBlueprintPatch(BlueprintItemEquipment blueprint, Match match) {
@@ -1921,19 +1931,22 @@ namespace CraftMagicItems {
                 priceDelta = 0;
             }
 
-            var enchantmentIds = match.Groups["enchantments"].Value.Split(';');
+            var enchantmentsValue = match.Groups["enchantments"].Value;
+            var enchantmentIds = enchantmentsValue.Split(';');
             var enchantmentsForDescription = new List<BlueprintItemEnchantment>();
-            foreach (var guid in enchantmentIds) {
-                var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>(guid);
-                if (!enchantment) {
-                    throw new Exception($"Failed to load enchantment {guid}");
-                }
+            if (!string.IsNullOrEmpty(enchantmentsValue)) {
+                foreach (var guid in enchantmentIds) {
+                    var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>(guid);
+                    if (!enchantment) {
+                        throw new Exception($"Failed to load enchantment {guid}");
+                    }
 
-                enchantmentsForDescription.Add(enchantment);
+                    enchantmentsForDescription.Add(enchantment);
 
-                if (!(blueprint is BlueprintItemShield) && (GetItemType(blueprint) != ItemsFilter.ItemType.Shield
-                                                            || FindSourceRecipe(guid, blueprint) != null)) {
-                    enchantmentsCopy.Add(enchantment);
+                    if (!(blueprint is BlueprintItemShield) && (GetItemType(blueprint) != ItemsFilter.ItemType.Shield
+                                                                || FindSourceRecipe(guid, blueprint) != null)) {
+                        enchantmentsCopy.Add(enchantment);
+                    }
                 }
             }
 

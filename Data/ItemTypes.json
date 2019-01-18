@@ -93,10 +93,17 @@
       "3496c0af23640bf4a9f0881771514630",
       "0e7a0b96f67660c4ca74786c187a02d2",
       "01d51ff5f3db2164b88aaa662a9b0f2e",
-      "9482c62934be44044918c3aac3730232"
+      "9482c62934be44044918c3aac3730232",
+      "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=6922eeb3b29e3fb488e955311bfc5cdc)",
+      "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=6a7cdeb14fc6ef44580cf639c5cdc113)",
+      "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=ffae16a82725ad74da7e67b856f6c909)",
+      "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=21d5890987c4887469acd001f7244e1e)",
+      "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=17e5973a5ef49ce42ac49117d693efaa)",
+      "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=5f5ae4248e3d2bb479007ac219a8e3c2)",
+      "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=1575d992db377af4298d966cdeaca1be)"
     ],
     "RecipeFileNames": ["CommonRecipes.json", "WondrousRecipes.json"],
-    "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist"]
+    "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist", "Usable"]
   },
   {
     "DataType": "RecipeBased",
