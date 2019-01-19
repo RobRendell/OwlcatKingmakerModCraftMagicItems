@@ -64,6 +64,7 @@ namespace CraftMagicItems {
         public float CraftingPriceScale = 1;
         public bool CraftAtFullSpeedWhileAdventuring;
         public bool IgnoreFeatCasterLevelRestriction;
+        public bool IgnorePlusTenItemMaximum;
 
         public override void Save(UnityModManager.ModEntry modEntry) {
             Save(this, modEntry);
@@ -872,7 +873,7 @@ namespace CraftMagicItems {
                 if (IsItemLegalEnchantmentLevel(itemToCraft)) {
                     RenderRecipeBasedCraftItemControl(caster, craftingData, selectedRecipe, casterLevel, itemToCraft, upgradeItem);
                 } else {
-                    RenderLabel($"{itemToCraft.Name} has an equivalent enhancement bonus of more than +10");
+                    RenderLabel($"This would result in {itemToCraft.Name} having an equivalent enhancement bonus of more than +10");
                 }
             }
         }
@@ -1192,8 +1193,9 @@ namespace CraftMagicItems {
 
             RenderCheckbox(ref ModSettings.IgnoreCraftingFeats, "Crafting does not require characters to take crafting feats.");
             RenderCheckbox(ref ModSettings.CraftingTakesNoTime, "Crafting takes no time to complete.");
-            RenderCheckbox(ref ModSettings.CraftAtFullSpeedWhileAdventuring, "Characters craft at full speed while adventuring (instead of 25% speed)");
-            RenderCheckbox(ref ModSettings.IgnoreFeatCasterLevelRestriction, "Ignore Caster Level restrictions on crafting feats.");
+            RenderCheckbox(ref ModSettings.CraftAtFullSpeedWhileAdventuring, "Characters craft at full speed while adventuring (instead of 25% speed).");
+            RenderCheckbox(ref ModSettings.IgnorePlusTenItemMaximum, "Ignore the rule that limits arms and armor to a maximum of +10 equivalent.");
+            RenderCheckbox(ref ModSettings.IgnoreFeatCasterLevelRestriction, "Ignore the crafting feat Caster Level prerequisites when learning feats.");
         }
 
         private static void RenderLabel(string label) {
@@ -1827,7 +1829,7 @@ namespace CraftMagicItems {
         }
 
         private static bool IsItemLegalEnchantmentLevel(BlueprintItem blueprint) {
-            if (blueprint == null) {
+            if (blueprint == null || ModSettings.IgnorePlusTenItemMaximum) {
                 return true;
             }
 
