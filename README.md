@@ -10,15 +10,11 @@ robe of eyes
 robe of earth/air/fire/water
 ioun stone effects
 
+* New cheat: remove +10 maximum to arms and armor.
 Mighty Fists enchantment is stacking - not enhancement?
-
-Need prerequisite spell for Celestial... and/or prerequisite of "+3 or higher enhancement"
-Might retry oversize (and impact?) with a AddUnitFactEquipment component, like Ring of Freedom of Movement?  Might apply weapon size scaling to off-hand weapon though
-
 
 
 * Amulet of Mighty Fists actually allows all relevant weapon enhancements (such as Flaming)... not sure if the engine can even do that. 
-* New cheat: remove +10 maximum to arms and armor.
 * Enchanting bonded objects.  Requires some way to select a bonded object, and an enforcement that it's equipped thereafter.
 * Add new magic items to random loot drops?  They don't seem to go very high in CR...
 * Mundane crafting - craft shields with shield spikes?  Tricky, the base spiked shield assets are weapons rather than shields...

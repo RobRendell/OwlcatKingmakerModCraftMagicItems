@@ -7,9 +7,8 @@ using Kingmaker;
 
 namespace CraftMagicItems {
     class L10n {
-
         private static bool initialLoad;
-        
+
         private static void LoadL10NStrings() {
             initialLoad = true;
             var currentLocale = LocalizationManager.CurrentLocale.ToString();
@@ -19,6 +18,7 @@ namespace CraftMagicItems {
                 currentLocale = "enGB";
                 fileName = $"{Main.ModEntry.Path}/L10n/Strings_{currentLocale}.json";
             }
+
             try {
                 var allStringPairs = Main.ReadJsonFile<DataTable>(fileName);
                 foreach (DataRow row in allStringPairs.Rows) {
@@ -49,6 +49,5 @@ namespace CraftMagicItems {
                 }
             }
         }
-
     }
 }

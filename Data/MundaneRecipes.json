@@ -178,5 +178,18 @@
     "OnlyForSlots": ["Weapon"],
     "Restrictions": ["WeaponMelee", "WeaponMetal"],
     "CanApplyToMundaneItem": true
+  },
+  {
+    "Name": "OversizeWeapon",
+    "NameId": "e822c03d-7576-4edc-9d8b-49d4151c7dee",
+    "Enchantments": [
+      "d8e1ebc1062d8cc42abff78783856b0d#CraftMagicItems(Component[1]=CraftMagicItems.WeaponSizeChange#CraftMagicItems,Component[1].SizeCategoryChange=1)"
+    ],
+    "PrerequisiteSpells": [],
+    "CostType": "LevelSquared",
+    "CostFactor": 100,
+    "MundaneDC": 10,
+    "OnlyForSlots": ["Weapon"],
+    "CanApplyToMundaneItem": true
   }
 ]

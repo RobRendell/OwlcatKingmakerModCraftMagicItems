@@ -234,5 +234,13 @@
 	{
 		"key": "craftMagicItems-enchantment-sustenance-description",
 		"value": "This ring continually provides its wearer with life-sustaining nourishment. The ring also refreshes the body and mind, so that its wearer needs only sleep 2 hours per day to gain the benefit of 8 hours of sleep. This allows them to perform two roles in camp."
+	},
+	{
+		"key": "craftMagicItems-enchantment-impact-name",
+		"value": "Impact"
+	},
+	{
+		"key": "craftMagicItems-enchantment-impact-description",
+		"value": "This special ability can only be placed on melee weapons that are not light weapons. An impact weapon delivers a potent kinetic jolt when it strikes, dealing damage as if the weapon were one size category larger."
 	}
 ]

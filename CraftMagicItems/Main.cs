@@ -634,6 +634,8 @@ namespace CraftMagicItems {
                         case ItemRestrictions.WeaponNotPiercing when weapon == null || (weapon.DamageType.Physical.Form & PhysicalDamageForm.Piercing) != 0:
                         case ItemRestrictions.WeaponNotSlashing when weapon == null || (weapon.DamageType.Physical.Form & PhysicalDamageForm.Slashing) != 0:
                         case ItemRestrictions.WeaponFinessable when weapon == null || !weapon.Category.HasSubCategory(WeaponSubCategory.Finessable):
+                        case ItemRestrictions.WeaponLight when weapon == null || !weapon.IsLight:
+                        case ItemRestrictions.WeaponNotLight when weapon == null || weapon.IsLight:
                         case ItemRestrictions.WeaponMetal when weapon == null || !weapon.Category.HasSubCategory(WeaponSubCategory.Metal):
                         case ItemRestrictions.ArmourMetal when armour == null || !IsMetalArmour(armour.Type):
                         case ItemRestrictions.ArmourNotMetal when armour == null || IsMetalArmour(armour.Type):
@@ -2036,7 +2038,27 @@ namespace CraftMagicItems {
             return clone;
         }
 
-        private static T TraverseCloneAndSetField<T>(T original, string field, string value) {
+        private static T TraverseCloneAndSetField<T>(T original, string field, string value) where T : class {
+            if (string.IsNullOrEmpty(field)) {
+                value = value.Replace("#", ", ");
+                var componentType = Type.GetType(value);
+                if (componentType == null) {
+                    throw new Exception($"Failed to create object with type {value}");
+                }
+
+                if (!(Activator.CreateInstance(componentType) is T component)) {
+                    throw new Exception($"Failed to create expected instance with type {value}, " +
+                                        $"result is {componentType.FullName}");
+                }
+
+                return component;
+            } else {
+                // Strip leading . of field
+                if (field.StartsWith(".")) {
+                    field = field.Substring(1);
+                }
+            }
+
             var clone = CloneObject(original);
             var fieldNameEnd = field.IndexOf('.');
             if (fieldNameEnd < 0) {
@@ -2117,25 +2139,9 @@ namespace CraftMagicItems {
                 values.Add(field);
                 values.Add(value);
                 if (componentIndex >= componentsCopy.Length) {
-                    value = value.Replace("#", ", ");
-                    var componentType = Type.GetType(value);
-                    if (componentType == null) {
-                        throw new Exception($"Failed to create object with type {value}");
-                    }
-
-                    var component = Activator.CreateInstance(componentType) as BlueprintComponent;
-                    if (component == null) {
-                        throw new Exception($"Failed to create BlueprintComponent with type {value}, " +
-                                            $"result is {componentType.FullName}");
-                    }
-
+                    var component = TraverseCloneAndSetField<BlueprintComponent>(null, field, value);
                     componentsCopy = componentsCopy.Concat(new[] {component}).ToArray();
                 } else {
-                    // Strip leading . of field
-                    if (field.StartsWith(".")) {
-                        field = field.Substring(1);
-                    }
-
                     componentsCopy[componentIndex] = TraverseCloneAndSetField(componentsCopy[componentIndex], field, value);
                 }
             }

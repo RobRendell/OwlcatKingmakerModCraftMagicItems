@@ -10,20 +10,19 @@ using Object = UnityEngine.Object;
 
 namespace CraftMagicItems {
     public class CustomBlueprintBuilder {
-        
         public static readonly int VanillaAssetIdLength = 32;
 
         private static CustomBlueprintBuilder instance;
 
         private bool enabled = true;
-        
+
         private readonly Regex blueprintRegex;
         private readonly Func<BlueprintScriptableObject, Match, string> patchBlueprint;
-        
+
         public List<string> CustomBlueprintIDs { get; } = new List<string>();
 
         public bool Downgrade { get; private set; }
-        
+
         public bool Enabled {
             set {
                 enabled = value;
@@ -36,10 +35,10 @@ namespace CraftMagicItems {
                             ResourcesLibrary.LibraryObject.GetAllBlueprints().Remove(customBlueprint);
                         }
                     }
+
                     CustomBlueprintIDs.Clear();
                 }
             }
-            
         }
 
         public CustomBlueprintBuilder(Regex blueprintRegex, Func<BlueprintScriptableObject, Match, string> patchBlueprint) {
@@ -53,10 +52,12 @@ namespace CraftMagicItems {
             if (!match.Success) {
                 return null;
             }
+
             if (blueprint.AssetGuid.Length == VanillaAssetIdLength) {
                 // We have the original blueprint - clone it so we can make modifications which won't affect the original.
                 blueprint = Object.Instantiate(blueprint);
             }
+
             // Patch the blueprint
             var newAssetId = patchBlueprint(blueprint, match);
             if (newAssetId != null) {
@@ -67,12 +68,13 @@ namespace CraftMagicItems {
                 // Also record the custom GUID so we can clean it up if the mod is later disabled.
                 CustomBlueprintIDs.Add(newAssetId);
             }
+
             return blueprint;
         }
 
         // This patch is generic, and makes custom blueprints fall back to their initial version.
         [HarmonyPatch]
-        private static class ResourcesLibraryTryGetBlueprintFallbackPatch {            
+        private static class ResourcesLibraryTryGetBlueprintFallbackPatch {
             // ReSharper disable once UnusedMember.Local
             private static MethodBase TargetMethod() {
                 // ResourcesLibrary.TryGetBlueprint has two definitions which only differ by return type :(
@@ -113,6 +115,5 @@ namespace CraftMagicItems {
                 }
             }
         }
-
     }
 }

@@ -67,6 +67,8 @@ namespace CraftMagicItems {
         WeaponNotPiercing,
         WeaponNotSlashing,
         WeaponFinessable,
+        WeaponLight,
+        WeaponNotLight,
         WeaponMetal,
         ArmourMetal,
         ArmourNotMetal,

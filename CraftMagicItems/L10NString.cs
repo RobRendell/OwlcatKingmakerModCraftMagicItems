@@ -3,12 +3,12 @@ using Harmony12;
 using Kingmaker.Localization;
 
 namespace CraftMagicItems {
-    public class L10NString: LocalizedString {
+    public class L10NString : LocalizedString {
         private static readonly Regex StringModifier = new Regex(@"([-0-9a-f]+)/((?<find>[^/]+)/(?<replace>[^/]*)/)+");
 
         private readonly string[] findStrings;
         private readonly string[] replaceStrings;
-        
+
         public L10NString(string key) {
             var match = StringModifier.Match(key);
             if (match.Success) {
@@ -21,6 +21,7 @@ namespace CraftMagicItems {
                     replaceStrings[index] = match.Groups["replace"].Captures[index].Value;
                 }
             }
+
             Traverse.Create(this).Field("m_Key").SetValue(key);
         }
 
@@ -37,14 +38,14 @@ namespace CraftMagicItems {
         }
     }
 
-    public class FakeL10NString: LocalizedString {
+    public class FakeL10NString : LocalizedString {
         private readonly string fakeValue;
-        
+
         public FakeL10NString(string fakeValue) {
             this.fakeValue = fakeValue;
             Traverse.Create(this).Field("m_Key").SetValue(fakeValue);
         }
-        
+
         [HarmonyPatch(typeof(LocalizedString), "LoadString")]
         private static class LocalizedStringLoadStringPatch {
             // ReSharper disable once UnusedMember.Local
@@ -53,6 +54,7 @@ namespace CraftMagicItems {
                     __result = fake.fakeValue;
                     return false;
                 }
+
                 return true;
             }
         }
@@ -65,6 +67,7 @@ namespace CraftMagicItems {
                     __result = !string.IsNullOrEmpty(fake.fakeValue);
                     return false;
                 }
+
                 return true;
             }
         }
@@ -77,11 +80,9 @@ namespace CraftMagicItems {
                     __result = string.IsNullOrEmpty(fake.fakeValue);
                     return false;
                 }
+
                 return true;
             }
         }
-
     }
-    
-    
 }
