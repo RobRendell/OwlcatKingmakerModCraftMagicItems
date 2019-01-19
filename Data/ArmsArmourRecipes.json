@@ -473,10 +473,12 @@
     "Name": "WeaponCorrosive",
     "NameId": "3d381057-f38e-4eaf-b6c2-1d62c4f56fd6",
     "Enchantments": [
-      "633b38ff1d11de64a91d490c683ab1c8"
+      "633b38ff1d11de64a91d490c683ab1c8",
+      "3f032a3cd54e57649a0cdad0434bf221#CraftMagicItems(Component[0].Element=Acid,nameId=craftMagicItems-enchantment-corrosive-burst-name,descriptionId=craftMagicItems-enchantment-corrosive-burst-description)"
     ],
+    "EnchantmentsCumulative": true,
     "CasterLevelStart": 10,
-    "CasterLevelMultiplier": 0,
+    "CasterLevelMultiplier": 2,
     "PrerequisiteSpells": ["9a46dfd390f943647ab4395fc997936d"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
