@@ -43,6 +43,7 @@ namespace CraftMagicItems {
         public ItemsFilter.ItemType[] Slots;
 
         [JsonProperty] public int MundaneBaseDC;
+        [JsonProperty] public bool MundaneEnhancementsStackable;
 
         // Loaded manually from RecipeFileName
         public RecipeData[] Recipes;

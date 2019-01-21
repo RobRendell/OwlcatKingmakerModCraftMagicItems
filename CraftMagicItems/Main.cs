@@ -145,6 +145,7 @@ namespace CraftMagicItems {
         private static int selectedEnchantmentIndex;
         private static string selectedBaseGuid;
         private static string selectedCustomName;
+        private static BlueprintItem upgradingBlueprint;
         private static int selectedFeatToLearn;
         private static UnitEntityData currentCaster;
         private static readonly CustomBlueprintBuilder CustomBlueprintBuilder = new CustomBlueprintBuilder(BlueprintRegex, ApplyBlueprintPatch);
@@ -659,6 +660,8 @@ namespace CraftMagicItems {
             return blueprint == null
                    || (skipEnchantedCheck || recipe.CanApplyToMundaneItem || IsEnchanted(blueprint, recipe))
                    && ItemMatchesRestrictions(blueprint, recipe.Restrictions)
+                   // Weapons with special materials can't apply recipes which apply special materials
+                   && (!(blueprint is BlueprintItemWeapon weapon) || recipe.Material == 0 || weapon.DamageType.Physical.Material == 0)
                    // Shields make this complicated.  A shield's armour component can match a recipe which is for shields but not weapons. 
                    && (recipe.OnlyForSlots == null || recipe.OnlyForSlots.Contains(blueprint.ItemType)
                                                    || blueprint is BlueprintItemArmor armor && armor.IsShield
@@ -952,9 +955,8 @@ namespace CraftMagicItems {
             }
         }
 
-        private static int CalculateMundaneCraftingDC(RecipeBasedItemCraftingData craftingData, RecipeData recipe, BlueprintItem blueprint,
-            UnitDescriptor crafter) {
-            var dc = craftingData.MundaneBaseDC + recipe.MundaneDC;
+        private static int CalculateBaseMundaneCraftingDC(RecipeBasedItemCraftingData craftingData, BlueprintItem blueprint, UnitDescriptor crafter) {
+            var dc = craftingData.MundaneBaseDC;
             switch (blueprint) {
                 case BlueprintItemArmor armor:
                     return dc + armor.ArmorBonus;
@@ -978,6 +980,16 @@ namespace CraftMagicItems {
             return dc;
         }
 
+        private static int CalculateMundaneCraftingDC(RecipeBasedItemCraftingData craftingData, BlueprintItem blueprint, UnitDescriptor crafter,
+            RecipeData recipe = null) {
+            var dc = CalculateBaseMundaneCraftingDC(craftingData, blueprint, crafter);
+            return dc + (recipe?.MundaneDC ?? blueprint.Enchantments
+                             .Select(enchantment => FindSourceRecipe(enchantment.AssetGuid, blueprint)?.MundaneDC ?? 0)
+                             .DefaultIfEmpty(0)
+                             .Max()
+                   );
+        }
+
         private static void RenderCraftMundaneItemsSection() {
             var crafter = GetSelectedCrafter(false);
 
@@ -987,11 +999,17 @@ namespace CraftMagicItems {
                                && (data.ParentNameId == null || SubCraftingData[data.ParentNameId][0] == data))
                 .ToArray();
             var itemTypeNames = itemTypes.Select(data => new L10NString(data.ParentNameId ?? data.NameId).ToString()).ToArray();
-            RenderSelection(ref selectedItemTypeIndex, "Crafting: ", itemTypeNames, 6, ref selectedCustomName);
+            if (upgradingBlueprint == null) {
+                RenderSelection(ref selectedItemTypeIndex, "Crafting: ", itemTypeNames, 6, ref selectedCustomName);
+            }
+
             var selectedCraftingData = itemTypes[selectedItemTypeIndex];
             if (selectedCraftingData.ParentNameId != null) {
                 itemTypeNames = SubCraftingData[selectedCraftingData.ParentNameId].Select(data => new L10NString(data.NameId).ToString()).ToArray();
-                RenderSelection(ref selectedItemSubTypeIndex, $"{new L10NString(selectedCraftingData.ParentNameId)}: ", itemTypeNames, 6);
+                if (upgradingBlueprint == null) {
+                    RenderSelection(ref selectedItemSubTypeIndex, $"{new L10NString(selectedCraftingData.ParentNameId)}: ", itemTypeNames, 6);
+                }
+
                 selectedCraftingData = SubCraftingData[selectedCraftingData.ParentNameId][selectedItemSubTypeIndex];
             }
 
@@ -1000,41 +1018,54 @@ namespace CraftMagicItems {
                 return;
             }
 
+            BlueprintItem baseBlueprint;
+
+            if (upgradingBlueprint != null) {
+                baseBlueprint = upgradingBlueprint;
+                RenderLabel($"Applying upgrades to {baseBlueprint.Name}");
+            } else {
+                // Choose mundane item of selected type to create
+                var blueprints = craftingData.NewItemBaseIDs
+                    .Select(ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>)
+                    .Where(blueprint => blueprint != null
+                                        && (!(blueprint is BlueprintItemWeapon weapon) || !weapon.Category.HasSubCategory(WeaponSubCategory.Disabled)))
+                    .OrderBy(blueprint => blueprint.Name)
+                    .ToArray();
+                var blueprintNames = blueprints.Select(item => item.Name).ToArray();
+                if (blueprintNames.Length == 0) {
+                    RenderLabel("No known items of that type.");
+                    return;
+                }
+
+                RenderSelection(ref selectedUpgradeItemIndex, "Item: ", blueprintNames, 5, ref selectedCustomName);
+                baseBlueprint = blueprints[selectedUpgradeItemIndex];
+                // See existing item details and enchantments.
+                RenderLabel(baseBlueprint.Description);
+            }
+
             // Assume only one slot type per crafting data
             var selectedSlot = craftingData.Slots[0];
 
-            // Choose mundane item of that type to create
-            var blueprints = craftingData.NewItemBaseIDs
-                .Select(ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>)
-                .Where(blueprint => blueprint != null
-                                    && (!(blueprint is BlueprintItemWeapon weapon) || !weapon.Category.HasSubCategory(WeaponSubCategory.Disabled)))
-                .OrderBy(blueprint => blueprint.Name)
-                .ToArray();
-            var blueprintNames = blueprints.Select(item => item.Name).ToArray();
-            if (blueprintNames.Length == 0) {
-                RenderLabel("No known items of that type.");
-                return;
-            }
-
-            RenderSelection(ref selectedUpgradeItemIndex, "Item: ", blueprintNames, 5, ref selectedCustomName);
-            var baseBlueprint = blueprints[selectedUpgradeItemIndex];
-            // See existing item details and enchantments.
-            RenderLabel(baseBlueprint.Description);
             // Pick recipe to apply.
             var availableRecipes = craftingData.Recipes
                 .Where(recipe => (recipe.OnlyForSlots == null || recipe.OnlyForSlots.Contains(selectedSlot))
-                                 && RecipeAppliesToBlueprint(recipe, baseBlueprint))
+                                 && RecipeAppliesToBlueprint(recipe, baseBlueprint)
+                                 && (recipe.Enchantments.Length != 1 || !baseBlueprint.Enchantments.Contains(recipe.Enchantments[0])))
                 .OrderBy(recipe => new L10NString(recipe.NameId).ToString())
                 .ToArray();
             var recipeNames = availableRecipes.Select(recipe => new L10NString(recipe.NameId).ToString()).ToArray();
             RenderSelection(ref selectedRecipeIndex, "Craft: ", recipeNames, 6, ref selectedCustomName);
-            var selectedRecipe = availableRecipes[selectedRecipeIndex];
-            var selectedEnchantment = selectedRecipe.Enchantments.Length == 1 ? selectedRecipe.Enchantments[0] : null;
-            if (selectedEnchantment != null && !string.IsNullOrEmpty(selectedEnchantment.Description)) {
+            var selectedRecipe = availableRecipes.Any() ? availableRecipes[selectedRecipeIndex] : null;
+            var selectedEnchantment = selectedRecipe?.Enchantments.Length == 1 ? selectedRecipe.Enchantments[0] : null;
+            if (selectedRecipe != null && selectedRecipe.Material != 0) {
+                RenderLabel(GetWeaponMaterialDescription(selectedRecipe.Material));
+            } else if (selectedEnchantment != null && !string.IsNullOrEmpty(selectedEnchantment.Description)) {
                 RenderLabel(selectedEnchantment.Description);
             }
 
-            var dc = CalculateMundaneCraftingDC(craftingData, selectedRecipe, baseBlueprint, crafter.Descriptor);
+            var dc = craftingData.MundaneEnhancementsStackable
+                ? CalculateMundaneCraftingDC(craftingData, baseBlueprint, crafter.Descriptor)
+                : CalculateMundaneCraftingDC(craftingData, baseBlueprint, crafter.Descriptor, selectedRecipe);
             if (RenderCraftingSkillInformation(crafter, StatType.SkillKnowledgeWorld, dc) < 0) {
                 if (ModSettings.CraftingTakesNoTime) {
                     RenderLabel($"This project would be too hard for {crafter.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
@@ -1044,32 +1075,56 @@ namespace CraftMagicItems {
                 }
             }
 
-            var itemGuid = "[not set]";
-            BlueprintItemEquipment itemToCraft;
-
-            if (selectedEnchantment == null) {
-                // Crafting a blueprint with no enchantment changes...
-                itemToCraft = baseBlueprint;
-            } else {
-                // Upgrading to a custom blueprint, rather than use the standard mithral/adamantine blueprints.
-                var enchantments = new List<string> {selectedEnchantment.AssetGuid};
-                var name = $"{(selectedRecipe.Material == 0 ? selectedEnchantment.Name : new L10NString(selectedRecipe.NameId))} {baseBlueprint.Name}";
-                var visual = ApplyVisualMapping(selectedRecipe, baseBlueprint);
-                itemGuid = BuildCustomRecipeItemGuid(baseBlueprint.AssetGuid, enchantments, null, name, null, null, selectedRecipe.Material, visual);
-                itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
-            }
+            // Upgrading to a custom blueprint, rather than use the standard mithral/adamantine blueprints.
+            var enchantments = selectedEnchantment == null ? Enumerable.Empty<string>() : new List<string> {selectedEnchantment.AssetGuid};
+            var upgradeName = selectedRecipe != null && selectedRecipe.Material != 0
+                ? new L10NString(selectedRecipe.NameId).ToString()
+                : selectedEnchantment == null
+                    ? null
+                    : selectedEnchantment.Name;
+            var name = upgradeName == null ? baseBlueprint.Name : $"{upgradeName} {baseBlueprint.Name}";
+            var visual = ApplyVisualMapping(selectedRecipe, baseBlueprint);
+            var itemGuid = selectedRecipe == null
+                ? baseBlueprint.AssetGuid
+                : BuildCustomRecipeItemGuid(baseBlueprint.AssetGuid, enchantments, null, name, null, null, selectedRecipe.Material, visual);
+            var itemToCraft = selectedRecipe == null ? baseBlueprint : ResourcesLibrary.TryGetBlueprint<BlueprintItem>(itemGuid);
 
             if (!itemToCraft) {
                 RenderLabel($"Error: null custom item from looking up blueprint ID {itemGuid}");
             } else {
-                RenderRecipeBasedCraftItemControl(crafter, craftingData, selectedRecipe, 0, itemToCraft);
+                if (upgradingBlueprint != null && GUILayout.Button($"Cancel {baseBlueprint.Name}", GUILayout.ExpandWidth(false))) {
+                    upgradingBlueprint = null;
+                }
+
+                if (craftingData.MundaneEnhancementsStackable) {
+                    if (upgradeName != null && GUILayout.Button($"Add {upgradeName} to {baseBlueprint.Name}", GUILayout.ExpandWidth(false))) {
+                        upgradingBlueprint = itemToCraft;
+                    }
+
+                    RenderRecipeBasedCraftItemControl(crafter, craftingData, null, 0, baseBlueprint);
+                } else {
+                    RenderRecipeBasedCraftItemControl(crafter, craftingData, selectedRecipe, 0, itemToCraft);
+                }
             }
 
             RenderLabel($"Current Money: {Game.Instance.Player.Money}");
         }
 
-        private static string ApplyVisualMapping(RecipeData recipe, BlueprintItemEquipment blueprint) {
-            if (recipe.VisualMappings != null) {
+        private static string GetWeaponMaterialDescription(PhysicalDamageMaterial material) {
+            switch (material) {
+                case PhysicalDamageMaterial.Silver:
+                    return new L10NString("craftMagicItems-material-silver-weapon-description").ToString();
+                case PhysicalDamageMaterial.ColdIron:
+                    return new L10NString("craftMagicItems-material-coldIron-weapon-description").ToString();
+                case PhysicalDamageMaterial.Adamantite:
+                    return new L10NString("craftMagicItems-material-adamantite-weapon-description").ToString();
+                default:
+                    return "";
+            }
+        }
+
+        private static string ApplyVisualMapping(RecipeData recipe, BlueprintItem blueprint) {
+            if (recipe?.VisualMappings != null) {
                 foreach (var mapping in recipe.VisualMappings) {
                     if (mapping.StartsWith(blueprint.AssetGuid)) {
                         return mapping.Split(':')[1];
@@ -1229,7 +1284,11 @@ namespace CraftMagicItems {
 
             if (render) {
                 var partyNames = characters.Select(entity => entity.CharacterName).ToArray();
+                var indexBefore = selectedSpellcasterIndex;
                 RenderSelection(ref selectedSpellcasterIndex, "Crafter: ", partyNames, 8);
+                if (indexBefore != selectedSpellcasterIndex) {
+                    upgradingBlueprint = null;
+                }
             }
 
             return characters[selectedSpellcasterIndex];
@@ -1434,8 +1493,7 @@ namespace CraftMagicItems {
             if (IsMundaneCraftingData(craftingData)) {
                 craftingSkill = StatType.SkillKnowledgeWorld;
                 var recipeBasedItemCraftingData = (RecipeBasedItemCraftingData) craftingData;
-                var projectRecipe = recipeBasedItemCraftingData.Recipes.First(recipe => recipe.Name == project.RecipeName);
-                dc = CalculateMundaneCraftingDC(recipeBasedItemCraftingData, projectRecipe, project.ResultItem.Blueprint, project.Crafter.Descriptor);
+                dc = CalculateMundaneCraftingDC(recipeBasedItemCraftingData, project.ResultItem.Blueprint, project.Crafter.Descriptor);
                 progressRate = MundaneCraftingProgressPerDay;
             } else {
                 craftingSkill = StatType.SkillKnowledgeArcana;
@@ -1536,17 +1594,22 @@ namespace CraftMagicItems {
             var requiredProgress = (itemBlueprint.Cost - (upgradeItem?.Blueprint.Cost ?? 0)) / 4;
             var goldCost = (int) Mathf.Round(requiredProgress * ModSettings.CraftingPriceScale);
             if (IsMundaneCraftingData(craftingData)) {
-                // For mundane crafting, the gold cost is less, and the cost of the recipe doesn't increase the required progress.
+                // For mundane crafting, the gold cost is less, and the cost of the recipes don't increase the required progress.
                 goldCost = Math.Max(1, (goldCost * 2 + 2) / 3);
-                var recipeCost = recipe.CostFactor;
-                if (itemBlueprint is BlueprintItemWeapon weapon && recipe.Material != 0) {
-                    recipeCost += GetSpecialMaterialCost(recipe.Material, weapon);
+                var recipeCost = 0;
+                foreach (var enchantment in itemBlueprint.Enchantments) {
+                    var enchantmentRecipe = FindSourceRecipe(enchantment.AssetGuid, itemBlueprint);
+                    recipeCost += enchantmentRecipe?.CostFactor ?? 0;
+                }
+
+                if (itemBlueprint is BlueprintItemWeapon weapon && weapon.DamageType.Physical.Material != 0) {
+                    recipeCost += GetSpecialMaterialCost(weapon.DamageType.Physical.Material, weapon);
                 }
 
                 requiredProgress = Math.Max(1, requiredProgress - recipeCost / 4);
             }
 
-            var canAfford = BuildCostString(out var cost, craftingData, goldCost, recipe.PrerequisiteSpells);
+            var canAfford = BuildCostString(out var cost, craftingData, goldCost, recipe?.PrerequisiteSpells ?? new BlueprintAbility[0]);
             var custom = (itemBlueprint.AssetGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength)
                 ? new L10NString("craftMagicItems-label-custom").ToString()
                 : "";
@@ -1563,7 +1626,7 @@ namespace CraftMagicItems {
                     Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
                     Game.Instance.Player.SpendMoney(goldCost);
                     var factor = GetMaterialComponentMultiplier(craftingData);
-                    if (factor > 0) {
+                    if (factor > 0 && recipe != null) {
                         foreach (var prerequisite in recipe.PrerequisiteSpells) {
                             if (prerequisite.MaterialComponent.Item != null) {
                                 Game.Instance.Player.Inventory.Remove(prerequisite.MaterialComponent.Item, prerequisite.MaterialComponent.Count * factor);
@@ -1577,8 +1640,9 @@ namespace CraftMagicItems {
                 if (ModSettings.CraftingTakesNoTime) {
                     CraftItem(resultItem, upgradeItem);
                 } else {
-                    var project = new CraftingProjectData(caster, requiredProgress, goldCost, casterLevel, resultItem, craftingData.Name, recipe.Name,
-                        recipe.PrerequisiteSpells, recipe.AnyPrerequisite, upgradeItem, recipe.CrafterPrerequisites);
+                    var project = new CraftingProjectData(caster, requiredProgress, goldCost, casterLevel, resultItem, craftingData.Name, recipe?.Name,
+                        recipe?.PrerequisiteSpells ?? new BlueprintAbility[0], recipe?.AnyPrerequisite ?? false, upgradeItem,
+                        recipe?.CrafterPrerequisites ?? new CrafterPrerequisiteType[0]);
                     AddNewProject(caster.Descriptor, project);
                     CalculateProjectEstimate(project);
                     currentSection = OpenSection.ProjectsSection;
@@ -1586,6 +1650,8 @@ namespace CraftMagicItems {
 
                 // Reset base GUID for next item
                 selectedBaseGuid = null;
+                // And stop upgrading the item, if relevant.
+                upgradingBlueprint = null;
             }
         }
 
@@ -1864,9 +1930,11 @@ namespace CraftMagicItems {
                     return 3000 - MasterworkCost; // Cost of masterwork is subsumed by the cost of adamantite
                 case PhysicalDamageMaterial.ColdIron:
                     var enhancementLevel = ItemPlusEquivalent(weapon);
-                    // In tabletop, silver weapons cost double, including the masterwork component and for enchanting the first +1...
-                    // I'm just doing the cost of masterwork and the first +1 here.
-                    return enhancementLevel > 0 ? WeaponPlusCost + MasterworkCost : IsMasterwork(weapon) ? MasterworkCost : 0;
+                    var baseWeapon =
+                        ResourcesLibrary.TryGetBlueprint<BlueprintItemWeapon>(weapon.AssetGuid.Substring(0, CustomBlueprintBuilder.VanillaAssetIdLength));
+                    // Silver weapons cost double, including the masterwork component and for enchanting the first +1
+                    return (baseWeapon == null ? 0 : baseWeapon.Cost) +
+                           (enhancementLevel > 0 ? WeaponPlusCost + MasterworkCost : IsMasterwork(weapon) ? MasterworkCost : 0);
                 case PhysicalDamageMaterial.Silver when weapon.Category.HasSubCategory(WeaponSubCategory.Light):
                     return 20;
                 case PhysicalDamageMaterial.Silver when weapon.Category.HasSubCategory(WeaponSubCategory.TwoHanded) || weapon.Double:
@@ -2048,7 +2116,11 @@ namespace CraftMagicItems {
                     throw new Exception($"Failed to create object with type {value}");
                 }
 
-                if (!(Activator.CreateInstance(componentType) is T component)) {
+                var componentObject = typeof(ScriptableObject).IsAssignableFrom(componentType)
+                    ? ScriptableObject.CreateInstance(componentType)
+                    : Activator.CreateInstance(componentType);
+
+                if (!(componentObject is T component)) {
                     throw new Exception($"Failed to create expected instance with type {value}, " +
                                         $"result is {componentType.FullName}");
                 }
@@ -2612,9 +2684,7 @@ namespace CraftMagicItems {
 
                 if (IsMundaneCraftingData(craftingData)) {
                     craftingSkill = StatType.SkillKnowledgeWorld;
-                    var recipeBasedItemCraftingData = (RecipeBasedItemCraftingData) craftingData;
-                    var projectRecipe = recipeBasedItemCraftingData.Recipes.First(recipe => recipe.Name == project.RecipeName);
-                    dc = CalculateMundaneCraftingDC(recipeBasedItemCraftingData, projectRecipe, project.ResultItem.Blueprint, caster);
+                    dc = CalculateMundaneCraftingDC((RecipeBasedItemCraftingData) craftingData, project.ResultItem.Blueprint, caster);
                 } else {
                     craftingSkill = StatType.SkillKnowledgeArcana;
                     dc = 5 + project.CasterLevel;

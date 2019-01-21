@@ -7,6 +7,7 @@
     "CostType": "LevelSquared",
     "CostFactor": 0,
     "MundaneDC": 0,
+    "OnlyForSlots": ["Armor", "Shield"],
     "CanApplyToMundaneItem": true
   },
   {
@@ -137,13 +138,11 @@
   {
     "Name": "ColdIronWeapon",
     "NameId": "aead3835-1773-440e-86c5-ae99a535450e",
-    "Enchantments": [
-      "6b38844e2bffbac48b63036b66e735be"
-    ],
+    "Enchantments": [],
     "Material": "ColdIron",
     "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
-    "CostFactor": 300,
+    "CostFactor": 0,
     "MundaneDC": 5,
     "OnlyForSlots": ["Weapon"],
     "Restrictions": ["WeaponMelee", "WeaponMetal"],
@@ -152,13 +151,11 @@
   {
     "Name": "SilverWeapon",
     "NameId": "28efe9ff-4335-4fba-946c-61099352d42b",
-    "Enchantments": [
-      "6b38844e2bffbac48b63036b66e735be"
-    ],
+    "Enchantments": [],
     "Material": "Silver",
     "PrerequisiteSpells": [],
     "CostType": "LevelSquared",
-    "CostFactor": 300,
+    "CostFactor": 0,
     "MundaneDC": 5,
     "OnlyForSlots": ["Weapon"],
     "Restrictions": ["WeaponMelee", "WeaponMetal"],

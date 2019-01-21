@@ -187,6 +187,7 @@
       "511c97c1ea111444aa186b1a58496664"
     ],
     "MundaneBaseDC": 12,
+    "MundaneEnhancementsStackable": true,
     "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Weapon"]
   },
@@ -223,6 +224,7 @@
       "6d40d84e239bdf345b349ff52e3c00a9"
     ],
     "MundaneBaseDC": 15,
+    "MundaneEnhancementsStackable": true,
     "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Weapon"]
   },
@@ -255,6 +257,7 @@
       "b50d6e17d6c3c244c84a42b49edda025"
     ],
     "MundaneBaseDC": 18,
+    "MundaneEnhancementsStackable": true,
     "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Weapon"]
   }
