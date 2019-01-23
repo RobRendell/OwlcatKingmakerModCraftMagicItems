@@ -71,6 +71,14 @@
 		"key": "craftMagicItems-label-craft-new-item",
 		"value": "(New Item)"
 	},
+    {
+      "key": "craftMagicItems-label-cast-spell-n-times",
+      "value": "Cast spell N times a day"
+    },
+    {
+      "key": "craftMagicItems-label-cast-spell-n-times-details",
+      "value": "Cast {0} (caster level {1}) {count} {count_form|time|times} a day"
+    },
 	{
 		"key": "craftMagicItems-label-cost-free",
 		"value": "nothing (cheating)"
