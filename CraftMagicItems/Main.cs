@@ -513,7 +513,7 @@ namespace CraftMagicItems {
         }
 
         private static bool DoesItemMatchEnchantments(BlueprintItemEquipment blueprint, string selectedEnchantmentId,
-            BlueprintItemEquipment upgradeItem = null) {
+            BlueprintItemEquipment upgradeItem = null, bool checkPrice = false) {
             var isNotable = upgradeItem && upgradeItem.IsNotable;
             var ability = upgradeItem ? upgradeItem.Ability : null;
             var activatableAbility = upgradeItem ? upgradeItem.ActivatableAbility : null;
@@ -552,7 +552,8 @@ namespace CraftMagicItems {
                 }
             }
 
-            return true;
+            // Verify the price of the vanilla item
+            return !checkPrice || RulesRecipeItemCost(blueprint) == blueprint.Cost;
         }
 
         private static IEnumerable<T> PrependConditional<T>(this IEnumerable<T> target, bool prepend, params T[] items) {
@@ -831,11 +832,10 @@ namespace CraftMagicItems {
             }
 
             // See if the selected enchantment (plus optional mundane base item) corresponds to a vanilla blueprint.
-            var allItemBlueprintsWithEnchantment =
-                IsEnchanted(upgradeItem?.Blueprint) ? null : FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid);
+            var allItemBlueprintsWithEnchantment = FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid);
             var matchingItem = allItemBlueprintsWithEnchantment?.FirstOrDefault(blueprint =>
                 DoesBlueprintMatchSlot(blueprint, selectedSlot)
-                && DoesItemMatchEnchantments(blueprint, selectedEnchantment.AssetGuid, upgradeItem?.Blueprint as BlueprintItemEquipment)
+                && DoesItemMatchEnchantments(blueprint, selectedEnchantment.AssetGuid, upgradeItem?.Blueprint as BlueprintItemEquipment, true)
             );
             BlueprintItemEquipment itemToCraft;
             var itemGuid = "[not set]";
