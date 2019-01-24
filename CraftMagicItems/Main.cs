@@ -996,7 +996,10 @@ namespace CraftMagicItems {
             // Render craft button
             GameLogContext.Count = selectedCastsPerDay;
             RenderLabel(L10NFormat("craftMagicItems-label-cast-spell-n-times-details", ability.Name, selectedCasterLevel));
-            RenderRecipeBasedCraftItemControl(caster, craftingData, null, selectedCasterLevel, itemToCraft, upgradeItem);
+            var recipe = new RecipeData {
+                PrerequisiteSpells = new[] {ability}
+            };
+            RenderRecipeBasedCraftItemControl(caster, craftingData, recipe, selectedCasterLevel, itemToCraft, upgradeItem);
         }
 
         private static int RenderCraftingSkillInformation(UnitEntityData caster, StatType skill, int dc, int casterLevel = 0,
@@ -1032,9 +1035,18 @@ namespace CraftMagicItems {
             return skillCheck - dc;
         }
 
-        private static int GetMaterialComponentMultiplier(ItemCraftingData craftingData) {
+        private static int GetMaterialComponentMultiplier(ItemCraftingData craftingData, BlueprintItem resultBlueprint = null,
+            BlueprintItem upgradeBlueprint = null) {
             if (craftingData is SpellBasedItemCraftingData spellBased) {
                 return spellBased.Charges;
+            }
+
+            var upgradeEquipment = upgradeBlueprint as BlueprintItemEquipment;
+            if (resultBlueprint is BlueprintItemEquipment resultEquipment && resultEquipment.RestoreChargesOnRest
+                                                                          && resultEquipment.Ability !=
+                                                                          (upgradeEquipment == null ? null : upgradeEquipment.Ability)) {
+                // Cast a Spell N times a day costs material components as if it has 50 charges.
+                return 50;
             }
 
             return 0;
@@ -1047,8 +1059,8 @@ namespace CraftMagicItems {
                 var goldRefund = project.GoldSpent >= 0 ? project.GoldSpent : project.TargetCost;
                 Game.Instance.Player.GainMoney(goldRefund);
                 var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
-                BuildCostString(out var cost, craftingData, goldRefund, project.Prerequisites);
-                var factor = GetMaterialComponentMultiplier(craftingData);
+                BuildCostString(out var cost, craftingData, goldRefund, project.Prerequisites, project.ResultItem.Blueprint, project.UpgradeItem?.Blueprint);
+                var factor = GetMaterialComponentMultiplier(craftingData, project.ResultItem.Blueprint, project.UpgradeItem?.Blueprint);
                 if (factor > 0) {
                     foreach (var prerequisiteSpell in project.Prerequisites) {
                         if (prerequisiteSpell.MaterialComponent.Item) {
@@ -1557,7 +1569,8 @@ namespace CraftMagicItems {
             return spellLevel == 0 ? craftingData.BaseItemGoldCost * casterLevel / 8 : craftingData.BaseItemGoldCost * spellLevel * casterLevel / 4;
         }
 
-        private static bool BuildCostString(out string cost, ItemCraftingData craftingData, int goldCost, params BlueprintAbility[] spellBlueprintArray) {
+        private static bool BuildCostString(out string cost, ItemCraftingData craftingData, int goldCost, BlueprintAbility[] spellBlueprintArray,
+            BlueprintItem resultBlueprint = null, BlueprintItem upgradeBlueprint = null) {
             var canAfford = true;
             if (ModSettings.CraftingCostsNoGold) {
                 cost = new L10NString("craftMagicItems-label-cost-free");
@@ -1568,7 +1581,7 @@ namespace CraftMagicItems {
                 var itemTotals = new Dictionary<BlueprintItem, int>();
                 foreach (var spellBlueprint in spellBlueprintArray) {
                     if (spellBlueprint.MaterialComponent.Item) {
-                        var count = spellBlueprint.MaterialComponent.Count * GetMaterialComponentMultiplier(craftingData);
+                        var count = spellBlueprint.MaterialComponent.Count * GetMaterialComponentMultiplier(craftingData, resultBlueprint, upgradeBlueprint);
                         if (count > 0) {
                             if (itemTotals.ContainsKey(spellBlueprint.MaterialComponent.Item)) {
                                 itemTotals[spellBlueprint.MaterialComponent.Item] += count;
@@ -1647,7 +1660,7 @@ namespace CraftMagicItems {
             var existingItemBlueprint = itemBlueprintList?.Find(bp => bp.SpellLevel == spellLevel && bp.CasterLevel == casterLevel);
             var requiredProgress = CalculateSpellBasedGoldCost(craftingData, spellLevel, casterLevel);
             var goldCost = (int) Mathf.Round(requiredProgress * ModSettings.CraftingPriceScale);
-            var canAfford = BuildCostString(out var cost, craftingData, goldCost, spellBlueprint);
+            var canAfford = BuildCostString(out var cost, craftingData, goldCost, new[] {spellBlueprint});
             var custom = (existingItemBlueprint == null || existingItemBlueprint.AssetGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength)
                 ? new L10NString("craftMagicItems-label-custom").ToString()
                 : "";
@@ -1727,7 +1740,8 @@ namespace CraftMagicItems {
                 requiredProgress = Math.Max(1, requiredProgress - recipeCost / 4);
             }
 
-            var canAfford = BuildCostString(out var cost, craftingData, goldCost, recipe?.PrerequisiteSpells ?? new BlueprintAbility[0]);
+            var canAfford = BuildCostString(out var cost, craftingData, goldCost, recipe?.PrerequisiteSpells ?? new BlueprintAbility[0],
+                itemBlueprint, upgradeItem?.Blueprint);
             var custom = (itemBlueprint.AssetGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength)
                 ? new L10NString("craftMagicItems-label-custom").ToString()
                 : "";
@@ -1743,7 +1757,7 @@ namespace CraftMagicItems {
                 } else {
                     Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
                     Game.Instance.Player.SpendMoney(goldCost);
-                    var factor = GetMaterialComponentMultiplier(craftingData);
+                    var factor = GetMaterialComponentMultiplier(craftingData, itemBlueprint, upgradeItem?.Blueprint);
                     if (factor > 0 && recipe != null) {
                         foreach (var prerequisite in recipe.PrerequisiteSpells) {
                             if (prerequisite.MaterialComponent.Item != null) {
@@ -1853,10 +1867,6 @@ namespace CraftMagicItems {
                                 removeList.Remove(guid);
                             }
                         }
-
-                        if (enchantmentsList.Count == 0) {
-                            return originalGuid;
-                        }
                     }
 
                     enchantments = enchantmentsList;
@@ -1881,16 +1891,16 @@ namespace CraftMagicItems {
                         visual = match.Groups["visual"].Value;
                     }
 
-                    if (casterLevel == -1 && match.Groups["casterLevel"].Success) {
-                        casterLevel = int.Parse(match.Groups["casterLevel"].Value);
+                    if (match.Groups["casterLevel"].Success) {
+                        casterLevel = Math.Max(casterLevel, int.Parse(match.Groups["casterLevel"].Value));
                     }
 
-                    if (spellLevel == -1 && match.Groups["spellLevel"].Success) {
-                        spellLevel = int.Parse(match.Groups["spellLevel"].Value);
+                    if (match.Groups["spellLevel"].Success) {
+                        spellLevel = Math.Max(spellLevel, int.Parse(match.Groups["spellLevel"].Value));
                     }
 
                     if (perDay == -1 && match.Groups["perDay"].Success) {
-                        perDay = int.Parse(match.Groups["perDay"].Value);
+                        perDay = Math.Max(perDay, int.Parse(match.Groups["perDay"].Value));
                     }
 
                     // Remove the original customisation.
