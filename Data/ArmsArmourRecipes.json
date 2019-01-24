@@ -110,7 +110,7 @@
     "CostType": "LevelSquared",
     "CostFactor": 13100,
     "OnlyForSlots": ["Armor"],
-    "Restrictions": ["EnhancmentBonus3"]
+    "Restrictions": ["ArmourMetal", "EnhancmentBonus3"]
   },
   {
     "Name": "ShieldEnhancementBonus",
