@@ -3038,50 +3038,42 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch(typeof(LoadingProcess), "TickLoading")]
-        private static class LoadingProcessTickLoadingPatch {
+        [HarmonyPatch(typeof(Player), "PostLoad")]
+        private static class PlayerPostLoadPatch {
             // ReSharper disable once UnusedMember.Local
-            private static void Prefix(LoadingProcess __instance, ref bool __state) {
-                __state = __instance.IsLoadingInProcess;
-            }
+            private static void Postfix() {
+                // Just finished loading a save
+                var characterList = UIUtility.GetGroup(true);
+                foreach (var character in characterList) {
+                    // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
+                    var timer = GetCraftingTimerComponentForCaster(character.Descriptor);
+                    if (timer != null) {
+                        foreach (var project in timer.CraftingProjects) {
+                            if (project.ItemBlueprint != null) {
+                                // Migrate all projects using ItemBlueprint to use ResultItem
+                                var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
+                                project.ResultItem = BuildItemEntity(project.ItemBlueprint, craftingData);
+                                project.ItemBlueprint = null;
+                            }
 
-            // ReSharper disable once UnusedMember.Local
-            private static void Postfix(LoadingProcess __instance, bool __state) {
-                if (__state && !__instance.IsLoadingInProcess) {
-                    // Just finished loading a save
-                    var characterList = UIUtility.GetGroup(true);
-                    foreach (var character in characterList) {
-                        // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
-                        var timer = GetCraftingTimerComponentForCaster(character.Descriptor);
-                        if (timer != null) {
-                            // Migrate all projects using ItemBlueprint to use ResultItem
-                            foreach (var project in timer.CraftingProjects) {
-                                if (project.ItemBlueprint != null) {
-                                    var craftingData = itemCraftingData.First(data => data.Name == project.ItemType);
-                                    project.ResultItem = BuildItemEntity(project.ItemBlueprint, craftingData);
-                                    project.ItemBlueprint = null;
-                                }
-
-                                project.ResultItem.PostLoad();
-
-                                project.Crafter = character;
-                                if (project.UpgradeItem == null) {
-                                    ItemCreationProjects.Add(project);
-                                } else {
-                                    ItemUpgradeProjects[project.UpgradeItem] = project;
-                                    project.UpgradeItem.PostLoad();
-                                }
+                            project.Crafter = character;
+                            project.ResultItem.PostLoad();
+                            if (project.UpgradeItem == null) {
+                                ItemCreationProjects.Add(project);
+                            } else {
+                                ItemUpgradeProjects[project.UpgradeItem] = project;
+                                project.UpgradeItem.PostLoad();
                             }
                         }
+                    }
 
-                        // Retroactively give Brew Potion to alchemists who don't have it.
-                        foreach (var characterClass in character.Descriptor.Progression.Classes) {
-                            if (characterClass.CharacterClass.Progression.AssetGuid == AlchemistProgressionGuid) {
-                                var brewPotionData = itemCraftingData.First(data => data.Name == "Potion");
-                                if (!CharacterHasFeat(character, brewPotionData.FeatGuid)) {
-                                    var brewPotion = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(brewPotionData.FeatGuid);
-                                    character.Descriptor.Progression.Features.AddFeature(brewPotion);
-                                }
+                    // Retroactively give Brew Potion to alchemists who don't have it.
+                    foreach (var characterClass in character.Descriptor.Progression.Classes) {
+                        if (characterClass.CharacterClass.Progression.AssetGuid == AlchemistProgressionGuid) {
+                            var brewPotionData = itemCraftingData.First(data => data.Name == "Potion");
+                            if (!CharacterHasFeat(character, brewPotionData.FeatGuid)) {
+                                var brewPotion = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(brewPotionData.FeatGuid);
+                                character.Descriptor.Progression.Features.AddFeature(brewPotion);
                             }
                         }
                     }
