@@ -105,6 +105,7 @@ namespace CraftMagicItems {
         private static readonly FeatureGroup[] CraftingFeatGroups = {FeatureGroup.Feat, FeatureGroup.WizardFeat};
         private const string TimerBlueprintGuid = "52e4be2ba79c8c94d907bdbaf23ec15f#CraftMagicItems(timer)";
         private const string MasterworkGuid = "6b38844e2bffbac48b63036b66e735be";
+        private const string AlchemistProgressionGuid = "efd55ff9be2fda34981f5b9c83afe4f1";
         private const string MartialWeaponProficiencies = "203992ef5b35c864390b4e4a1e200629";
         private static readonly LocalizedString CasterLevelLocalized = new L10NString("dfb34498-61df-49b1-af18-0a84ce47fc98");
         private static readonly LocalizedString CharacterUsedItemLocalized = new L10NString("be7942ed-3af1-4fc7-b20b-41966d2f80b7");
@@ -311,7 +312,7 @@ namespace CraftMagicItems {
             }
 
             var itemTypes = itemCraftingData
-                .Where(data => data.FeatGuid != null && (ModSettings.IgnoreCraftingFeats || CasterHasFeat(caster, data.FeatGuid)))
+                .Where(data => data.FeatGuid != null && (ModSettings.IgnoreCraftingFeats || CharacterHasFeat(caster, data.FeatGuid)))
                 .ToArray();
             if (!Enumerable.Any(itemTypes)) {
                 RenderLabel($"{caster.CharacterName} does not know any crafting feats.");
@@ -1293,7 +1294,7 @@ namespace CraftMagicItems {
 
             var casterLevel = caster.Descriptor.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
             var missingFeats = itemCraftingData
-                .Where(data => data.FeatGuid != null && !CasterHasFeat(caster, data.FeatGuid) && data.MinimumCasterLevel <= casterLevel)
+                .Where(data => data.FeatGuid != null && !CharacterHasFeat(caster, data.FeatGuid) && data.MinimumCasterLevel <= casterLevel)
                 .ToArray();
             if (missingFeats.Length == 0) {
                 RenderLabel($"{caster.CharacterName} does not currently qualify for any crafting feats.");
@@ -1519,17 +1520,8 @@ namespace CraftMagicItems {
             return EnchantmentIdToItem.ContainsKey(assetGuid) ? EnchantmentIdToItem[assetGuid] : null;
         }
 
-        private static bool CasterHasFeat(UnitEntityData caster, string featGuid) {
-            if (featGuid != null) {
-                var feat = ResourcesLibrary.TryGetBlueprint(featGuid) as BlueprintFeature;
-                foreach (var feature in caster.Descriptor.Progression.Features) {
-                    if (feature.Blueprint == feat) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+        private static bool CharacterHasFeat(UnitEntityData caster, string featGuid) {
+            return caster.Descriptor.Progression.Features.Enumerable.Any(feat => feat.Blueprint.AssetGuid == featGuid);
         }
 
         private static string RandomBaseBlueprintId(ItemCraftingData itemData, Func<string, bool> selector = null) {
@@ -2581,6 +2573,22 @@ namespace CraftMagicItems {
                         AddCraftingFeats(characterClass.Progression);
                     }
 
+                    // Alchemists get Brew Potion as a bonus 1st level feat
+                    var brewPotionData = itemCraftingData.First(data => data.Name == "Potion");
+                    var brewPotion = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(brewPotionData.FeatGuid);
+                    var alchemistProgression = ResourcesLibrary.TryGetBlueprint<BlueprintProgression>(AlchemistProgressionGuid);
+                    if (brewPotion != null && alchemistProgression != null) {
+                        foreach (var levelEntry in alchemistProgression.LevelEntries) {
+                            if (levelEntry.Level == 1) {
+                                levelEntry.Features.Add(brewPotion);
+                            }
+                        }
+
+                        alchemistProgression.UIDeterminatorsGroup = alchemistProgression.UIDeterminatorsGroup.Concat(new[] {brewPotion}).ToArray();
+                    } else {
+                        ModEntry.Logger.Warning("Failed to locate Alchemist progression or Brew Potion feat!");
+                    }
+
                     idGenerator = null;
                 }
             }
@@ -3031,10 +3039,10 @@ namespace CraftMagicItems {
             private static void Postfix(LoadingProcess __instance, bool __state) {
                 if (__state && !__instance.IsLoadingInProcess) {
                     // Just finished loading a save
-                    var casterList = UIUtility.GetGroup(true);
-                    foreach (var caster in casterList) {
+                    var characterList = UIUtility.GetGroup(true);
+                    foreach (var character in characterList) {
                         // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
-                        var timer = GetCraftingTimerComponentForCaster(caster.Descriptor);
+                        var timer = GetCraftingTimerComponentForCaster(character.Descriptor);
                         if (timer != null) {
                             // Migrate all projects using ItemBlueprint to use ResultItem
                             foreach (var project in timer.CraftingProjects) {
@@ -3046,12 +3054,23 @@ namespace CraftMagicItems {
 
                                 project.ResultItem.PostLoad();
 
-                                project.Crafter = caster;
+                                project.Crafter = character;
                                 if (project.UpgradeItem == null) {
                                     ItemCreationProjects.Add(project);
                                 } else {
                                     ItemUpgradeProjects[project.UpgradeItem] = project;
                                     project.UpgradeItem.PostLoad();
+                                }
+                            }
+                        }
+
+                        // Retroactively give Brew Potion to alchemists who don't have it.
+                        foreach (var characterClass in character.Descriptor.Progression.Classes) {
+                            if (characterClass.CharacterClass.Progression.AssetGuid == AlchemistProgressionGuid) {
+                                var brewPotionData = itemCraftingData.First(data => data.Name == "Potion");
+                                if (!CharacterHasFeat(character, brewPotionData.FeatGuid)) {
+                                    var brewPotion = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(brewPotionData.FeatGuid);
+                                    character.Descriptor.Progression.Features.AddFeature(brewPotion);
                                 }
                             }
                         }
