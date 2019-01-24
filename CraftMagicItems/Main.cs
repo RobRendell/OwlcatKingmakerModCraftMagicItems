@@ -3067,13 +3067,16 @@ namespace CraftMagicItems {
                         }
                     }
 
-                    // Retroactively give Brew Potion to alchemists who don't have it.
+                    // Retroactively give character any crafting feats in their past progression data which they don't actually have
+                    // (e.g. Alchemists getting Brew Potion)
                     foreach (var characterClass in character.Descriptor.Progression.Classes) {
-                        if (characterClass.CharacterClass.Progression.AssetGuid == AlchemistProgressionGuid) {
-                            var brewPotionData = itemCraftingData.First(data => data.Name == "Potion");
-                            if (!CharacterHasFeat(character, brewPotionData.FeatGuid)) {
-                                var brewPotion = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(brewPotionData.FeatGuid);
-                                character.Descriptor.Progression.Features.AddFeature(brewPotion);
+                        foreach (var levelData in characterClass.CharacterClass.Progression.LevelEntries) {
+                            if (levelData.Level <= characterClass.Level) {
+                                foreach (var feature in levelData.Features.OfType<BlueprintFeature>()) {
+                                    if (feature.AssetGuid.Contains("#CraftMagicItems(feat=") && !CharacterHasFeat(character, feature.AssetGuid)) {
+                                        character.Descriptor.Progression.Features.AddFeature(feature);
+                                    }
+                                }
                             }
                         }
                     }
