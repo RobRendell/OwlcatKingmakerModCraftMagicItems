@@ -26,7 +26,6 @@ using Kingmaker.Controllers.Rest;
 using Kingmaker.Designers.Mechanics.Facts;
 using Kingmaker.Designers.TempMapCode.Capital;
 using Kingmaker.EntitySystem.Entities;
-using Kingmaker.EntitySystem.Persistence;
 using Kingmaker.EntitySystem.Stats;
 using Kingmaker.Enums;
 using Kingmaker.Enums.Damage;
@@ -203,16 +202,13 @@ namespace CraftMagicItems {
             }
 
             try {
-                var mainCharacterValue = Game.Instance?.Player?.MainCharacter.Value;
-                if (mainCharacterValue == null || !mainCharacterValue.IsViewActive || (
-                        Game.Instance.CurrentMode != GameModeType.Default
-                        && Game.Instance.CurrentMode != GameModeType.GlobalMap
-                        && Game.Instance.CurrentMode != GameModeType.FullScreenUi
-                        && Game.Instance.CurrentMode != GameModeType.Pause
-                        && Game.Instance.CurrentMode != GameModeType.EscMode
-                        && Game.Instance.CurrentMode != GameModeType.Rest
-                        && Game.Instance.CurrentMode != GameModeType.Kingdom
-                    )) {
+                if (Game.Instance == null || Game.Instance.CurrentMode != GameModeType.Default
+                    && Game.Instance.CurrentMode != GameModeType.GlobalMap
+                    && Game.Instance.CurrentMode != GameModeType.FullScreenUi
+                    && Game.Instance.CurrentMode != GameModeType.Pause
+                    && Game.Instance.CurrentMode != GameModeType.EscMode
+                    && Game.Instance.CurrentMode != GameModeType.Rest
+                    && Game.Instance.CurrentMode != GameModeType.Kingdom) {
                     RenderLabel("Item crafting is not available in this game state.");
                     return;
                 }
@@ -1661,7 +1657,7 @@ namespace CraftMagicItems {
             var requiredProgress = CalculateSpellBasedGoldCost(craftingData, spellLevel, casterLevel);
             var goldCost = (int) Mathf.Round(requiredProgress * ModSettings.CraftingPriceScale);
             var canAfford = BuildCostString(out var cost, craftingData, goldCost, new[] {spellBlueprint});
-            var custom = (existingItemBlueprint == null || existingItemBlueprint.AssetGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength)
+            var custom = existingItemBlueprint == null || existingItemBlueprint.AssetGuid.Contains(BlueprintPrefix)
                 ? new L10NString("craftMagicItems-label-custom").ToString()
                 : "";
             var label = L10NFormat("craftMagicItems-label-craft-spell-item", custom, new L10NString(craftingData.NamePrefixId), spellBlueprint.Name, cost);
@@ -1742,7 +1738,7 @@ namespace CraftMagicItems {
 
             var canAfford = BuildCostString(out var cost, craftingData, goldCost, recipe?.PrerequisiteSpells ?? new BlueprintAbility[0],
                 itemBlueprint, upgradeItem?.Blueprint);
-            var custom = (itemBlueprint.AssetGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength)
+            var custom = itemBlueprint.AssetGuid.Contains(BlueprintPrefix)
                 ? new L10NString("craftMagicItems-label-custom").ToString()
                 : "";
             var label = upgradeItem == null
@@ -1825,20 +1821,18 @@ namespace CraftMagicItems {
         }
 
         private static string BuildCustomSpellItemGuid(string originalGuid, int casterLevel, int spellLevel = -1, string spellId = null) {
-            if (originalGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength) {
-                // Check if GUID is already customised by this mod
-                var match = BlueprintRegex.Match(originalGuid);
-                if (match.Success && match.Groups["casterLevel"].Success) {
-                    // Remove the existing customisation
-                    originalGuid = originalGuid.Substring(0, match.Index) + originalGuid.Substring(match.Index + match.Length);
-                    // Use any values which aren't explicitly overridden
-                    if (spellLevel == -1 && match.Groups["spellLevelMatch"].Success) {
-                        spellLevel = int.Parse(match.Groups["spellLevel"].Value);
-                    }
+            // Check if GUID is already customised by this mod
+            var match = BlueprintRegex.Match(originalGuid);
+            if (match.Success && match.Groups["casterLevel"].Success) {
+                // Remove the existing customisation
+                originalGuid = originalGuid.Substring(0, match.Index) + originalGuid.Substring(match.Index + match.Length);
+                // Use any values which aren't explicitly overridden
+                if (spellLevel == -1 && match.Groups["spellLevelMatch"].Success) {
+                    spellLevel = int.Parse(match.Groups["spellLevel"].Value);
+                }
 
-                    if (spellId == null && match.Groups["spellIdMatch"].Success) {
-                        spellId = match.Groups["spellId"].Value;
-                    }
+                if (spellId == null && match.Groups["spellIdMatch"].Success) {
+                    spellId = match.Groups["spellId"].Value;
                 }
             }
 
@@ -1851,61 +1845,59 @@ namespace CraftMagicItems {
         private static string BuildCustomRecipeItemGuid(string originalGuid, IEnumerable<string> enchantments, string[] remove = null, string name = null,
             string ability = null, string activatableAbility = null, PhysicalDamageMaterial material = 0, string visual = null, int casterLevel = -1,
             int spellLevel = -1, int perDay = -1) {
-            if (originalGuid.Length > CustomBlueprintBuilder.VanillaAssetIdLength) {
-                // Check if GUID is already customised by this mod
-                var match = BlueprintRegex.Match(originalGuid);
-                if (match.Success && match.Groups["enchantments"].Success) {
-                    var enchantmentsList = enchantments.Concat(match.Groups["enchantments"].Value.Split(';'))
-                        .Where(guid => guid.Length > 0).Distinct().ToList();
-                    var removeList = match.Groups["remove"].Success
-                        ? (remove ?? Enumerable.Empty<string>()).Concat(match.Groups["remove"].Value.Split(';')).Distinct().ToList()
-                        : remove?.ToList();
-                    if (removeList != null) {
-                        foreach (var guid in removeList.ToArray()) {
-                            if (enchantmentsList.Contains(guid)) {
-                                enchantmentsList.Remove(guid);
-                                removeList.Remove(guid);
-                            }
+            // Check if GUID is already customised by this mod
+            var match = BlueprintRegex.Match(originalGuid);
+            if (match.Success && match.Groups["enchantments"].Success) {
+                var enchantmentsList = enchantments.Concat(match.Groups["enchantments"].Value.Split(';'))
+                    .Where(guid => guid.Length > 0).Distinct().ToList();
+                var removeList = match.Groups["remove"].Success
+                    ? (remove ?? Enumerable.Empty<string>()).Concat(match.Groups["remove"].Value.Split(';')).Distinct().ToList()
+                    : remove?.ToList();
+                if (removeList != null) {
+                    foreach (var guid in removeList.ToArray()) {
+                        if (enchantmentsList.Contains(guid)) {
+                            enchantmentsList.Remove(guid);
+                            removeList.Remove(guid);
                         }
                     }
-
-                    enchantments = enchantmentsList;
-                    remove = removeList?.Count > 0 ? removeList.ToArray() : null;
-                    if (name == null && match.Groups["name"].Success) {
-                        name = match.Groups["name"].Value;
-                    }
-
-                    if (ability == null && match.Groups["ability"].Success) {
-                        ability = match.Groups["ability"].Value;
-                    }
-
-                    if (activatableAbility == null && match.Groups["activatableAbility"].Success) {
-                        activatableAbility = match.Groups["activatableAbility"].Value;
-                    }
-
-                    if (material == 0 && match.Groups["material"].Success) {
-                        Enum.TryParse(match.Groups["material"].Value, out material);
-                    }
-
-                    if (visual == null && match.Groups["visual"].Success) {
-                        visual = match.Groups["visual"].Value;
-                    }
-
-                    if (match.Groups["casterLevel"].Success) {
-                        casterLevel = Math.Max(casterLevel, int.Parse(match.Groups["casterLevel"].Value));
-                    }
-
-                    if (match.Groups["spellLevel"].Success) {
-                        spellLevel = Math.Max(spellLevel, int.Parse(match.Groups["spellLevel"].Value));
-                    }
-
-                    if (perDay == -1 && match.Groups["perDay"].Success) {
-                        perDay = Math.Max(perDay, int.Parse(match.Groups["perDay"].Value));
-                    }
-
-                    // Remove the original customisation.
-                    originalGuid = originalGuid.Substring(0, match.Index) + originalGuid.Substring(match.Index + match.Length);
                 }
+
+                enchantments = enchantmentsList;
+                remove = removeList?.Count > 0 ? removeList.ToArray() : null;
+                if (name == null && match.Groups["name"].Success) {
+                    name = match.Groups["name"].Value;
+                }
+
+                if (ability == null && match.Groups["ability"].Success) {
+                    ability = match.Groups["ability"].Value;
+                }
+
+                if (activatableAbility == null && match.Groups["activatableAbility"].Success) {
+                    activatableAbility = match.Groups["activatableAbility"].Value;
+                }
+
+                if (material == 0 && match.Groups["material"].Success) {
+                    Enum.TryParse(match.Groups["material"].Value, out material);
+                }
+
+                if (visual == null && match.Groups["visual"].Success) {
+                    visual = match.Groups["visual"].Value;
+                }
+
+                if (match.Groups["casterLevel"].Success) {
+                    casterLevel = Math.Max(casterLevel, int.Parse(match.Groups["casterLevel"].Value));
+                }
+
+                if (match.Groups["spellLevel"].Success) {
+                    spellLevel = Math.Max(spellLevel, int.Parse(match.Groups["spellLevel"].Value));
+                }
+
+                if (perDay == -1 && match.Groups["perDay"].Success) {
+                    perDay = Math.Max(perDay, int.Parse(match.Groups["perDay"].Value));
+                }
+
+                // Remove the original customisation.
+                originalGuid = originalGuid.Substring(0, match.Index) + originalGuid.Substring(match.Index + match.Length);
             }
 
             return $"{originalGuid}{BlueprintPrefix}(enchantments=({enchantments.Join(null, ";")})" +
@@ -2080,8 +2072,13 @@ namespace CraftMagicItems {
                     return 3000 - MasterworkCost; // Cost of masterwork is subsumed by the cost of adamantite
                 case PhysicalDamageMaterial.ColdIron:
                     var enhancementLevel = ItemPlusEquivalent(weapon);
-                    var baseWeapon =
-                        ResourcesLibrary.TryGetBlueprint<BlueprintItemWeapon>(weapon.AssetGuid.Substring(0, CustomBlueprintBuilder.VanillaAssetIdLength));
+                    var assetGuid = weapon.AssetGuid;
+                    var match = BlueprintRegex.Match(assetGuid);
+                    if (match.Success) {
+                        assetGuid = assetGuid.Substring(0, match.Index) + assetGuid.Substring(match.Index + match.Length);
+                    }
+
+                    var baseWeapon = ResourcesLibrary.TryGetBlueprint<BlueprintItemWeapon>(assetGuid);
                     // Silver weapons cost double, including the masterwork component and for enchanting the first +1
                     return (baseWeapon == null ? 0 : baseWeapon.Cost) +
                            (enhancementLevel > 0 ? WeaponPlusCost + MasterworkCost : IsMasterwork(weapon) ? MasterworkCost : 0);
