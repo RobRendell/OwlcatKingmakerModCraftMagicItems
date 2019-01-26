@@ -3,7 +3,6 @@ This is the source for my mod to add crafting of magic items to Owlcat's Pathfin
 For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmaker/mods/54
 
 ## To Do
-* Disable more stuff if the mod is disabled (PostLoad/MainMenu.Start)
 * Crafting skill bonus for favoured school, penalty for opposition school.
 * Remove assumption that GUIDs are 32 characters long, given more mods with custom GUIDs are becoming available.
 * In BuildCustomRecipeItemGuid, sort enchantments and remove GUIDs lexographically so blueprint is always the same.

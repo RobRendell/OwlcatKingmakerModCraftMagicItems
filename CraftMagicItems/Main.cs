@@ -3064,6 +3064,11 @@ namespace CraftMagicItems {
                 foreach (var character in characterList) {
                     // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
                     var timer = GetCraftingTimerComponentForCaster(character.Descriptor);
+
+                    if (!modEnabled) {
+                        continue;
+                    }
+
                     if (timer != null) {
                         foreach (var project in timer.CraftingProjects) {
                             if (project.ItemBlueprint != null) {
