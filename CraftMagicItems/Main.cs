@@ -33,8 +33,10 @@ using Kingmaker.GameModes;
 using Kingmaker.Items;
 using Kingmaker.Kingdom;
 using Kingmaker.Localization;
+using Kingmaker.PubSubSystem;
 using Kingmaker.ResourceLinks;
 using Kingmaker.RuleSystem;
+using Kingmaker.RuleSystem.Rules.Abilities;
 using Kingmaker.UI;
 using Kingmaker.UI.ActionBar;
 using Kingmaker.UI.Common;
@@ -380,8 +382,9 @@ namespace CraftMagicItems {
                 RenderLabel($"{caster.CharacterName} does not know any level {spellLevel} spells.");
             } else {
                 var minCasterLevel = Math.Max(1, 2 * spellLevel - 1);
-                if (minCasterLevel < spellbook.CasterLevel) {
-                    RenderIntSlider(ref selectedCasterLevel, "Caster level: ", minCasterLevel, spellbook.CasterLevel);
+                var maxCasterLevel = CharacterCasterLevel(caster.Descriptor, spellbook);
+                if (minCasterLevel < maxCasterLevel) {
+                    RenderIntSlider(ref selectedCasterLevel, "Caster level: ", minCasterLevel, maxCasterLevel);
                 } else {
                     selectedCasterLevel = minCasterLevel;
                     RenderLabel($"Caster level: {selectedCasterLevel}");
@@ -998,6 +1001,23 @@ namespace CraftMagicItems {
             RenderRecipeBasedCraftItemControl(caster, craftingData, recipe, selectedCasterLevel, itemToCraft, upgradeItem);
         }
 
+        public static int CharacterCasterLevel(UnitDescriptor character, Spellbook forSpellbook = null) {
+            // There can be modifiers to Caster Level beyond what's set in a character's Spellbooks (e.g Magical Knack) - use event system.
+            var casterLevel = 0;
+            var booksToCheck = forSpellbook == null ? character.Spellbooks : Enumerable.Repeat(forSpellbook, 1);
+            foreach (var spellbook in booksToCheck) {
+                var spell = spellbook.GetAllKnownSpells().FirstOrDefault();
+                if (spellbook.CasterLevel > 0 && spell != null) {
+                    var rule = new RuleCalculateAbilityParams(character.Unit, spell);
+                    RulebookEventBus.OnEventAboutToTrigger(rule);
+                    rule.OnTrigger(null);
+                    casterLevel = rule.Result.CasterLevel > casterLevel ? rule.Result.CasterLevel : casterLevel;
+                }
+            }
+
+            return casterLevel;
+        }
+
         private static int RenderCraftingSkillInformation(UnitEntityData caster, StatType skill, int dc, int casterLevel = 0,
             BlueprintAbility[] prerequisiteSpells = null, bool anyPrerequisite = false, CrafterPrerequisiteType[] crafterPrerequisites = null,
             bool render = true) {
@@ -1009,7 +1029,7 @@ namespace CraftMagicItems {
                     $"{caster.CharacterName} is unable to meet {missing} of the prerequisites, raising the DC by {MissingPrerequisiteDCModifier * missing}");
             }
 
-            var crafterCasterLevel = caster.Descriptor.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
+            var crafterCasterLevel = CharacterCasterLevel(caster.Descriptor);
             if (crafterCasterLevel < casterLevel) {
                 var casterLevelShortfall = casterLevel - crafterCasterLevel;
                 if (render) {
@@ -1300,7 +1320,7 @@ namespace CraftMagicItems {
                 return;
             }
 
-            var casterLevel = caster.Descriptor.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
+            var casterLevel = CharacterCasterLevel(caster.Descriptor);
             var missingFeats = itemCraftingData
                 .Where(data => data.FeatGuid != null && !CharacterHasFeat(caster, data.FeatGuid) && data.MinimumCasterLevel <= casterLevel)
                 .ToArray();
@@ -2900,7 +2920,7 @@ namespace CraftMagicItems {
 
                 missing += CheckCrafterPrerequisites(project, caster);
                 dc += MissingPrerequisiteDCModifier * missing;
-                var casterLevel = caster.Spellbooks.Aggregate(0, (highest, book) => book.CasterLevel > highest ? book.CasterLevel : highest);
+                var casterLevel = CharacterCasterLevel(caster);
                 if (casterLevel < project.CasterLevel) {
                     // Rob's ruling... if you're below the prerequisite caster level, you're considered to be missing a prerequisite for each
                     // level you fall short.
