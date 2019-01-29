@@ -236,6 +236,10 @@
 		"value": "of Evil alignment"
 	},
 	{
+		"key": "craftMagicItems-crafter-prerequisite-FeatureChannelEnergy",
+		"value": "able to Channel Energy"
+	},
+	{
 		"key": "craftMagicItems-material-silver-weapon-description",
 		"value": "A complex process involving metallurgy and alchemy can bond silver to a weapon made of steel so that it bypasses the damage reduction of creatures such as lycanthropes."
 	},

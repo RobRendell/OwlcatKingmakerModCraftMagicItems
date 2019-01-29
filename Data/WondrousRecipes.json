@@ -101,5 +101,39 @@
     "PrerequisiteSpells": ["4f8181e7a7f1d904fbaea64220e83379"],
     "CostType": "LevelSquared",
     "CostFactor": 875
+  },
+  {
+    "Name": "PositiveChanneling",
+    "NameId": "4a60e1fd-9fa9-412f-911a-2c1d7b55997e",
+    "ParentNameId": "88289f95-d5af-4800-80b7-babe3c69d541",
+    "BonusTypeId": "",
+    "Enchantments": [
+      "f5d0bf8c1b4574848acb8d1fbb544807",
+      "e988cf802d403d941b2ed8b6016de68f"
+    ],
+    "CasterLevelStart": 5,
+    "CasterLevelMultiplier": 5,
+    "BonusDieSize": 6,
+    "PrerequisiteSpells": [],
+    "CrafterPrerequisites": ["FeatureChannelEnergy"],
+    "CostType": "LevelSquared",
+    "CostFactor": 4000
+  },
+  {
+    "Name": "NegativeChanneling",
+    "NameId": "3137b54f-d917-4515-8ed3-68b7e7c7b6fa",
+    "ParentNameId": "88289f95-d5af-4800-80b7-babe3c69d541",
+    "BonusTypeId": "",
+    "Enchantments": [
+      "60f06749fa4729c49bc3eb2eb7e3b316",
+      "cb4a39044b59f5e47ad5bc08ff9d6669"
+    ],
+    "CasterLevelStart": 5,
+    "CasterLevelMultiplier": 5,
+    "BonusDieSize": 6,
+    "PrerequisiteSpells": [],
+    "CrafterPrerequisites": ["FeatureChannelEnergy"],
+    "CostType": "LevelSquared",
+    "CostFactor": 4000
   }
 ]

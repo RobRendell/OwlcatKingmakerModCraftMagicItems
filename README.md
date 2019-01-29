@@ -3,7 +3,7 @@ This is the source for my mod to add crafting of magic items to Owlcat's Pathfin
 For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmaker/mods/54
 
 ## To Do
-* Positive Channeling (and presumably negative) are in the SRD: https://www.d20pfsrd.com/magic-items/wondrous-items/m-p/phylactery-of-positive-channeling/
+* upgrading a Physical Might +4 to Perfection +4 used the standard item ... but cost me -250 gp in version 1.8.6
 * Double weapons
 * Crafting skill bonus for favoured school, penalty for opposition school.
 * Remove assumption that GUIDs are 32 characters long, given more mods with custom GUIDs are becoming available.

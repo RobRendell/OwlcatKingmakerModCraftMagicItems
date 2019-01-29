@@ -204,6 +204,7 @@ namespace CraftMagicItems {
         private const string MasterworkGuid = "6b38844e2bffbac48b63036b66e735be";
         private const string AlchemistProgressionGuid = "efd55ff9be2fda34981f5b9c83afe4f1";
         private const string MartialWeaponProficiencies = "203992ef5b35c864390b4e4a1e200629";
+        private const string ChannelEnergyFeatureGuid = "a79013ff4bcd4864cb669622a29ddafb";
         private static readonly LocalizedString CasterLevelLocalized = new L10NString("dfb34498-61df-49b1-af18-0a84ce47fc98");
         private static readonly LocalizedString CharacterUsedItemLocalized = new L10NString("be7942ed-3af1-4fc7-b20b-41966d2f80b7");
         private static readonly LocalizedString ShieldBashLocalized = new L10NString("314ff56d-e93b-4915-8ca4-24a7670ad436");
@@ -857,6 +858,11 @@ namespace CraftMagicItems {
             return blueprint.ItemType == slot || slot == ItemsFilter.ItemType.Usable && blueprint is BlueprintItemEquipmentUsable;
         }
 
+        private static string GetBonusString(int bonus, RecipeData recipe) {
+            bonus *= recipe.BonusMultiplier == 0 ? 1 : recipe.BonusMultiplier;
+            return recipe.BonusDieSize != 0 ? new DiceFormula(bonus, recipe.BonusDieSize).ToString() : bonus.ToString();
+        }
+
         private static void RenderRecipeBasedCrafting(UnitEntityData caster, RecipeBasedItemCraftingData craftingData) {
             // Choose slot/weapon type.
             if (craftingData.Slots.Length > 1) {
@@ -942,11 +948,10 @@ namespace CraftMagicItems {
             }
 
             if (availableEnchantments.Length > 0 && selectedRecipe.Enchantments.Length > 1) {
-                var bonusMultiplier = selectedRecipe.BonusMultiplier > 0 ? selectedRecipe.BonusMultiplier : 1;
-                var counter = bonusMultiplier * (selectedRecipe.Enchantments.Length - availableEnchantments.Length);
+                var counter = selectedRecipe.Enchantments.Length - availableEnchantments.Length;
                 var enchantmentNames = availableEnchantments.Select(enchantment => {
-                    counter += bonusMultiplier;
-                    return enchantment.Name.Empty() ? $"+{counter}" : enchantment.Name;
+                    counter++;
+                    return enchantment.Name.Empty() ? GetBonusString(counter, selectedRecipe) : enchantment.Name;
                 });
                 RenderSelection(ref selectedEnchantmentIndex, "", enchantmentNames.ToArray(), 6);
             } else if (availableEnchantments.Length == 1) {
@@ -1977,18 +1982,19 @@ namespace CraftMagicItems {
                 if (!string.IsNullOrEmpty(enchantment.Name)) {
                     description += "\n * " + enchantment.Name;
                 } else if (recipe.Enchantments.Length > 1) {
-                    var bonus = (recipe.Enchantments.IndexOf(enchantment) + 1) * (recipe.BonusMultiplier > 0 ? recipe.BonusMultiplier : 1);
-                    var bonusString = recipe.BonusTypeId != null
+                    var bonusString = GetBonusString(recipe.Enchantments.IndexOf(enchantment) + 1, recipe);
+                    var bonusDescription = recipe.BonusTypeId != null
                         ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.BonusTypeId), new L10NString(recipe.NameId))
                         : recipe.BonusToId != null
                             ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.NameId), new L10NString(recipe.BonusToId))
                             : L10NFormat("craftMagicItems-custom-description-bonus", new L10NString(recipe.NameId));
                     var upgradeFrom = allKnown ? null : removed.FirstOrDefault(remove => FindSourceRecipe(remove.AssetGuid, blueprint) == recipe);
                     if (upgradeFrom == null) {
-                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonus, bonusString);
+                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonusString, bonusDescription);
                     } else {
                         var oldBonus = recipe.Enchantments.IndexOf(upgradeFrom) + 1;
-                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-upgrade-template", bonusString, oldBonus, bonus);
+                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-upgrade-template", bonusDescription, oldBonus,
+                                           bonusString);
                     }
                 } else {
                     description += "\n * " + new L10NString(recipe.NameId);
@@ -2995,6 +3001,8 @@ namespace CraftMagicItems {
                     || prerequisite == CrafterPrerequisiteType.AlignmentGood && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Good) == 0
                     || prerequisite == CrafterPrerequisiteType.AlignmentChaotic && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Chaotic) == 0
                     || prerequisite == CrafterPrerequisiteType.AlignmentEvil && (caster.Alignment.Value.ToMask() & AlignmentMaskType.Evil) == 0
+                    || prerequisite == CrafterPrerequisiteType.FeatureChannelEnergy &&
+                    caster.GetFeature(ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(ChannelEnergyFeatureGuid)) == null
                 ));
             }
 

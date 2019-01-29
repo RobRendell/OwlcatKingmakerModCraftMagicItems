@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Kingmaker.Blueprints.Items.Ecnchantments;
 using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Enums.Damage;
+using Kingmaker.RuleSystem;
 using Kingmaker.UI.Common;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
 using Newtonsoft.Json;
@@ -86,7 +87,8 @@ namespace CraftMagicItems {
         AlignmentLawful,
         AlignmentGood,
         AlignmentChaotic,
-        AlignmentEvil
+        AlignmentEvil,
+        FeatureChannelEnergy
     }
 
     public class RecipeData {
@@ -100,6 +102,7 @@ namespace CraftMagicItems {
         [JsonProperty] public int CasterLevelStart;
         [JsonProperty] public int CasterLevelMultiplier;
         [JsonProperty] public int BonusMultiplier;
+        [JsonProperty] public DiceType BonusDieSize;
         [JsonProperty] public int MundaneDC;
         [JsonProperty] public PhysicalDamageMaterial Material;
         [JsonProperty] public BlueprintAbility[] PrerequisiteSpells;
