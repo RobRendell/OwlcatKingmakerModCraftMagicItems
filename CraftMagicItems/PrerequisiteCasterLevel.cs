@@ -1,5 +1,4 @@
 using System.Linq;
-using Harmony12;
 using Kingmaker.Blueprints.Classes.Prerequisites;
 using Kingmaker.Localization;
 using Kingmaker.UI.Common;
@@ -20,7 +19,7 @@ namespace CraftMagicItems {
             return Main.ModSettings.IgnoreFeatCasterLevelRestriction || Main.CharacterCasterLevel(unit) >= minimumCasterLevel;
         }
 
-        [HarmonyPatch(typeof(UIUtility), "GetPrerequisiteObject")]
+        [Harmony12.HarmonyPatch(typeof(UIUtility), "GetPrerequisiteObject")]
         private static class UIUtilityGetPrerequisiteObjectPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix(Prerequisite prerequisite, ref string __result) {

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Harmony12;
 using Kingmaker.Blueprints;
-using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace CraftMagicItems {
@@ -26,7 +24,9 @@ namespace CraftMagicItems {
         public bool Enabled {
             set {
                 enabled = value;
-                if (!value) {
+                if (enabled) {
+                    Downgrade = false;
+                } else {
                     // If we disable custom blueprints, remove any we've created from the ResourcesLibrary.
                     foreach (var assetId in CustomBlueprintIDs) {
                         var customBlueprint = ResourcesLibrary.LibraryObject.BlueprintsByAssetId?[assetId];
@@ -41,6 +41,11 @@ namespace CraftMagicItems {
             }
         }
 
+
+        public void Reset() {
+            Downgrade = false;
+        }
+
         public CustomBlueprintBuilder(Regex blueprintRegex, Func<BlueprintScriptableObject, Match, string> patchBlueprint) {
             this.blueprintRegex = blueprintRegex;
             this.patchBlueprint = patchBlueprint;
@@ -50,7 +55,12 @@ namespace CraftMagicItems {
         private BlueprintScriptableObject PatchBlueprint(string assetId, BlueprintScriptableObject blueprint) {
             var match = blueprintRegex.Match(assetId);
             if (!match.Success) {
-                return null;
+                return blueprint;
+            }
+
+            if (!enabled) {
+                Downgrade = true;
+                return blueprint;
             }
 
             if (blueprint.AssetGuid.Length == VanillaAssetIdLength) {
@@ -62,7 +72,7 @@ namespace CraftMagicItems {
             var newAssetId = patchBlueprint(blueprint, match);
             if (newAssetId != null) {
                 // Insert patched blueprint into ResourcesLibrary under the new GUID.
-                Traverse.Create(blueprint).Field("m_AssetGuid").SetValue(newAssetId);
+                Main.Accessors.SetBlueprintScriptableObjectAssetGuid(blueprint, newAssetId);
                 ResourcesLibrary.LibraryObject.BlueprintsByAssetId?.Add(newAssetId, blueprint);
                 ResourcesLibrary.LibraryObject.GetAllBlueprints().Add(blueprint);
                 // Also record the custom GUID so we can clean it up if the mod is later disabled.
@@ -73,7 +83,7 @@ namespace CraftMagicItems {
         }
 
         // This patch is generic, and makes custom blueprints fall back to their initial version.
-        [HarmonyPatch]
+        [Harmony12.HarmonyPatch(typeof(ResourcesLibrary), "TryGetBlueprint")]
         private static class ResourcesLibraryTryGetBlueprintFallbackPatch {
             // ReSharper disable once UnusedMember.Local
             private static MethodBase TargetMethod() {
@@ -83,7 +93,7 @@ namespace CraftMagicItems {
             }
 
             // ReSharper disable once UnusedMember.Local
-            [HarmonyPriority(Priority.First)]
+            [Harmony12.HarmonyPriority(Harmony12.Priority.First)]
             // ReSharper disable once InconsistentNaming
             private static void Postfix(string assetId, ref BlueprintScriptableObject __result) {
                 if (__result == null && assetId.Length > VanillaAssetIdLength) {
@@ -94,7 +104,7 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch]
+        [Harmony12.HarmonyPatch(typeof(ResourcesLibrary), "TryGetBlueprint")]
         private static class ResourcesLibraryTryGetBlueprintModPatch {
             // ReSharper disable once UnusedMember.Local
             private static MethodBase TargetMethod() {
@@ -107,11 +117,7 @@ namespace CraftMagicItems {
             // ReSharper disable once InconsistentNaming
             private static void Postfix(string assetId, ref BlueprintScriptableObject __result) {
                 if (instance != null && __result != null && assetId != __result.AssetGuid) {
-                    if (instance.enabled) {
-                        __result = instance.PatchBlueprint(assetId, __result);
-                    } else {
-                        instance.Downgrade = true;
-                    }
+                    __result = instance.PatchBlueprint(assetId, __result);
                 }
             }
         }

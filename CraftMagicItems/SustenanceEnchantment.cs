@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Harmony12;
 using Kingmaker;
 using Kingmaker.Blueprints;
 using Kingmaker.Blueprints.Items.Ecnchantments;
@@ -17,7 +16,7 @@ using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.UnitLogic.Mechanics;
 
 namespace CraftMagicItems {
-    // A living character with a SustenanceFact does not need rations when they camp, and can perform two camp roles (not both guard shifts though).
+    // A living character with a SustenanceFact does not need rations when they camp, and can perform two camp roles.
     public class SustenanceFact : BlueprintBuff {
     }
 
@@ -29,10 +28,10 @@ namespace CraftMagicItems {
 
         private static bool initialised;
 
-        [HarmonyPatch(typeof(MainMenu), "Start")]
+        [Harmony12.HarmonyPatch(typeof(MainMenu), "Start")]
         private static class MainMenuStartPatch {
             private static void AddBlueprint(string guid, BlueprintScriptableObject blueprint) {
-                Traverse.Create(blueprint).Field("m_AssetGuid").SetValue(guid);
+                Main.Accessors.SetBlueprintScriptableObjectAssetGuid(blueprint, guid);
                 ResourcesLibrary.LibraryObject.BlueprintsByAssetId?.Add(guid, blueprint);
                 ResourcesLibrary.LibraryObject.GetAllBlueprints().Add(blueprint);
             }
@@ -43,26 +42,26 @@ namespace CraftMagicItems {
                     initialised = true;
                     AddBlueprint(SustenanceEnchantmentGuid, BlueprintSustenanceEnchantment);
                     AddBlueprint(SustenanceFactGuid, BlueprintSustenanceFact);
-                    Traverse.Create(BlueprintSustenanceEnchantment).Field("m_EnchantName")
-                        .SetValue(new L10NString("craftMagicItems-enchantment-sustenance-name"));
-                    Traverse.Create(BlueprintSustenanceEnchantment).Field("m_Description")
-                        .SetValue(new L10NString("craftMagicItems-enchantment-sustenance-description"));
-                    Traverse.Create(BlueprintSustenanceEnchantment).Field("m_Prefix").SetValue(new L10NString(""));
-                    Traverse.Create(BlueprintSustenanceEnchantment).Field("m_Suffix").SetValue(new L10NString(""));
-                    Traverse.Create(BlueprintSustenanceEnchantment).Field("m_EnchantmentCost").SetValue(1);
-                    Traverse.Create(BlueprintSustenanceEnchantment).Field("m_IdentifyDC").SetValue(5);
+                    Main.Accessors.SetBlueprintItemEnchantmentEnchantName(BlueprintSustenanceEnchantment,
+                        new L10NString("craftMagicItems-enchantment-sustenance-name"));
+                    Main.Accessors.SetBlueprintItemEnchantmentDescription(BlueprintSustenanceEnchantment,
+                        new L10NString("craftMagicItems-enchantment-sustenance-description"));
+                    Main.Accessors.SetBlueprintItemEnchantmentPrefix(BlueprintSustenanceEnchantment, new L10NString(""));
+                    Main.Accessors.SetBlueprintItemEnchantmentSuffix(BlueprintSustenanceEnchantment, new L10NString(""));
+                    Main.Accessors.SetBlueprintItemEnchantmentEnchantmentCost(BlueprintSustenanceEnchantment, 1);
+                    Main.Accessors.SetBlueprintItemEnchantmentEnchantmentIdentifyDC(BlueprintSustenanceEnchantment, 5);
                     var addSustenanceFact = CreateInstance<AddUnitFactEquipment>();
                     addSustenanceFact.Blueprint = BlueprintSustenanceFact;
                     addSustenanceFact.name = "AddUnitFactEquipment-SustenanceFact";
                     BlueprintSustenanceEnchantment.ComponentsArray = new BlueprintComponent[] {addSustenanceFact};
-                    Traverse.Create(BlueprintSustenanceFact).Field("m_Flags").SetValue(2 + 8); // Enum is private... 2 = HiddenInUi, 8 = StayOnDeath
+                    Main.Accessors.SetBlueprintBuffFlags(BlueprintSustenanceFact, 2 + 8); // Enum is private... 2 = HiddenInUi, 8 = StayOnDeath
                     BlueprintSustenanceFact.Stacking = StackingType.Replace;
                     BlueprintSustenanceFact.Frequency = DurationRate.Rounds;
                     BlueprintSustenanceFact.FxOnStart = new PrefabLink();
                     BlueprintSustenanceFact.FxOnRemove = new PrefabLink();
-                    Traverse.Create(BlueprintSustenanceFact).Field("m_DisplayName").SetValue(new L10NString("craftMagicItems-enchantment-sustenance-name"));
-                    Traverse.Create(BlueprintSustenanceFact).Field("m_Description")
-                        .SetValue(new L10NString("craftMagicItems-enchantment-sustenance-description"));
+                    Main.Accessors.SetBlueprintUnitFactDisplayName(BlueprintSustenanceFact, new L10NString("craftMagicItems-enchantment-sustenance-name"));
+                    Main.Accessors.SetBlueprintUnitFactDescription(BlueprintSustenanceFact,
+                        new L10NString("craftMagicItems-enchantment-sustenance-description"));
                 }
             }
         }
@@ -71,7 +70,7 @@ namespace CraftMagicItems {
             return unit?.Descriptor.GetFact(BlueprintSustenanceFact) != null;
         }
 
-        [HarmonyPatch(typeof(RestController), "CalculateNeededRations")]
+        [Harmony12.HarmonyPatch(typeof(RestController), "CalculateNeededRations")]
         private static class RestControllerCalculateNeededRationsPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix(ref int __result) {
@@ -92,7 +91,7 @@ namespace CraftMagicItems {
             return roles;
         }
 
-        [HarmonyPatch(typeof(CampManager), "RemoveAllCompanionRoles")]
+        [Harmony12.HarmonyPatch(typeof(CampManager), "RemoveAllCompanionRoles")]
         private static class CampManagerRemoveAllCompanionRolesPatch {
             // ReSharper disable once UnusedMember.Local
             private static bool Prefix(UnitEntityData unit) {
@@ -105,7 +104,7 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch(typeof(MemberUIBody), "CheckHasRole")]
+        [Harmony12.HarmonyPatch(typeof(MemberUIBody), "CheckHasRole")]
         private static class MemberUiBodyCheckHasRolePatch {
             // ReSharper disable once UnusedMember.Local
             private static bool Prefix(MemberUIBody __instance, ref bool __result) {
@@ -113,7 +112,7 @@ namespace CraftMagicItems {
                 if (UnitHasSustenance(unit) && CountRoles(unit) < 2) {
                     // The unit can still be assigned to another role.
                     __instance.HasRole = false;
-                    Traverse.Create(__instance).Method("SetupRoleView").GetValue();
+                    Harmony12.Traverse.Create(__instance).Method("SetupRoleView").GetValue();
                     __result = false;
                     return false;
                 }
@@ -126,7 +125,7 @@ namespace CraftMagicItems {
             return current.Contains(unit) && (best == null || current.Count > best.Count) ? current : best;
         }
 
-        [HarmonyPatch(typeof(CampingState), "CleanupRoles")]
+        [Harmony12.HarmonyPatch(typeof(CampingState), "CleanupRoles")]
         private static class CampingStateCleanupRolesPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
@@ -149,7 +148,7 @@ namespace CraftMagicItems {
         }
 
         // This seems to be a method from back when the game supported multiple roles.  We don't want characters using Sustenance to increase camp time.
-        [HarmonyPatch(typeof(CampingState), "GetRolesExtraTime")]
+        [Harmony12.HarmonyPatch(typeof(CampingState), "GetRolesExtraTime")]
         private static class CampingStateGetRolesExtraTimePatch {
             // ReSharper disable once UnusedMember.Local
             private static bool Prefix(ref TimeSpan __result) {

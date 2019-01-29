@@ -1,5 +1,4 @@
-﻿using Harmony12;
-using Kingmaker.Localization;
+﻿using Kingmaker.Localization;
 using System;
 using System.Data;
 using System.IO;
@@ -30,8 +29,8 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch(typeof(LocalizationManager))]
-        [HarmonyPatch("CurrentLocale", MethodType.Setter)]
+        [Harmony12.HarmonyPatch(typeof(LocalizationManager))]
+        [Harmony12.HarmonyPatch("CurrentLocale", Harmony12.MethodType.Setter)]
         private static class LocalizationManagerCurrentLocaleSetterPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
@@ -39,7 +38,7 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch(typeof(MainMenu), "Start")]
+        [Harmony12.HarmonyPatch(typeof(MainMenu), "Start")]
         private static class MainMenuStartPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Prefix() {

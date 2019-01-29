@@ -73,6 +73,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+      <Compile Include="Accessors.cs"/>
     <Compile Include="CraftingTimerComponent.cs" />
     <Compile Include="CraftingTypes.cs" />
     <Compile Include="CustomBlueprintBuilder.cs" />

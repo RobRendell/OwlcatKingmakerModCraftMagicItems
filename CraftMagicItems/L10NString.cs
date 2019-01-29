@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using Harmony12;
 using Kingmaker.Localization;
 
 namespace CraftMagicItems {
@@ -22,10 +21,10 @@ namespace CraftMagicItems {
                 }
             }
 
-            Traverse.Create(this).Field("m_Key").SetValue(key);
+            Harmony12.Traverse.Create(this).Field("m_Key").SetValue(key);
         }
 
-        [HarmonyPatch(typeof(LocalizedString), "LoadString")]
+        [Harmony12.HarmonyPatch(typeof(LocalizedString), "LoadString")]
         private static class LocalizedStringLoadStringPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix(LocalizedString __instance, ref string __result) {
@@ -43,10 +42,10 @@ namespace CraftMagicItems {
 
         public FakeL10NString(string fakeValue) {
             this.fakeValue = fakeValue;
-            Traverse.Create(this).Field("m_Key").SetValue(fakeValue);
+            Harmony12.Traverse.Create(this).Field("m_Key").SetValue(fakeValue);
         }
 
-        [HarmonyPatch(typeof(LocalizedString), "LoadString")]
+        [Harmony12.HarmonyPatch(typeof(LocalizedString), "LoadString")]
         private static class LocalizedStringLoadStringPatch {
             // ReSharper disable once UnusedMember.Local
             private static bool Prefix(LocalizedString __instance, ref string __result) {
@@ -59,7 +58,7 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch(typeof(LocalizedString), "IsSet")]
+        [Harmony12.HarmonyPatch(typeof(LocalizedString), "IsSet")]
         private static class LocalizedStringIsSetPatch {
             // ReSharper disable once UnusedMember.Local
             private static bool Prefix(LocalizedString __instance, ref bool __result) {
@@ -72,7 +71,7 @@ namespace CraftMagicItems {
             }
         }
 
-        [HarmonyPatch(typeof(LocalizedString), "IsEmpty")]
+        [Harmony12.HarmonyPatch(typeof(LocalizedString), "IsEmpty")]
         private static class LocalizedStringIsEmptyPatch {
             // ReSharper disable once UnusedMember.Local
             private static bool Prefix(LocalizedString __instance, ref bool __result) {
