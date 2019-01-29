@@ -767,6 +767,14 @@ namespace CraftMagicItems {
                    || IsMasterwork(item.Blueprint);
         }
 
+        private static bool CanRemove(BlueprintItemEquipment blueprint) {
+            return !blueprint.IsNonRemovable
+                   // Also, can't remove Amiri's Ginormous Sword
+                   && !blueprint.AssetGuid.Contains("2e3280bf21ec832418f51bee5136ec7a")
+                   && !blueprint.AssetGuid.Contains("b60252a8ae028ba498340199f48ead67")
+                   && !blueprint.AssetGuid.Contains("fb379e61500421143b52c739823b4082");
+        }
+
         private static bool IsMetalArmour(BlueprintArmorType armourType) {
             // Rely on the fact that the only light armour that is metal is a Chain Shirt, and the only medium armour that is not metal is Hide.
             return (armourType.ProficiencyGroup != ArmorProficiencyGroup.Light || armourType.AssetGuid == "7467b0ab8641d8f43af7fc46f2108a1a")
@@ -866,6 +874,7 @@ namespace CraftMagicItems {
                 .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
                                && DoesBlueprintMatchSlot(blueprint, selectedSlot)
                                && CanEnchant(item)
+                               && CanRemove(blueprint)
                                && (item.Wielder == null
                                    || playerInCapital
                                    || Game.Instance.Player.PartyCharacters.Contains(item.Wielder.Unit)))
