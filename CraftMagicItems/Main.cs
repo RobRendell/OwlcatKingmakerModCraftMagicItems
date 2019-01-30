@@ -541,14 +541,7 @@ namespace CraftMagicItems {
                     RenderLabel($"Caster level: {selectedCasterLevel}");
                 }
 
-                if (RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + selectedCasterLevel, selectedCasterLevel) < 0) {
-                    if (ModSettings.CraftingTakesNoTime) {
-                        RenderLabel($"This project would be too hard for {caster.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
-                    } else {
-                        RenderLabel($"This project will be too hard for {caster.CharacterName}");
-                        return;
-                    }
-                }
+                RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + selectedCasterLevel, selectedCasterLevel);
 
                 if (selectedShowPreparedSpells && spellbook.GetSpontaneousConversionSpells(spellLevel).Any()) {
                     var firstSpell = spellbook.Blueprint.Spontaneous
@@ -988,15 +981,9 @@ namespace CraftMagicItems {
 
             GUILayout.Label(prerequisites, GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
-            if (RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + casterLevel, casterLevel,
-                    selectedRecipe.PrerequisiteSpells, selectedRecipe.AnyPrerequisite, selectedRecipe.CrafterPrerequisites) < 0) {
-                if (ModSettings.CraftingTakesNoTime) {
-                    RenderLabel($"This project would be too hard for {caster.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
-                } else {
-                    RenderLabel($"This project will be too hard for {caster.CharacterName}");
-                    return;
-                }
-            }
+
+            RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + casterLevel, casterLevel, selectedRecipe.PrerequisiteSpells,
+                selectedRecipe.AnyPrerequisite, selectedRecipe.CrafterPrerequisites);
 
             // See if the selected enchantment (plus optional mundane base item) corresponds to a vanilla blueprint.
             var allItemBlueprintsWithEnchantment = FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid);
@@ -1128,14 +1115,7 @@ namespace CraftMagicItems {
             }
 
             // Show skill info
-            if (RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + selectedCasterLevel, selectedCasterLevel, new[] {ability}) < 0) {
-                if (ModSettings.CraftingTakesNoTime) {
-                    RenderLabel($"This project would be too hard for {caster.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
-                } else {
-                    RenderLabel($"This project will be too hard for {caster.CharacterName}");
-                    return;
-                }
-            }
+            RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + selectedCasterLevel, selectedCasterLevel, new[] {ability});
 
             string itemGuid = null;
             if (upgradeItem == null) {
@@ -1186,18 +1166,18 @@ namespace CraftMagicItems {
             return casterLevel;
         }
 
-        private static int RenderCraftingSkillInformation(UnitEntityData caster, StatType skill, int dc, int casterLevel = 0,
+        private static int RenderCraftingSkillInformation(UnitEntityData crafter, StatType skill, int dc, int casterLevel = 0,
             BlueprintAbility[] prerequisiteSpells = null, bool anyPrerequisite = false, CrafterPrerequisiteType[] crafterPrerequisites = null,
             bool render = true) {
             RenderLabel($"Base Crafting DC: {dc}");
-            var missing = CheckSpellPrerequisites(prerequisiteSpells, anyPrerequisite, caster.Descriptor, false, out var missingSpells, out var spellsToCast);
-            missing += GetMissingCrafterPrerequisites(crafterPrerequisites, caster.Descriptor).Count;
+            var missing = CheckSpellPrerequisites(prerequisiteSpells, anyPrerequisite, crafter.Descriptor, false, out var missingSpells, out var spellsToCast);
+            missing += GetMissingCrafterPrerequisites(crafterPrerequisites, crafter.Descriptor).Count;
             if (missing > 0 && render) {
                 RenderLabel(
-                    $"{caster.CharacterName} is unable to meet {missing} of the prerequisites, raising the DC by {MissingPrerequisiteDCModifier * missing}");
+                    $"{crafter.CharacterName} is unable to meet {missing} of the prerequisites, raising the DC by {MissingPrerequisiteDCModifier * missing}");
             }
 
-            var crafterCasterLevel = CharacterCasterLevel(caster.Descriptor);
+            var crafterCasterLevel = CharacterCasterLevel(crafter.Descriptor);
             if (crafterCasterLevel < casterLevel) {
                 var casterLevelShortfall = casterLevel - crafterCasterLevel;
                 if (render) {
@@ -1211,12 +1191,19 @@ namespace CraftMagicItems {
                 dc += MissingPrerequisiteDCModifier * missing;
             }
 
-            var skillCheck = 10 + caster.Stats.GetStat(skill).ModifiedValue;
+            var skillCheck = 10 + crafter.Stats.GetStat(skill).ModifiedValue;
             if (render) {
                 RenderLabel(L10NFormat("craftMagicItems-logMessage-made-progress-check", LocalizedTexts.Instance.Stats.GetText(skill), skillCheck, dc));
             }
 
-            return skillCheck - dc;
+            var skillMargin = skillCheck - dc;
+            if (skillMargin < 0 && render) {
+                RenderLabel(ModSettings.CraftingTakesNoTime
+                    ? $"This project would be too hard for {crafter.CharacterName} if \"Crafting Takes No Time\" cheat was disabled."
+                    : $"<color=red>Warning:</color> This project will be too hard for {crafter.CharacterName}");
+            }
+
+            return skillMargin;
         }
 
         private static int GetMaterialComponentMultiplier(ItemCraftingData craftingData, BlueprintItem resultBlueprint = null,
@@ -1380,14 +1367,8 @@ namespace CraftMagicItems {
             var dc = craftingData.MundaneEnhancementsStackable
                 ? CalculateMundaneCraftingDC(craftingData, baseBlueprint, crafter.Descriptor)
                 : CalculateMundaneCraftingDC(craftingData, baseBlueprint, crafter.Descriptor, selectedRecipe);
-            if (RenderCraftingSkillInformation(crafter, StatType.SkillKnowledgeWorld, dc) < 0) {
-                if (ModSettings.CraftingTakesNoTime) {
-                    RenderLabel($"This project would be too hard for {crafter.CharacterName} if \"Crafting Takes No Time\" cheat was disabled.");
-                } else {
-                    RenderLabel($"This project will be too hard for {crafter.CharacterName}");
-                    return;
-                }
-            }
+
+            RenderCraftingSkillInformation(crafter, StatType.SkillKnowledgeWorld, dc);
 
             // Upgrading to a custom blueprint, rather than use the standard mithral/adamantine blueprints.
             var enchantments = selectedEnchantment == null ? Enumerable.Empty<string>() : new List<string> {selectedEnchantment.AssetGuid};
