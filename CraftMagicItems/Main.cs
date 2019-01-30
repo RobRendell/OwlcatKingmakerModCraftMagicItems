@@ -41,7 +41,6 @@ using Kingmaker.UI;
 using Kingmaker.UI.ActionBar;
 using Kingmaker.UI.Common;
 using Kingmaker.UI.Log;
-using Kingmaker.UI.RestCamp;
 using Kingmaker.UI.Tooltip;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Abilities;
@@ -53,6 +52,7 @@ using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.UnitLogic.FactLogic;
 using Kingmaker.Utility;
 using Newtonsoft.Json;
+using QuickGraph.Algorithms;
 using UnityEngine;
 using UnityModManagerNet;
 using Object = UnityEngine.Object;
@@ -3219,6 +3219,9 @@ namespace CraftMagicItems {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
                 // Just finished loading a save
+                ItemUpgradeProjects.Clear();
+                ItemCreationProjects.Clear();
+
                 var characterList = UIUtility.GetGroup(true);
                 foreach (var character in characterList) {
                     // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
