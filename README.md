@@ -3,16 +3,17 @@ This is the source for my mod to add crafting of magic items to Owlcat's Pathfin
 For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmaker/mods/54
 
 ## To Do
-* upgrading a Physical Might +4 to Perfection +4 used the standard item ... but cost me -250 gp in version 1.8.6
+* Perhaps put the "Mod disabled" text into Strings_enGB.json anyway, so it can be translated?  Load manually?
+* upgrading a Physical Might +4 to Perfection +4 used the standard item ... but cost -250 gp in version 1.8.6
+* Impact and Oversize are not stacking.
 * Double weapons
 * Crafting skill bonus for favoured school, penalty for opposition school.
 * Remove assumption that GUIDs are 32 characters long, given more mods with custom GUIDs are becoming available.
 * In BuildCustomRecipeItemGuid, sort enchantments and remove GUIDs lexographically so blueprint is always the same.
 * Add "Fabricate" custom spell to instantly do mundane crafting, and to add special materials to existing items.
-* Make Robes fall under Craft Wondrous Items rather than Arms and Armor
+* Make Robes fall under Craft Wondrous Items rather than Arms and Armor.  "Monk's Robe"
 * Ioun stone enchantments?
 * Ghost Touch?
-* Impact and Oversize are not stacking.
 * Custom "quiver" items which can contain arrows of a particular type, which modify the damage of any ranged weapons you
         use when they're equipped in your belt slots?
 * Dragonhide is called "dragonscale"

@@ -1,5 +1,6 @@
 del *.zip
 rmdir /S /Q CraftMagicItems
+del "C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Mods\CraftMagicItems\*.pdb"
 
 mkdir CraftMagicItems || goto :error
 xcopy CraftMagicItems.dll CraftMagicItems || goto :error

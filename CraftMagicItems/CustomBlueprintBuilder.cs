@@ -7,21 +7,28 @@ using Kingmaker.Blueprints;
 using Object = UnityEngine.Object;
 
 namespace CraftMagicItems {
-    public class CustomBlueprintBuilder {
-        public static readonly int VanillaAssetIdLength = 32;
+    public static class CustomBlueprintBuilder {
+        public const int VanillaAssetIdLength = 32;
 
-        private static CustomBlueprintBuilder instance;
+        private static bool enabled;
+        private static Regex blueprintRegex;
+        private static Func<BlueprintScriptableObject, Match, string> patchBlueprint;
 
-        private bool enabled = true;
+        public static List<string> CustomBlueprintIDs { get; } = new List<string>();
 
-        private readonly Regex blueprintRegex;
-        private readonly Func<BlueprintScriptableObject, Match, string> patchBlueprint;
+        public static bool Downgrade { get; private set; }
 
-        public List<string> CustomBlueprintIDs { get; } = new List<string>();
+        public static void InitialiseBlueprintRegex(Regex initBlueprintRegex) {
+            // This needs to happen as early as possible to allow graceful downgrading when the mod startup fails.
+            blueprintRegex = initBlueprintRegex;
+        }
 
-        public bool Downgrade { get; private set; }
+        public static void Initialise(Func<BlueprintScriptableObject, Match, string> initPatchBlueprint, bool initEnabled) {
+            patchBlueprint = initPatchBlueprint;
+            enabled = initEnabled;
+        }
 
-        public bool Enabled {
+        public static bool Enabled {
             set {
                 enabled = value;
                 if (enabled) {
@@ -41,18 +48,17 @@ namespace CraftMagicItems {
             }
         }
 
-
-        public void Reset() {
+        public static void Reset() {
             Downgrade = false;
         }
 
-        public CustomBlueprintBuilder(Regex blueprintRegex, Func<BlueprintScriptableObject, Match, string> patchBlueprint) {
-            this.blueprintRegex = blueprintRegex;
-            this.patchBlueprint = patchBlueprint;
-            instance = this;
-        }
+        private static BlueprintScriptableObject PatchBlueprint(string assetId, BlueprintScriptableObject blueprint) {
+            if (blueprintRegex == null) {
+                // Catastrophic failure - assume we're downgrading.
+                Downgrade = true;
+                return blueprint;
+            }
 
-        private BlueprintScriptableObject PatchBlueprint(string assetId, BlueprintScriptableObject blueprint) {
             var match = blueprintRegex.Match(assetId);
             if (!match.Success) {
                 return blueprint;
@@ -80,6 +86,18 @@ namespace CraftMagicItems {
             }
 
             return blueprint;
+        }
+
+        public static string AssetGuidWithoutMatch(string assetGuid, Match match = null) {
+            if (match == null) {
+                if (blueprintRegex == null) {
+                    return assetGuid;
+                }
+
+                match = blueprintRegex.Match(assetGuid);
+            }
+
+            return !match.Success ? assetGuid : assetGuid.Substring(0, match.Index) + assetGuid.Substring(match.Index + match.Length);
         }
 
         // This patch is generic, and makes custom blueprints fall back to their initial version.
@@ -116,8 +134,8 @@ namespace CraftMagicItems {
             // ReSharper disable once UnusedMember.Local
             // ReSharper disable once InconsistentNaming
             private static void Postfix(string assetId, ref BlueprintScriptableObject __result) {
-                if (instance != null && __result != null && assetId != __result.AssetGuid) {
-                    __result = instance.PatchBlueprint(assetId, __result);
+                if (__result != null && assetId != __result.AssetGuid) {
+                    __result = PatchBlueprint(assetId, __result);
                 }
             }
         }
