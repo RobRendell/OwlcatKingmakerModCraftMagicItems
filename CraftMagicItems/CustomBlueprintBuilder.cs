@@ -13,6 +13,7 @@ namespace CraftMagicItems {
         private static bool enabled;
         private static Regex blueprintRegex;
         private static Func<BlueprintScriptableObject, Match, string> patchBlueprint;
+        private static string[] substitutions;
 
         public static List<string> CustomBlueprintIDs { get; } = new List<string>();
 
@@ -23,9 +24,10 @@ namespace CraftMagicItems {
             blueprintRegex = initBlueprintRegex;
         }
 
-        public static void Initialise(Func<BlueprintScriptableObject, Match, string> initPatchBlueprint, bool initEnabled) {
+        public static void Initialise(Func<BlueprintScriptableObject, Match, string> initPatchBlueprint, bool initEnabled, params string[] initSubstitutions) {
             patchBlueprint = initPatchBlueprint;
             enabled = initEnabled;
+            substitutions = initSubstitutions;
         }
 
         public static bool Enabled {
@@ -102,6 +104,7 @@ namespace CraftMagicItems {
 
         // This patch is generic, and makes custom blueprints fall back to their initial version.
         [Harmony12.HarmonyPatch(typeof(ResourcesLibrary), "TryGetBlueprint")]
+        // ReSharper disable once UnusedMember.Local
         private static class ResourcesLibraryTryGetBlueprintFallbackPatch {
             // ReSharper disable once UnusedMember.Local
             private static MethodBase TargetMethod() {
@@ -123,12 +126,21 @@ namespace CraftMagicItems {
         }
 
         [Harmony12.HarmonyPatch(typeof(ResourcesLibrary), "TryGetBlueprint")]
+        // ReSharper disable once UnusedMember.Local
         private static class ResourcesLibraryTryGetBlueprintModPatch {
             // ReSharper disable once UnusedMember.Local
             private static MethodBase TargetMethod() {
                 // ResourcesLibrary.TryGetBlueprint has two definitions which only differ by return type :(
                 var allMethods = typeof(ResourcesLibrary).GetMethods();
                 return allMethods.Single(info => info.Name == "TryGetBlueprint" && info.ReturnType == typeof(BlueprintScriptableObject));
+            }
+
+            // ReSharper disable once UnusedMember.Local
+            private static void Prefix(ref string assetId) {
+                // Perform any backward compatibility substitutions
+                for (var index = 0; index < substitutions.Length; index += 2) {
+                    assetId = assetId.Replace(substitutions[index], substitutions[index + 1]);
+                }
             }
 
             // ReSharper disable once UnusedMember.Local

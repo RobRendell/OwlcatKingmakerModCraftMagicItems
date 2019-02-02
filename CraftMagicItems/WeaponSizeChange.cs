@@ -5,6 +5,11 @@ using Kingmaker.RuleSystem.Rules;
 
 namespace CraftMagicItems {
     [ComponentName("Weapon Size Change")]
+    [AllowMultipleComponents]
+    /**
+     * Can't just use Owlcat's MeleeWeaponSizeChange rulebook handler because it's annotated with AllowedOn(typeof (BlueprintUnitFact)), which means it doesn't
+     * work on BlueprintItemWeapon
+     */
     public class WeaponSizeChange : WeaponEnchantmentLogic, IInitiatorRulebookHandler<RuleCalculateWeaponStats> {
         public int SizeCategoryChange;
 

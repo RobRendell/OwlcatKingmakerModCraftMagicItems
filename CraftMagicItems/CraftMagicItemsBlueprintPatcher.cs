@@ -51,7 +51,9 @@ namespace CraftMagicItems {
 
         public CraftMagicItemsBlueprintPatcher(CraftMagicItemsAccessors accessors, bool modEnabled) {
             this.accessors = accessors;
-            CustomBlueprintBuilder.Initialise(ApplyBlueprintPatch, modEnabled);
+            CustomBlueprintBuilder.Initialise(ApplyBlueprintPatch, modEnabled,
+                "d8e1ebc1062d8cc42abff78783856b0d#CraftMagicItems(Component[1]=CraftMagicItems.WeaponSizeChange#CraftMagicItems,Component[1].SizeCategoryChange=1)",
+                "d8e1ebc1062d8cc42abff78783856b0d#CraftMagicItems(Component[1]=CraftMagicItems.WeaponBaseSizeChange#CraftMagicItems,Component[1].SizeCategoryChange=1)");
         }
 
         public string BuildCustomSpellItemGuid(string originalGuid, int casterLevel, int spellLevel = -1, string spellId = null) {

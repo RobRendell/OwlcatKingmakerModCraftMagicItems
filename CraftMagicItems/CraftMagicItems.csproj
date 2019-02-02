@@ -73,9 +73,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Accessors.cs"/>
-    <Compile Include="CraftMagicItemsAccessors.cs"/>
-    <Compile Include="CraftMagicItemsBlueprintPatcher.cs"/>
+      <Compile Include="Accessors.cs"/>
+      <Compile Include="WeaponBaseSizeChange.cs"/>
+      <Compile Include="CraftMagicItemsAccessors.cs"/>
+      <Compile Include="CraftMagicItemsBlueprintPatcher.cs"/>
     <Compile Include="CraftingTimerComponent.cs" />
     <Compile Include="CraftingTypes.cs" />
     <Compile Include="CustomBlueprintBuilder.cs" />
@@ -83,10 +84,10 @@
     <Compile Include="L10n.cs" />
     <Compile Include="L10NString.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="PrerequisiteCasterLevel.cs"/>
+      <Compile Include="PrerequisiteCasterLevel.cs"/>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SustenanceEnchantment.cs"/>
-    <Compile Include="WeaponSizeChange.cs"/>
+      <Compile Include="SustenanceEnchantment.cs"/>
+      <Compile Include="WeaponSizeChange.cs"/>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data" />
