@@ -70,6 +70,7 @@ namespace CraftMagicItems {
         private const int MagicCraftingProgressPerDay = 500;
         private const int MundaneCraftingProgressPerDay = 5;
         private const int MissingPrerequisiteDCModifier = 5;
+        private const int OppositionSchoolDCModifier = 4;
         private const int AdventuringProgressPenalty = 4;
         private const int MasterworkCost = 300;
         private const int WeaponPlusCost = 2000;
@@ -1042,13 +1043,28 @@ namespace CraftMagicItems {
             return casterLevel;
         }
 
+        private static SpellSchool CheckForOppositionSchool(UnitDescriptor crafter, BlueprintAbility[] prerequisiteSpells) {
+            if (prerequisiteSpells != null) {
+                foreach (var spell in prerequisiteSpells) {
+                    if (crafter.Spellbooks.Any(spellbook => spellbook.Blueprint.SpellList.Contains(spell)
+                                                            && spellbook.OppositionSchools.Contains(spell.School))) {
+                        return spell.School;
+                    }
+                }
+            }
+
+            return SpellSchool.None;
+        }
+
         private static int RenderCraftingSkillInformation(UnitEntityData crafter, StatType skill, int dc, int casterLevel = 0,
             BlueprintAbility[] prerequisiteSpells = null, bool anyPrerequisite = false, CrafterPrerequisiteType[] crafterPrerequisites = null,
             bool render = true) {
-            RenderLabel($"Base Crafting DC: {dc}");
-            var missing = CheckSpellPrerequisites(prerequisiteSpells, anyPrerequisite, crafter.Descriptor, false,
-                // ReSharper disable once UnusedVariable
-                out var missingSpells,
+            if (render) {
+                RenderLabel($"Base Crafting DC: {dc}");
+            }
+
+            // ReSharper disable once UnusedVariable
+            var missing = CheckSpellPrerequisites(prerequisiteSpells, anyPrerequisite, crafter.Descriptor, false, out var missingSpells,
                 // ReSharper disable once UnusedVariable
                 out var spellsToCast);
             missing += GetMissingCrafterPrerequisites(crafterPrerequisites, crafter.Descriptor).Count;
@@ -1069,6 +1085,15 @@ namespace CraftMagicItems {
 
             if (missing > 0) {
                 dc += MissingPrerequisiteDCModifier * missing;
+            }
+
+            var oppositionSchool = CheckForOppositionSchool(crafter.Descriptor, prerequisiteSpells);
+            if (oppositionSchool != SpellSchool.None) {
+                dc += OppositionSchoolDCModifier;
+                if (render) {
+                    RenderLabel(L10NFormat("craftMagicItems-logMessage-opposition-school", LocalizedTexts.Instance.SpellSchoolNames.GetText(oppositionSchool),
+                        OppositionSchoolDCModifier));
+                }
             }
 
             var skillCheck = 10 + crafter.Stats.GetStat(skill).ModifiedValue;
@@ -2515,6 +2540,14 @@ namespace CraftMagicItems {
                     AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-low-caster-level", project.CasterLevel, casterLevelPenalty));
                     dc += casterLevelPenalty;
                 }
+
+                var oppositionSchool = CheckForOppositionSchool(caster, project.Prerequisites);
+                if (oppositionSchool != SpellSchool.None) {
+                    dc += OppositionSchoolDCModifier;
+                    AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-opposition-school",
+                        LocalizedTexts.Instance.SpellSchoolNames.GetText(oppositionSchool), OppositionSchoolDCModifier));
+                }
+
 
                 var skillCheck = 10 + caster.Stats.GetStat(craftingSkill).ModifiedValue;
                 if (skillCheck < dc) {

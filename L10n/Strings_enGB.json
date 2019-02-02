@@ -152,6 +152,10 @@
 		"value": "{Source} is below caster level {0}, raising the crafting DC by {1}."
 	},
 	{
+		"key": "craftMagicItems-logMessage-opposition-school",
+		"value": "Crafting involves magic from the school of {0}, raising the crafting DC by {1}."
+	},
+	{
 		"key": "craftMagicItems-logMessage-missing-crafter-prerequisite",
 		"value": "{Source} is not {0}, which raises the crafting DC by {1}."
 	},
