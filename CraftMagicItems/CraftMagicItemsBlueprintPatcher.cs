@@ -204,7 +204,7 @@ namespace CraftMagicItems {
             }
 
             if (blueprint.Ability != null && blueprint.Ability.LocalizedSavingThrow != null && blueprint.Ability.LocalizedSavingThrow.IsSet()) {
-                blueprint.DC = 10 + spellLevel * 3 / 2;
+                blueprint.DC = 10 + blueprint.SpellLevel * 3 / 2;
             }
 
             accessors.SetBlueprintItemEquipmentUsableCost(blueprint, 0); // Allow the game to auto-calculate the cost
