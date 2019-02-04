@@ -71,6 +71,7 @@ namespace CraftMagicItems {
         }
 
         [Harmony12.HarmonyPatch(typeof(RestController), "CalculateNeededRations")]
+        // ReSharper disable once UnusedMember.Local
         private static class RestControllerCalculateNeededRationsPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix(ref int __result) {
@@ -92,6 +93,7 @@ namespace CraftMagicItems {
         }
 
         [Harmony12.HarmonyPatch(typeof(CampManager), "RemoveAllCompanionRoles")]
+        // ReSharper disable once UnusedMember.Local
         private static class CampManagerRemoveAllCompanionRolesPatch {
             // ReSharper disable once UnusedMember.Local
             private static bool Prefix(UnitEntityData unit) {
@@ -126,6 +128,7 @@ namespace CraftMagicItems {
         }
 
         [Harmony12.HarmonyPatch(typeof(CampingState), "CleanupRoles")]
+        // ReSharper disable once UnusedMember.Local
         private static class CampingStateCleanupRolesPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
@@ -147,13 +150,14 @@ namespace CraftMagicItems {
             }
         }
 
-        // This seems to be a method from back when the game supported multiple roles.  We don't want characters using Sustenance to increase camp time.
-        [Harmony12.HarmonyPatch(typeof(CampingState), "GetRolesExtraTime")]
-        private static class CampingStateGetRolesExtraTimePatch {
+        [Harmony12.HarmonyPatch(typeof(CampingState), "GetRolesCount")]
+        // ReSharper disable once UnusedMember.Local
+        private static class RestControllerIsTiredPatch {
             // ReSharper disable once UnusedMember.Local
-            private static bool Prefix(ref TimeSpan __result) {
-                __result = 0.Hours();
-                return false;
+            private static void Postfix(UnitEntityData unit, ref int __result) {
+                if (UnitHasSustenance(unit)) {
+                    __result = Math.Min(1, __result);
+                }
             }
         }
     }
