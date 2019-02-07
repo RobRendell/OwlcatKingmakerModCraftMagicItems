@@ -30,8 +30,8 @@ namespace CraftMagicItems {
                       + @"\(("
                       + @"CL=(?<casterLevel>\d+)(?<spellLevelMatch>,SL=(?<spellLevel>\d+))?(?<spellIdMatch>,spellId=\((?<spellId>([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\))?"
                       + @"|enchantments=\((?<enchantments>|([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?"
-                      + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?"
-                      + @"(,visual=(?<visual>null|[0-9a-f]+))?(,CL=(?<casterLevel>[0-9]+))?(,SL=(?<spellLevel>[0-9]+))?(,perDay=(?<perDay>[0-9]+))?"
+                      + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?(,visual=(?<visual>null|[0-9a-f]+))?"
+                      + @"(,CL=(?<casterLevel>[0-9]+))?(,SL=(?<spellLevel>[0-9]+))?(,perDay=(?<perDay>[0-9]+))?(,nameId=(?<nameId>[^,]+))?(,descriptionId=(?<descriptionId>[^,]+))?"
                       + @"|feat=(?<feat>[-a-z]+)"
                       + @"|(?<timer>timer)"
                       + @"|(?<components>(Component\[(?<index>[0-9]+)\](?<field>[^=]*)?=(?<value>[^,)]+),?)+(,nameId=(?<nameId>[^,)]+))?(,descriptionId=(?<descriptionId>[^,)]+))?)"
@@ -80,7 +80,7 @@ namespace CraftMagicItems {
 
         public string BuildCustomRecipeItemGuid(string originalGuid, IEnumerable<string> enchantments, string[] remove = null, string name = null,
             string ability = null, string activatableAbility = null, PhysicalDamageMaterial material = 0, string visual = null, int casterLevel = -1,
-            int spellLevel = -1, int perDay = -1) {
+            int spellLevel = -1, int perDay = -1, string nameId = null, string descriptionId = null) {
             // Check if GUID is already customised by this mod
             var match = BlueprintRegex.Match(originalGuid);
             if (match.Success && match.Groups["enchantments"].Success) {
@@ -102,6 +102,7 @@ namespace CraftMagicItems {
                 remove = removeList?.Count > 0 ? removeList.ToArray() : null;
                 if (name == null && match.Groups["name"].Success) {
                     name = match.Groups["name"].Value;
+                    nameId = null;
                 }
 
                 if (ability == null && match.Groups["ability"].Success) {
@@ -132,6 +133,14 @@ namespace CraftMagicItems {
                     perDay = Math.Max(perDay, int.Parse(match.Groups["perDay"].Value));
                 }
 
+                if (name == null && nameId == null && match.Groups["nameId"].Success) {
+                    nameId = match.Groups["nameId"].Value;
+                }
+
+                if (descriptionId == null && match.Groups["descriptionId"].Success) {
+                    descriptionId = match.Groups["descriptionId"].Value;
+                }
+
                 // Remove the original customisation.
                 originalGuid = CustomBlueprintBuilder.AssetGuidWithoutMatch(originalGuid, match);
             }
@@ -146,6 +155,8 @@ namespace CraftMagicItems {
                    $"{(casterLevel == -1 ? "" : $",CL={casterLevel}")}" +
                    $"{(spellLevel == -1 ? "" : $",SL={spellLevel}")}" +
                    $"{(perDay == -1 ? "" : $",perDay={perDay}")}" +
+                   $"{(nameId == null ? "" : $",nameId={nameId}")}" +
+                   $"{(descriptionId == null || descriptionId == "null" ? "" : $",descriptionId={descriptionId}")}" +
                    ")";
         }
 
@@ -336,15 +347,31 @@ namespace CraftMagicItems {
                 accessors.SetBlueprintItemDisplayNameText(blueprint, new FakeL10NString(name));
             }
 
+            string nameId = null;
+            if (name == null && match.Groups["nameId"].Success) {
+                nameId = match.Groups["nameId"].Value;
+                accessors.SetBlueprintItemDisplayNameText(blueprint, new L10NString(nameId));
+            }
+
+            string descriptionId = null;
+            if (match.Groups["descriptionId"].Success) {
+                descriptionId = match.Groups["descriptionId"].Value;
+            }
+
             if (!SlotsWhichShowEnchantments.Contains(blueprint.ItemType)) {
                 accessors.SetBlueprintItemDescriptionText(blueprint,
-                    Main.BuildCustomRecipeItemDescription(blueprint, enchantmentsForDescription, removed, ability, casterLevel, perDay));
+                    descriptionId != null
+                        ? new L10NString(descriptionId)
+                        : Main.BuildCustomRecipeItemDescription(blueprint, enchantmentsForDescription, removed, ability, casterLevel, perDay));
+                accessors.SetBlueprintItemFlavorText(blueprint, new L10NString(""));
+            } else if (descriptionId != null) {
+                accessors.SetBlueprintItemDescriptionText(blueprint, new L10NString(descriptionId));
                 accessors.SetBlueprintItemFlavorText(blueprint, new L10NString(""));
             }
 
             accessors.SetBlueprintItemCost(blueprint, Main.RulesRecipeItemCost(blueprint) + priceDelta);
             return BuildCustomRecipeItemGuid(blueprint.AssetGuid, enchantmentIds, removedIds, name, ability, activatableAbility, material, visual, casterLevel,
-                spellLevel, perDay);
+                spellLevel, perDay, nameId, descriptionId);
         }
 
         private T CloneObject<T>(T originalObject) {
@@ -454,6 +481,17 @@ namespace CraftMagicItems {
             return clone;
         }
 
+        public void EnsureComponentNameUnique(BlueprintComponent component, BlueprintComponent[] existing) {
+            // According to Elmindra, components which are serialized need to have unique names in their array
+            var name = component.name;
+            var suffix = 0;
+            while (existing.Any(blueprint => blueprint.name == name)) {
+                suffix++;
+                name = $"{component.name}_{suffix}";
+            }
+            component.name = name;
+        }
+
         private string ApplyItemEnchantmentBlueprintPatch(BlueprintItemEnchantment blueprint, Match match) {
             var values = new List<string>();
             // Ensure Components array is not shared with base blueprint
@@ -470,6 +508,7 @@ namespace CraftMagicItems {
                 values.Add(value);
                 if (componentIndex >= componentsCopy.Length) {
                     var component = TraverseCloneAndSetField<BlueprintComponent>(null, field, value);
+                    EnsureComponentNameUnique(component, componentsCopy);
                     componentsCopy = componentsCopy.Concat(new[] {component}).ToArray();
                 } else {
                     componentsCopy[componentIndex] = TraverseCloneAndSetField(componentsCopy[componentIndex], field, value);

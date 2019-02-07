@@ -11,13 +11,18 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace CraftMagicItems {
+    public enum DataTypeEnum {
+        SpellBased,
+        RecipeBased
+    }
+
     public interface ICraftingData {
         // ReSharper disable once UnusedMember.Global
-        string DataType { get; set; }
+        DataTypeEnum DataType { get; set; }
     }
 
     public class ItemCraftingData : ICraftingData {
-        public string DataType { get; set; }
+        public DataTypeEnum DataType { get; set; }
         [JsonProperty] public string Name;
         [JsonProperty] public string NameId;
         [JsonProperty] public string ParentNameId;
@@ -134,14 +139,17 @@ namespace CraftMagicItems {
         }
 
         private ICraftingData Create(JObject jObject) {
-            var type = (string) jObject.Property("DataType");
+            var typeString = (string) jObject.Property("DataType");
+            if (!Enum.TryParse<DataTypeEnum>(typeString, out var type)) {
+                throw new ApplicationException($"The ItemCraftingData type {typeString} is not supported!");
+            }
             switch (type) {
-                case "SpellBased":
+                case DataTypeEnum.SpellBased:
                     return new SpellBasedItemCraftingData();
-                case "RecipeBased":
+                case DataTypeEnum.RecipeBased:
                     return new RecipeBasedItemCraftingData();
                 default:
-                    throw new ApplicationException($"The ItemCraftingData type {type} is not supported!");
+                    throw new ApplicationException($"The ItemCraftingData type {typeString} is not supported!");
             }
         }
 
@@ -154,5 +162,13 @@ namespace CraftMagicItems {
             serializer.Populate(jObject.CreateReader(), target);
             return target;
         }
+    }
+
+    public class CustomLootItem {
+        [JsonProperty] public Version AddInVersion;
+
+        [JsonProperty] public string AssetGuid;
+
+        [JsonProperty] public string[] LootTables;
     }
 }

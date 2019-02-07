@@ -75,6 +75,8 @@ namespace CraftMagicItems {
 
         [JsonProperty] public TimeSpan LastUpdated;
 
+        [JsonProperty] public string Version;
+
         public CraftingTimerComponent() {
             CraftingProjects = new List<CraftingProjectData>();
             LastUpdated = Game.Instance.Player.GameTime;

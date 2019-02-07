@@ -17,6 +17,7 @@ using Kingmaker.Blueprints.Items.Ecnchantments;
 using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Blueprints.Items.Shields;
 using Kingmaker.Blueprints.Items.Weapons;
+using Kingmaker.Blueprints.Loot;
 using Kingmaker.Blueprints.Root;
 using Kingmaker.Blueprints.Root.Strings.GameLog;
 using Kingmaker.Controllers.Rest;
@@ -103,6 +104,7 @@ namespace CraftMagicItems {
         public static Settings ModSettings;
         public static CraftMagicItemsAccessors Accessors;
         public static ItemCraftingData[] ItemCraftingData;
+        public static CustomLootItem[] CustomLootItems;
 
         private static bool modEnabled = true;
         private static Harmony12.HarmonyInstance harmonyInstance;
@@ -888,7 +890,7 @@ namespace CraftMagicItems {
 
                 itemGuid = blueprintPatcher.BuildCustomRecipeItemGuid(upgradeItem.Blueprint.AssetGuid, enchantments,
                     supersededEnchantmentId == null ? null : new[] {supersededEnchantmentId},
-                    selectedCustomName == upgradeItem.Blueprint.Name ? null : selectedCustomName);
+                    selectedCustomName == upgradeItem.Blueprint.Name ? null : selectedCustomName, descriptionId: "null");
                 itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
             } else {
                 // Crafting a new custom blueprint from scratch.
@@ -1052,7 +1054,6 @@ namespace CraftMagicItems {
                     }
                 }
             }
-
             return SpellSchool.None;
         }
 
@@ -1062,7 +1063,6 @@ namespace CraftMagicItems {
             if (render) {
                 RenderLabel($"Base Crafting DC: {dc}");
             }
-
             // ReSharper disable once UnusedVariable
             var missing = CheckSpellPrerequisites(prerequisiteSpells, anyPrerequisite, crafter.Descriptor, false, out var missingSpells,
                 // ReSharper disable once UnusedVariable
@@ -1095,7 +1095,6 @@ namespace CraftMagicItems {
                         OppositionSchoolDCModifier));
                 }
             }
-
             var skillCheck = 10 + crafter.Stats.GetStat(skill).ModifiedValue;
             if (render) {
                 RenderLabel(L10NFormat("craftMagicItems-logMessage-made-progress-check", LocalizedTexts.Instance.Stats.GetText(skill), skillCheck, dc));
@@ -2161,6 +2160,7 @@ namespace CraftMagicItems {
                         }
                     }
                 }
+                CustomLootItems = ReadJsonFile<CustomLootItem[]>($"{ModEntry.Path}/Data/LootItems.json");
             }
 
             private static void AddCraftingFeats(ObjectIDGenerator idGenerator, BlueprintProgression progression) {
@@ -2540,14 +2540,12 @@ namespace CraftMagicItems {
                     AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-low-caster-level", project.CasterLevel, casterLevelPenalty));
                     dc += casterLevelPenalty;
                 }
-
                 var oppositionSchool = CheckForOppositionSchool(caster, project.Prerequisites);
                 if (oppositionSchool != SpellSchool.None) {
                     dc += OppositionSchoolDCModifier;
                     AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-opposition-school",
                         LocalizedTexts.Instance.SpellSchoolNames.GetText(oppositionSchool), OppositionSchoolDCModifier));
                 }
-
 
                 var skillCheck = 10 + caster.Stats.GetStat(craftingSkill).ModifiedValue;
                 if (skillCheck < dc) {
@@ -2677,6 +2675,55 @@ namespace CraftMagicItems {
             }
         }
 
+        private static void AddToLootTables(BlueprintItem blueprint, string[] tableNames, bool firstTime) {
+            var tableCount = tableNames.Length;
+            foreach (var loot in ResourcesLibrary.GetBlueprints<BlueprintLoot>()) {
+                if (tableNames.Contains(loot.name)) {
+                    tableCount--;
+                    if (!loot.Items.Any(entry => entry.Item == blueprint)) {
+                        var lootItems = loot.Items.ToList();
+                        lootItems.Add(new LootEntry {Count = 1, Item = blueprint});
+                        loot.Items = lootItems.ToArray();
+                    }
+                }
+            }
+            foreach (var unitLoot in ResourcesLibrary.GetBlueprints<BlueprintUnitLoot>()) {
+                if (tableNames.Contains(unitLoot.name)) {
+                    tableCount--;
+                    if (unitLoot is BlueprintSharedVendorTable vendor) {
+                        if (firstTime) {
+                            var vendorTable = Game.Instance.Player.SharedVendorTables.GetTable(vendor);
+                            vendorTable.Add(blueprint.CreateEntity());
+                        }
+                    } else if (!unitLoot.ComponentsArray.Any(component => component is LootItemsPackFixed pack && pack.Item.Item == blueprint)) {
+                        var lootItem = new LootItem();
+                        Accessors.SetLootItemItem(lootItem, blueprint);
+                        var lootComponent = ScriptableObject.CreateInstance<LootItemsPackFixed>();
+                        Accessors.SetLootItemsPackFixedItem(lootComponent, lootItem);
+                        blueprintPatcher.EnsureComponentNameUnique(lootComponent, unitLoot.ComponentsArray);
+                        var components = unitLoot.ComponentsArray.ToList();
+                        components.Add(lootComponent);
+                        unitLoot.ComponentsArray = components.ToArray();
+                    }
+                }
+            }
+            if (tableCount > 0) {
+                Harmony12.FileLog.Log($"!!! Failed to match all loot table names for {blueprint.Name}.  {tableCount} table names not found.");
+            }
+        }
+
+        private static void UpgradeSave(Version version) {
+            foreach (var lootItem in CustomLootItems) {
+                var firstTime = (version == null || version.CompareTo(lootItem.AddInVersion) < 0);
+                var item = ResourcesLibrary.TryGetBlueprint<BlueprintItem>(lootItem.AssetGuid);
+                if (item == null) {
+                    Harmony12.FileLog.Log($"!!! Loot item not created: {lootItem.AssetGuid}");
+                } else {
+                    AddToLootTables(item, lootItem.LootTables, firstTime);
+                }
+            }
+        }
+
         [Harmony12.HarmonyPatch(typeof(Player), "PostLoad")]
         // ReSharper disable once UnusedMember.Local
         private static class PlayerPostLoadPatch {
@@ -2689,7 +2736,7 @@ namespace CraftMagicItems {
                 var characterList = UIUtility.GetGroup(true);
                 foreach (var character in characterList) {
                     // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
-                    var timer = GetCraftingTimerComponentForCaster(character.Descriptor);
+                    var timer = GetCraftingTimerComponentForCaster(character.Descriptor, character.IsMainCharacter);
 
                     if (!modEnabled) {
                         continue;
@@ -2712,6 +2759,11 @@ namespace CraftMagicItems {
                                 ItemUpgradeProjects[project.UpgradeItem] = project;
                                 project.UpgradeItem.PostLoad();
                             }
+                        }
+
+                        if (character.IsMainCharacter) {
+                            UpgradeSave(string.IsNullOrEmpty(timer.Version) ? null : Version.Parse(timer.Version));
+                            timer.Version = ModEntry.Version.ToString();
                         }
                     }
 

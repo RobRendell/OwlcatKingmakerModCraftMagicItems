@@ -8,6 +8,7 @@ using Kingmaker.Blueprints.Items.Ecnchantments;
 using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Blueprints.Items.Shields;
 using Kingmaker.Blueprints.Items.Weapons;
+using Kingmaker.Blueprints.Loot;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.Items;
 using Kingmaker.Localization;
@@ -111,6 +112,10 @@ namespace CraftMagicItems {
 
         public readonly FastSetter<BlueprintScriptableObject, string> SetBlueprintScriptableObjectAssetGuid =
             Accessors.CreateSetter<BlueprintScriptableObject, string>("m_AssetGuid");
+
+        public readonly FastSetter<LootItemsPackFixed, LootItem> SetLootItemsPackFixedItem = Accessors.CreateSetter<LootItemsPackFixed, LootItem>("m_Item");
+
+        public readonly FastSetter<LootItem, BlueprintItem> SetLootItemItem = Accessors.CreateSetter<LootItem, BlueprintItem>("m_Item");
 
         public readonly FastStaticInvoker<ItemEntityWeapon, string> CallUIUtilityItemGetQualities =
             Accessors.CreateStaticInvoker<ItemEntityWeapon, string>(typeof(UIUtilityItem), "GetQualities");

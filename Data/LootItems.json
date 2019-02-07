@@ -1,0 +1,42 @@
+[
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "254755ca73eb52a4d8ab1a663106659b#CraftMagicItems(enchantments=(8eb9d1c94b1e4894a88c228aa71b79e5#CraftMagicItems(sustenanceEnchantment)),remove=9205b68509ff1db41915bb4f3aba3a04,ability=null,activatableAbility=null,visual=60b987c6fc96c264c8b0521036b5e975,nameId=craftMagicItems-item-ring-sustenance-name,descriptionId=craftMagicItems-enchantment-sustenance-description)",
+    "LootTables": ["WitchVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "2d576daea5f62ae489028bce40469285#CraftMagicItems(enchantments=(8eb9d1c94b1e4894a88c228aa71b79e5#CraftMagicItems(Component[0].Blueprint=318ce88da1832744c87fd15be5010dc0,Component[0].Blueprint.m_Description=fc2e359c-9395-433d-ae6e-73d641bf6480,Component[0].Blueprint.Components[0].Buff.m_DisplayName=a259cc67-ac04-43f4-ac0b-fda0f3170a50/5/1/,Component[0].Blueprint.Components[0].Buff.Components[0].Heal=1,nameId=a259cc67-ac04-43f4-ac0b-fda0f3170a50/5/1/)),remove=d86770714ac85d64793b264f755b1764,visual=70dadcb5b5184e746a7ee1b8e43b8b63,nameId=craftMagicItems-item-ring-of-regeneration-name,descriptionId=craftMagicItems-enchantment-ring-of-regeneration-description)",
+    "LootTables": ["PitaxTownVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "aa514dbf4c3d61f4e9c0738bd4d373cb#CraftMagicItems(enchantments=(6b38844e2bffbac48b63036b66e735be),material=Silver,nameId=craftMagicItems-item-silver-dagger-name,descriptionId=craftMagicItems-material-silver-weapon-description)",
+    "LootTables": ["C11_OlegVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "6fd0a849531617844b195f452661b2cd#CraftMagicItems(enchantments=(d42fc23b92c640846ac137dc26e000d4),material=Silver,nameId=craftMagicItems-item-silver-longsword+1-name,descriptionId=craftMagicItems-material-silver-weapon-description)",
+    "LootTables": ["SmithVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "07531989333442348b7d0102b24af236#CraftMagicItems(enchantments=(d42fc23b92c640846ac137dc26e000d4),material=Silver,nameId=craftMagicItems-item-silver-bastard-sword+1-name,descriptionId=craftMagicItems-material-silver-weapon-description)",
+    "LootTables": ["SmithVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "1223ceb45ed647b44a04b44a9312328b#CraftMagicItems(enchantments=(b7f6bb4a2ad6970409df85bf6db587a5),nameId=craftMagicItems-item-boots-striding-springing-name,descriptionId=craftMagicItems-item-boots-striding-springing-description)",
+    "LootTables": ["SadistVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "9809987cc12d94545a64ff20e6fdb216#CraftMagicItems(enchantments=(7b95a819181574a4799d93939aa99aff),visual=b28af61add4b90f4db51e9ae9280150d,nameId=craftMagicItems-item-mithral-breastplate-name)",
+    "LootTables": ["SmithVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.10",
+    "AssetGuid": "c65f6fc979d5556489b20e478189cbdd#CraftMagicItems(enchantments=(7b95a819181574a4799d93939aa99aff),visual=ab96348a993683c41b1e9fce187fb034,nameId=0b8d1bf5-bec4-407a-85f6-878445fda73a/ +2//+2//)",
+    "LootTables": ["SmithVendorTable"]
+  }
+]
