@@ -24,6 +24,7 @@ using Object = UnityEngine.Object;
 namespace CraftMagicItems {
     public class CraftMagicItemsBlueprintPatcher {
         public const string TimerBlueprintGuid = "52e4be2ba79c8c94d907bdbaf23ec15f#CraftMagicItems(timer)";
+        public const string BondedItemBuffBlueprintGuid = "1efa689e594ca82428b8fff1a739c9be#CraftMagicItems(bondedItem)";
 
         private const string MatchedParensComma = @"([^(),]+|(?<Level>\()|(?<-Level>\))|(?(Level),))+(?(Level)(?!))";
 
@@ -38,6 +39,7 @@ namespace CraftMagicItems {
                           + $"(,secondEnd=(?<secondEnd>{MatchedParensComma}))?"
                       + @"|feat=(?<feat>[-a-z]+)"
                       + @"|(?<timer>timer)"
+                      + @"|(?<bondedItem>bondedItem)"
                       + @"|(?<components>(Component\[(?<index>[0-9]+)\](?<field>[^=]*)?=(?<value>" + MatchedParensComma + @"),?)+(,nameId=(?<nameId>[^,)]+))?"
                       + @"(,descriptionId=(?<descriptionId>[^,)]+))?)"
                       + @")\)");
@@ -184,14 +186,23 @@ namespace CraftMagicItems {
             return $"{originalGuid}{BlueprintPrefix}(feat={feat})";
         }
 
-        private string ApplyTimerBlueprintPatch(BlueprintBuff blueprint) {
-            blueprint.ComponentsArray = new BlueprintComponent[] {ScriptableObject.CreateInstance<CraftingTimerComponent>()};
+        private void ApplyBuffBlueprintPatch(BlueprintBuff blueprint, BlueprintComponent component, string nameId) {
+            blueprint.ComponentsArray = new[] {component};
             accessors.SetBlueprintBuffFlags(blueprint, 2 + 8); // BlueprintBluff.Flags enum is private.  Values are HiddenInUi = 2 + StayOnDeath = 8
             blueprint.FxOnStart = new PrefabLink();
             blueprint.FxOnRemove = new PrefabLink();
             // Set the display name - it's hidden in the UI, but someone might find it in Bag of Tricks.
-            accessors.SetBlueprintUnitFactDisplayName(blueprint, new L10NString("craftMagicItems-buff-name"));
+            accessors.SetBlueprintUnitFactDisplayName(blueprint, new L10NString(nameId));
+        }
+
+        private string ApplyTimerBlueprintPatch(BlueprintBuff blueprint) {
+            ApplyBuffBlueprintPatch(blueprint, ScriptableObject.CreateInstance<CraftingTimerComponent>(), "craftMagicItems-timer-buff-name");
             return TimerBlueprintGuid;
+        }
+
+        private string ApplyBondedItemBlueprintPatch(BlueprintBuff blueprint) {
+            ApplyBuffBlueprintPatch(blueprint, ScriptableObject.CreateInstance<BondedItemComponent>(), "craftMagicItems-bondedItem-buff-name");
+            return BondedItemBuffBlueprintGuid;
         }
 
         private string ApplyFeatBlueprintPatch(BlueprintFeature blueprint, Match match) {
@@ -564,6 +575,8 @@ namespace CraftMagicItems {
             switch (blueprint) {
                 case BlueprintBuff buff when match.Groups["timer"].Success:
                     return ApplyTimerBlueprintPatch(buff);
+                case BlueprintBuff buff when match.Groups["bondedItem"].Success:
+                    return ApplyBondedItemBlueprintPatch(buff);
                 case BlueprintFeature feature when match.Groups["feat"].Success:
                     return ApplyFeatBlueprintPatch(feature, match);
                 case BlueprintItemEquipment equipment when match.Groups["enchantments"].Success:

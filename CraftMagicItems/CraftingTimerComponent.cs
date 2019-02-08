@@ -47,8 +47,7 @@ namespace CraftMagicItems {
         [JsonProperty] public ItemEntity UpgradeItem;
 
         public CraftingProjectData(UnitEntityData crafter, int targetCost, int goldSpent, int casterLevel, ItemEntity resultItem, string itemType,
-            string recipeName = null,
-            BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, ItemEntity upgradeItem = null,
+            string recipeName = null, BlueprintAbility[] prerequisites = null, bool anyPrerequisite = false, ItemEntity upgradeItem = null,
             CrafterPrerequisiteType[] crafterPrerequisites = null) {
             Crafter = crafter;
             TargetCost = targetCost;

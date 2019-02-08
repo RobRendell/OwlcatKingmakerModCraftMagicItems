@@ -60,8 +60,12 @@
 		"value": "Unarmed Attacks"
 	},
 	{
-		"key": "craftMagicItems-buff-name",
+		"key": "craftMagicItems-timer-buff-name",
 		"value": "Craft Magic Items project schedule"
+	},
+	{
+		"key": "craftMagicItems-bondedItem-buff-name",
+		"value": "Craft Magic Items bonded item data"
 	},
 	{
 		"key": "craftMagicItems-label-no-item-exists",
@@ -120,6 +124,22 @@
 		"value": "Spent {0} to begin crafting <b>{1}</b>."
 	},
 	{
+		"key": "craftMagicItems-logMessage-begin-ritual-bonded-item",
+		"value": "Spent {0} to begin the ritual to bond with <b>{1}</b>."
+	},
+    {
+        "key": "craftMagicItems-bonded-object-name",
+        "value": "Bonded Item"
+    },
+    {
+        "key": "craftMagicItems-bonded-item-glossary",
+        "value": "If you do not have your bonded item equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
+    },
+	{
+		"key": "craftMagicItems-logMessage-not-wielding-bonded-item",
+		"value": "<b>{Source}</b> is not wielding {mf|his|her} bonded item <b>{0}</b>!"
+	},
+	{
 		"key": "craftMagicItems-time-estimate-single-rate",
 		"value": "Crafting should take about {count} {count_form|day|days}."
 	},
@@ -172,6 +192,10 @@
 		"value": "{Source} made {0} progress of {1} remaining towards completing <b>{2}</b>."
 	},
 	{
+		"key": "craftMagicItems-logMessage-made-progress-bondedItem",
+		"value": "{Source} made {0} progress of {1} remaining towards bonding with <b>{2}</b>."
+	},
+	{
 		"key": "craftMagicItems-logMessage-made-progress-check",
 		"value": "Take 10 {0} check result {1} vs. DC {2}."
 	},
@@ -180,8 +204,16 @@
 		"value": "Crafting of <b>{0}</b> is {1}% complete."
 	},
 	{
+		"key": "craftMagicItems-logMessage-made-progress-bonding-ritual-amount-complete",
+		"value": "Bonding with <b>{0}</b> is {1}% complete."
+	},
+	{
 		"key": "craftMagicItems-logMessage-crafting-complete",
 		"value": "{Source} has completed crafting <b>{0}</b>!"
+	},
+	{
+		"key": "craftMagicItems-logMessage-bonding-ritual-complete",
+		"value": "{Source} has completed the ritual to bond with <b>{0}</b>!"
 	},
 	{
 		"key": "craftMagicItems-logMessage-crafting-cancelled",

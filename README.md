@@ -4,12 +4,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 
-* Enchanting bonded objects.  Custom buff on caster, contains ref to original item and current item (apply renames to
-        original item as well?)  If item is not equipped, switch current and original item in shared stash when the
-        current character changes (ideally without printing to the battle log).  Also, if item is not equipped, apply
-        concentration check to cast, or if I can't get that to work, RuleCastSpell has a general SpellFailureChance
-        percentage which could do an equivalent effect.
-
 * Trailblazer's Helm can cast two different spells!
 * Perhaps crafting projects for characters in your party should be advanced at the adventuring rate when you first enter
         the capital, to account things more accurately?

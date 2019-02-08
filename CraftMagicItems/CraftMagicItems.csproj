@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
       <Compile Include="Accessors.cs"/>
+      <Compile Include="BondedItemComponent.cs"/>
       <Compile Include="WeaponBaseSizeChange.cs"/>
       <Compile Include="CraftMagicItemsAccessors.cs"/>
       <Compile Include="CraftMagicItemsBlueprintPatcher.cs"/>

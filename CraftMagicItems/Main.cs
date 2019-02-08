@@ -81,6 +81,7 @@ namespace CraftMagicItems {
         private const int MasterworkCost = 300;
         private const int WeaponPlusCost = 2000;
         private const int ArmourPlusCost = 1000;
+        private const string BondedItemRitual = "bondedItemRitual";
 
         private static readonly string[] CraftingPriceStrings = {
             "100% (Owlcat prices)",
@@ -106,6 +107,17 @@ namespace CraftMagicItems {
             WeaponCategory.HandCrossbow,
             WeaponCategory.LightRepeatingCrossbow,
             WeaponCategory.HeavyRepeatingCrossbow
+        };
+
+        private static readonly ItemsFilter.ItemType[] BondedItemSlots = {
+            ItemsFilter.ItemType.Weapon,
+            ItemsFilter.ItemType.Ring,
+            ItemsFilter.ItemType.Neck
+        };
+
+        private static readonly string[] BondedItemFeatures = {
+            "2fb5e65bd57caa943b45ee32d825e9b9",
+            "aa34ca4f3cd5e5d49b2475fcfdf56b24"
         };
 
         private enum OpenSection {
@@ -146,6 +158,7 @@ namespace CraftMagicItems {
         private static string selectedCustomName;
         private static BlueprintItem upgradingBlueprint;
         private static int selectedFeatToLearn;
+        private static bool selectedBondWithNewObject;
         private static UnitEntityData currentCaster;
 
         private static readonly Dictionary<UsableItemType, Dictionary<string, List<BlueprintItemEquipment>>> SpellIdToItem =
@@ -285,11 +298,15 @@ namespace CraftMagicItems {
             }
         }
 
-        private static string L10NFormat(string key, params object[] args) {
+        public static string L10NFormat(UnitEntityData sourceUnit, string key, params object[] args) {
             // Set GameLogContext so the caster will be used when generating localized strings.
-            GameLogContext.SourceUnit = currentCaster ?? GetSelectedCrafter(false);
+            GameLogContext.SourceUnit = sourceUnit;
             var template = new L10NString(key);
             return string.Format(template.ToString(), args);
+        }
+
+        private static string L10NFormat(string key, params object[] args) {
+            return L10NFormat(currentCaster ?? GetSelectedCrafter(false), key, args);
         }
 
         private static bool RenderToggleSection(ref OpenSection current, OpenSection mySection, string label) {
@@ -349,6 +366,34 @@ namespace CraftMagicItems {
             return timerBuff.SelectComponents<CraftingTimerComponent>().First();
         }
 
+        public static BondedItemComponent GetBondedItemComponentForCaster(UnitDescriptor caster, bool create = false) {
+            // Manually search caster.Buffs rather than using GetFact, because we don't want to TryGetBlueprint if the mod is disabled.
+            var bondedItemBuff =
+                caster.Buffs.Enumerable.FirstOrDefault(fact => fact.Blueprint.AssetGuid == CraftMagicItemsBlueprintPatcher.BondedItemBuffBlueprintGuid);
+            if (bondedItemBuff == null) {
+                if (CustomBlueprintBuilder.Downgrade) {
+                    // The mod is disabled and we're downgrading custom blueprints - clean up the bonded item buff.
+                    var baseBlueprintGuid = CraftMagicItemsBlueprintPatcher.TimerBlueprintGuid.Substring(0, CustomBlueprintBuilder.VanillaAssetIdLength);
+                    bondedItemBuff = caster.Buffs.Enumerable.FirstOrDefault(fact => fact.Blueprint.AssetGuid == baseBlueprintGuid);
+                    if (bondedItemBuff != null) {
+                        caster.RemoveFact(bondedItemBuff);
+                    }
+
+                    return null;
+                }
+
+                if (!create) {
+                    return null;
+                }
+
+                var timerBlueprint = (BlueprintBuff) ResourcesLibrary.TryGetBlueprint(CraftMagicItemsBlueprintPatcher.BondedItemBuffBlueprintGuid);
+                caster.AddFact<Buff>(timerBlueprint);
+                bondedItemBuff = (Buff) caster.GetFact(timerBlueprint);
+            }
+
+            return bondedItemBuff.SelectComponents<BondedItemComponent>().First();
+        }
+
         private static void RenderCraftMagicItemsSection() {
             var caster = GetSelectedCrafter(false);
             if (caster == null) {
@@ -363,16 +408,145 @@ namespace CraftMagicItems {
                 return;
             }
 
-            var itemTypeNames = itemTypes.Select(data => new L10NString(data.NameId).ToString()).ToArray();
+            var hasBondedItemFeature =
+                caster.Descriptor.Progression.Features.Enumerable.Any(feature => BondedItemFeatures.Contains(feature.Blueprint.AssetGuid));
+            var itemTypeNames = itemTypes.Select(data => new L10NString(data.NameId).ToString())
+                .PrependConditional(hasBondedItemFeature, new L10NString("craftMagicItems-bonded-object-name")).ToArray();
             RenderSelection(ref selectedItemTypeIndex, "Crafting: ", itemTypeNames, 6, ref selectedCustomName);
-            var craftingData = itemTypes[selectedItemTypeIndex];
-            if (craftingData is SpellBasedItemCraftingData spellBased) {
-                RenderSpellBasedCrafting(caster, spellBased);
+            if (hasBondedItemFeature && selectedItemTypeIndex == 0) {
+                RenderBondedItemCrafting(caster);
             } else {
-                RenderRecipeBasedCrafting(caster, craftingData as RecipeBasedItemCraftingData);
+                var craftingData = itemTypes[hasBondedItemFeature ? selectedItemTypeIndex - 1 : selectedItemTypeIndex];
+                if (craftingData is SpellBasedItemCraftingData spellBased) {
+                    RenderSpellBasedCrafting(caster, spellBased);
+                } else {
+                    RenderRecipeBasedCrafting(caster, craftingData as RecipeBasedItemCraftingData);
+                }
             }
 
             RenderLabel($"Current Money: {Game.Instance.Player.Money}");
+        }
+
+        private static RecipeBasedItemCraftingData GetBondedItemCraftingData(BondedItemComponent bondedComponent) {
+            // Find crafting data relevant to the bonded item
+            return ItemCraftingData.OfType<RecipeBasedItemCraftingData>()
+                .First(data => data.Slots.Contains(bondedComponent.ownerItem.Blueprint.ItemType) && !IsMundaneCraftingData(data));
+        }
+
+        private static void BondWithObject(UnitEntityData caster, ItemEntity item) {
+            var bondedComponent = GetBondedItemComponentForCaster(caster.Descriptor, true);
+            if (bondedComponent.ownerItem != null && bondedComponent.everyoneElseItem != null) {
+                var ownerItem = bondedComponent.ownerItem;
+                var everyoneElseItem = bondedComponent.everyoneElseItem;
+                // Need to set these to null now so the unequipping/equipping below doesn't invoke the automagic item swapping.
+                bondedComponent.ownerItem = null;
+                bondedComponent.everyoneElseItem = null;
+                var holdingSlot = ownerItem.HoldingSlot;
+                if (holdingSlot != null && ownerItem != everyoneElseItem) {
+                    // Revert the old bonded item to its original form.
+                    using (new DisableBattleLog()) {
+                        Game.Instance.Player.Inventory.Remove(ownerItem);
+                        holdingSlot.InsertItem(everyoneElseItem);
+                    }
+                }
+                // Cancel any upgrading of the old bonded item that was in progress.
+                if (ItemUpgradeProjects.ContainsKey(ownerItem)) {
+                    CancelCraftingProject(ItemUpgradeProjects[ownerItem]);
+                }
+            }
+            bondedComponent.ownerItem = item;
+            bondedComponent.everyoneElseItem = item;
+            // Cancel any pending crafting projects by other characters for the new bonded item.
+            if (ItemUpgradeProjects.ContainsKey(item) && ItemUpgradeProjects[item].Crafter != caster) {
+                CancelCraftingProject(ItemUpgradeProjects[item]);
+            }
+        }
+
+        private static void RenderBondedItemCrafting(UnitEntityData caster) {
+            // Check if the caster is performing a bonded item ritual.
+            var projects = GetCraftingTimerComponentForCaster(caster.Descriptor);
+            var ritualProject = projects.CraftingProjects.FirstOrDefault(project => project.ItemType == BondedItemRitual);
+            if (ritualProject != null) {
+                RenderLabel($"{caster.CharacterName} is in the process of bonding with {ritualProject.ResultItem.Name}");
+                return;
+            }
+            var bondedComponent = GetBondedItemComponentForCaster(caster.Descriptor);
+            if (bondedComponent == null || bondedComponent.ownerItem == null || selectedBondWithNewObject) {
+                if (selectedBondWithNewObject) {
+                    RenderLabel("You may bond with a different object by performing a special ritual that costs 200 gp per caster level. This ritual takes 8 " +
+                                "hours to complete. Items replaced in this way do not possess any of the additional enchantments of the previous bonded item, " +
+                                "and the previous bonded item loses any enchantments you added via your bond.");
+                    if (GUILayout.Button($"Cancel bonding to a new object")) {
+                        selectedBondWithNewObject = false;
+                    }
+                }
+                RenderLabel(
+                    "You can enchant additional magic abilities to your bonded item as if you had the required Item Creation Feat, as long as you also " +
+                    "meet the caster level prerequisite of the feat.  Abilities added in this fashion function only for you, and no-one else can add " +
+                    "enchantments to your bonded item.");
+                RenderLabel(new L10NString("craftMagicItems-bonded-item-glossary"));
+                RenderLabel("Choose your bonded item.");
+                var names = BondedItemSlots.Select(slot => new L10NString(GetSlotStringKey(slot)).ToString()).ToArray();
+                RenderSelection(ref selectedItemSlotIndex, "Item type", names, 10);
+                var selectedSlot = BondedItemSlots[selectedItemSlotIndex];
+                var items = Game.Instance.Player.Inventory
+                    .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
+                                   && DoesBlueprintMatchSlot(blueprint, selectedSlot)
+                                   && CanEnchant(item)
+                                   && CanRemove(blueprint)
+                                   && (bondedComponent == null || (bondedComponent.ownerItem != item && bondedComponent.everyoneElseItem != item))
+                                   && item.Wielder == caster.Descriptor)
+                    .OrderBy(item => item.Name)
+                    .ToArray();
+                if (items.Length == 0) {
+                    RenderLabel("You do not have any item of that type currently equipped.");
+                    return;
+                }
+                var itemNames = items.Select(item => item.Name).ToArray();
+                RenderSelection(ref selectedUpgradeItemIndex, "Item: ", itemNames, 5);
+                var selectedItem = items[selectedUpgradeItemIndex];
+                var goldCost = !selectedBondWithNewObject || ModSettings.CraftingCostsNoGold ? 0 : 200 * CharacterCasterLevel(caster.Descriptor);
+                var canAfford = BuildCostString(out var cost, null, goldCost);
+                var label = $"Make {selectedItem.Name} your bonded item{(goldCost == 0 ? "" : " for " + cost)}";
+                if (!canAfford) {
+                    RenderLabel(label);
+                } else if (GUILayout.Button(label)) {
+                    if (goldCost > 0) {
+                        Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
+                        Game.Instance.Player.SpendMoney(goldCost);
+                    }
+                    if (selectedBondWithNewObject) {
+                        selectedBondWithNewObject = false;
+                        if (!ModSettings.CraftingTakesNoTime) {
+                            // Create project
+                            AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-ritual-bonded-item", cost, selectedItem.Name));
+                            var project = new CraftingProjectData(caster, ModSettings.MagicCraftingRate, goldCost, 0, selectedItem, BondedItemRitual);
+                            AddNewProject(caster.Descriptor, project);
+                            CalculateProjectEstimate(project);
+                            currentSection = OpenSection.ProjectsSection;
+                            return;
+                        }
+                    }
+                    BondWithObject(caster, selectedItem);
+                }
+            } else {
+                var craftingData = GetBondedItemCraftingData(bondedComponent);
+                if (bondedComponent.ownerItem.Wielder != null && !IsPlayerInCapital()
+                                                              && !Game.Instance.Player.PartyCharacters.Contains(bondedComponent.ownerItem.Wielder.Unit)) {
+                    RenderLabel($"You cannot currently access {bondedComponent.ownerItem.Name}.");
+                } else if (!ModSettings.IgnoreFeatCasterLevelRestriction && CharacterCasterLevel(caster.Descriptor) < craftingData.MinimumCasterLevel) {
+                    RenderLabel($"You will not be able to enchant your bonded item until your caster level reaches {craftingData.MinimumCasterLevel} " +
+                                $"(currently {CharacterCasterLevel(caster.Descriptor)}).");
+                } else {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label($"<b>Your bonded item</b>: {bondedComponent.ownerItem.Name}");
+                    if (GUILayout.Button("Bond with a different item", GUILayout.ExpandWidth(false))) {
+                        selectedBondWithNewObject = true;
+                    }
+                    GUILayout.EndHorizontal();
+                    RenderRecipeBasedCrafting(caster, craftingData, bondedComponent.ownerItem);
+                }
+            }
         }
 
         private static void RenderSpellBasedCrafting(UnitEntityData caster, SpellBasedItemCraftingData craftingData) {
@@ -755,47 +929,65 @@ namespace CraftMagicItems {
             return recipe.BonusDieSize != 0 ? new DiceFormula(bonus, recipe.BonusDieSize).ToString() : bonus.ToString();
         }
 
-        private static void RenderRecipeBasedCrafting(UnitEntityData caster, RecipeBasedItemCraftingData craftingData) {
-            // Choose slot/weapon type.
-            if (craftingData.Slots.Length > 1) {
-                var names = craftingData.Slots.Select(slot => new L10NString(GetSlotStringKey(slot)).ToString()).ToArray();
-                RenderSelection(ref selectedItemSlotIndex, "Item type", names, 10, ref selectedCustomName);
+        private static bool IsAnotherCastersBondedItem(ItemEntity item, UnitEntityData caster) {
+            var otherCharacters = UIUtility.GetGroup(true).Where(character => character != caster && character.IsPlayerFaction && !character.Descriptor.IsPet);
+            return otherCharacters
+                .Select(character => GetBondedItemComponentForCaster(character.Descriptor))
+                .Any(bondedComponent => bondedComponent != null && (bondedComponent.ownerItem == item || bondedComponent.everyoneElseItem == item));
+        }
+
+        private static void RenderRecipeBasedCrafting(UnitEntityData caster, RecipeBasedItemCraftingData craftingData, ItemEntity upgradeItem = null) {
+            ItemsFilter.ItemType selectedSlot;
+            if (upgradeItem != null) {
+                selectedSlot = upgradeItem.Blueprint.ItemType;
+                while (ItemUpgradeProjects.ContainsKey(upgradeItem)) {
+                    upgradeItem = ItemUpgradeProjects[upgradeItem].ResultItem;
+                }
+                RenderLabel($"Enchanting {upgradeItem.Name}");
             } else {
-                selectedItemSlotIndex = 0;
+                // Choose slot/weapon type.
+                if (craftingData.Slots.Length > 1) {
+                    var names = craftingData.Slots.Select(slot => new L10NString(GetSlotStringKey(slot)).ToString()).ToArray();
+                    RenderSelection(ref selectedItemSlotIndex, "Item type", names, 10, ref selectedCustomName);
+                } else {
+                    selectedItemSlotIndex = 0;
+                }
+
+                selectedSlot = craftingData.Slots[selectedItemSlotIndex];
+                var playerInCapital = IsPlayerInCapital();
+                // Choose an existing or in-progress item of that type, or create a new one (if allowed).
+                var items = Game.Instance.Player.Inventory
+                    .Concat(ItemCreationProjects.Select(project => project.ResultItem))
+                    .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
+                                   && DoesBlueprintMatchSlot(blueprint, selectedSlot)
+                                   && CanEnchant(item)
+                                   && !IsAnotherCastersBondedItem(item, caster)
+                                   && CanRemove(blueprint)
+                                   && (item.Wielder == null
+                                       || playerInCapital
+                                       || Game.Instance.Player.PartyCharacters.Contains(item.Wielder.Unit)))
+                    .Select(item => {
+                        while (ItemUpgradeProjects.ContainsKey(item)) {
+                            item = ItemUpgradeProjects[item].ResultItem;
+                        }
+
+                        return item;
+                    })
+                    .OrderBy(item => item.Name)
+                    .ToArray();
+                var canCreateNew = craftingData.NewItemBaseIDs != null;
+                var itemNames = items.Select(item => item.Name).PrependConditional(canCreateNew, new L10NString("craftMagicItems-label-craft-new-item"))
+                    .ToArray();
+                if (itemNames.Length == 0) {
+                    RenderLabel($"{caster.CharacterName} can not access any items of that type.");
+                    return;
+                }
+
+                RenderSelection(ref selectedUpgradeItemIndex, "Item: ", itemNames, 5, ref selectedCustomName);
+                // See existing item details and enchantments.
+                var index = selectedUpgradeItemIndex - (canCreateNew ? 1 : 0);
+                upgradeItem = index < 0 ? null : items[index];
             }
-
-            var selectedSlot = craftingData.Slots[selectedItemSlotIndex];
-            var playerInCapital = IsPlayerInCapital();
-            // Choose an existing or in-progress item of that type, or create a new one (if allowed).
-            var items = Game.Instance.Player.Inventory
-                .Concat(ItemCreationProjects.Select(project => project.ResultItem))
-                .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
-                               && DoesBlueprintMatchSlot(blueprint, selectedSlot)
-                               && CanEnchant(item)
-                               && CanRemove(blueprint)
-                               && (item.Wielder == null
-                                   || playerInCapital
-                                   || Game.Instance.Player.PartyCharacters.Contains(item.Wielder.Unit)))
-                .Select(item => {
-                    while (ItemUpgradeProjects.ContainsKey(item)) {
-                        item = ItemUpgradeProjects[item].ResultItem;
-                    }
-
-                    return item;
-                })
-                .OrderBy(item => item.Name)
-                .ToArray();
-            var canCreateNew = craftingData.NewItemBaseIDs != null;
-            var itemNames = items.Select(item => item.Name).PrependConditional(canCreateNew, new L10NString("craftMagicItems-label-craft-new-item")).ToArray();
-            if (itemNames.Length == 0) {
-                RenderLabel($"{caster.CharacterName} can not access any items of that type.");
-                return;
-            }
-
-            RenderSelection(ref selectedUpgradeItemIndex, "Item: ", itemNames, 5, ref selectedCustomName);
-            // See existing item details and enchantments.
-            var index = selectedUpgradeItemIndex - (canCreateNew ? 1 : 0);
-            var upgradeItem = index < 0 ? null : items[index];
             var upgradeItemDoubleWeapon = upgradeItem as ItemEntityWeapon;
             if (upgradeItem != null) {
                 if (upgradeItemDoubleWeapon != null && upgradeItemDoubleWeapon.Blueprint.Double) {
@@ -1221,7 +1413,7 @@ namespace CraftMagicItems {
                 Game.Instance.UI.Common.UISound.Play(UISoundType.LootCollectGold);
                 var goldRefund = project.GoldSpent >= 0 ? project.GoldSpent : project.TargetCost;
                 Game.Instance.Player.GainMoney(goldRefund);
-                var craftingData = ItemCraftingData.First(data => data.Name == project.ItemType);
+                var craftingData = ItemCraftingData.FirstOrDefault(data => data.Name == project.ItemType);
                 BuildCostString(out var cost, craftingData, goldRefund, project.Prerequisites, project.ResultItem.Blueprint, project.UpgradeItem?.Blueprint);
                 var factor = GetMaterialComponentMultiplier(craftingData, project.ResultItem.Blueprint, project.UpgradeItem?.Blueprint);
                 if (factor > 0) {
@@ -1739,11 +1931,25 @@ namespace CraftMagicItems {
         }
 
         private static void CraftItem(ItemEntity resultItem, ItemEntity upgradeItem = null) {
-            if (upgradeItem != null) {
-                Game.Instance.Player.Inventory.Remove(upgradeItem);
+            var characters = UIUtility.GetGroup(true).Where(character => character.IsPlayerFaction && !character.Descriptor.IsPet);
+            foreach (var character in characters) {
+                var bondedComponent = GetBondedItemComponentForCaster(character.Descriptor);
+                if (bondedComponent && bondedComponent.ownerItem == upgradeItem) {
+                    bondedComponent.ownerItem = resultItem;
+                }
             }
 
-            Game.Instance.Player.Inventory.Add(resultItem);
+            using (new DisableBattleLog(!ModSettings.CraftingTakesNoTime)) {
+                var holdingSlot = upgradeItem?.HoldingSlot;
+                if (upgradeItem != null) {
+                    Game.Instance.Player.Inventory.Remove(upgradeItem);
+                }
+                if (holdingSlot == null) {
+                    Game.Instance.Player.Inventory.Add(resultItem);
+                } else {
+                    holdingSlot.InsertItem(resultItem);
+                }
+            }
 
             if (resultItem is ItemEntityUsable usable) {
                 switch (usable.Blueprint.Type) {
@@ -1766,7 +1972,8 @@ namespace CraftMagicItems {
             return spellLevel == 0 ? craftingData.BaseItemGoldCost * casterLevel / 8 : craftingData.BaseItemGoldCost * spellLevel * casterLevel / 4;
         }
 
-        private static bool BuildCostString(out string cost, ItemCraftingData craftingData, int goldCost, BlueprintAbility[] spellBlueprintArray,
+        private static bool BuildCostString(out string cost, ItemCraftingData craftingData, int goldCost,
+            IEnumerable<BlueprintAbility> spellBlueprintArray = null,
             BlueprintItem resultBlueprint = null, BlueprintItem upgradeBlueprint = null) {
             var canAfford = true;
             if (ModSettings.CraftingCostsNoGold) {
@@ -1776,14 +1983,17 @@ namespace CraftMagicItems {
                 var notAffordGold = canAfford ? "" : new L10NString("craftMagicItems-label-cost-gold-too-much");
                 cost = L10NFormat("craftMagicItems-label-cost-gold", goldCost, notAffordGold);
                 var itemTotals = new Dictionary<BlueprintItem, int>();
-                foreach (var spellBlueprint in spellBlueprintArray) {
-                    if (spellBlueprint.MaterialComponent.Item) {
-                        var count = spellBlueprint.MaterialComponent.Count * GetMaterialComponentMultiplier(craftingData, resultBlueprint, upgradeBlueprint);
-                        if (count > 0) {
-                            if (itemTotals.ContainsKey(spellBlueprint.MaterialComponent.Item)) {
-                                itemTotals[spellBlueprint.MaterialComponent.Item] += count;
-                            } else {
-                                itemTotals[spellBlueprint.MaterialComponent.Item] = count;
+                if (spellBlueprintArray != null) {
+                    foreach (var spellBlueprint in spellBlueprintArray) {
+                        if (spellBlueprint.MaterialComponent.Item) {
+                            var count = spellBlueprint.MaterialComponent.Count *
+                                        GetMaterialComponentMultiplier(craftingData, resultBlueprint, upgradeBlueprint);
+                            if (count > 0) {
+                                if (itemTotals.ContainsKey(spellBlueprint.MaterialComponent.Item)) {
+                                    itemTotals[spellBlueprint.MaterialComponent.Item] += count;
+                                } else {
+                                    itemTotals[spellBlueprint.MaterialComponent.Item] = count;
+                                }
                             }
                         }
                     }
@@ -1814,11 +2024,15 @@ namespace CraftMagicItems {
         }
 
         private static void CalculateProjectEstimate(CraftingProjectData project) {
-            var craftingData = ItemCraftingData.First(data => data.Name == project.ItemType);
+            var craftingData = ItemCraftingData.FirstOrDefault(data => data.Name == project.ItemType);
             StatType craftingSkill;
             int dc;
             int progressRate;
-            if (IsMundaneCraftingData(craftingData)) {
+            if (project.ItemType == BondedItemRitual) {
+                craftingSkill = StatType.SkillKnowledgeArcana;
+                dc = 10 + project.Crafter.Stats.GetStat(craftingSkill).ModifiedValue;
+                progressRate = ModSettings.MagicCraftingRate;
+            } else if (IsMundaneCraftingData(craftingData)) {
                 craftingSkill = StatType.SkillKnowledgeWorld;
                 var recipeBasedItemCraftingData = (RecipeBasedItemCraftingData) craftingData;
                 dc = CalculateMundaneCraftingDC(recipeBasedItemCraftingData, project.ResultItem.Blueprint, project.Crafter.Descriptor);
@@ -2450,7 +2664,7 @@ namespace CraftMagicItems {
             }
         }
 
-        private static void AddBattleLogMessage(string message, object tooltip = null, Color? color = null) {
+        public static void AddBattleLogMessage(string message, object tooltip = null, Color? color = null) {
             var data = new LogDataManager.LogItemData(message, color ?? GameLogStrings.Instance.DefaultColor, tooltip, PrefixIcon.None);
             if (Game.Instance.UI.BattleLogManager) {
                 Game.Instance.UI.BattleLogManager.LogView.AddLogEntry(data);
@@ -2636,7 +2850,6 @@ namespace CraftMagicItems {
             timer.LastUpdated += TimeSpan.FromDays(daysAvailableToCraft);
             // Work on projects sequentially, skipping any that can't progress due to missing items, missing prerequisites or having too high a DC.
             foreach (var project in timer.CraftingProjects.ToList()) {
-                var craftingData = ItemCraftingData.First(data => data.Name == project.ItemType);
                 if (project.UpgradeItem != null) {
                     // Check if the item has been dropped and picked up again, which apparently creates a new object with the same blueprint.
                     if (project.UpgradeItem.Collection != Game.Instance.Player.Inventory) {
@@ -2660,15 +2873,23 @@ namespace CraftMagicItems {
                     }
                 }
 
+                var craftingData = ItemCraftingData.FirstOrDefault(data => data.Name == project.ItemType);
                 StatType craftingSkill;
                 int dc;
+                int progressRate;
 
-                if (IsMundaneCraftingData(craftingData)) {
+                if (project.ItemType == BondedItemRitual) {
+                    craftingSkill = StatType.SkillKnowledgeArcana;
+                    dc = 10 + project.Crafter.Stats.GetStat(craftingSkill).ModifiedValue;
+                    progressRate = ModSettings.MagicCraftingRate;
+                } else if (IsMundaneCraftingData(craftingData)) {
                     craftingSkill = StatType.SkillKnowledgeWorld;
                     dc = CalculateMundaneCraftingDC((RecipeBasedItemCraftingData) craftingData, project.ResultItem.Blueprint, caster);
+                    progressRate = ModSettings.MundaneCraftingRate;
                 } else {
                     craftingSkill = StatType.SkillKnowledgeArcana;
                     dc = 5 + project.CasterLevel;
+                    progressRate = ModSettings.MagicCraftingRate;
                 }
 
                 var missing = CheckSpellPrerequisites(project, caster, isAdventuring, out var missingSpells, out var spellsToCast);
@@ -2717,7 +2938,6 @@ namespace CraftMagicItems {
                 // Cleared the last hurdle, so caster is going to make progress on this project.
                 // You only work at 1/4 speed if you're crafting while adventuring.
                 var adventuringPenalty = !isAdventuring || ModSettings.CraftAtFullSpeedWhileAdventuring ? 1 : AdventuringProgressPenalty;
-                var progressRate = IsMundaneCraftingData(craftingData) ? ModSettings.MundaneCraftingRate : ModSettings.MagicCraftingRate;
                 // Each 1 by which the skill check exceeds the DC increases the crafting rate by 20% of the base progressRate
                 var progressPerDay = (int) (progressRate * (1 + (float) (skillCheck - dc) / 5) / adventuringPenalty);
                 var daysUntilProjectFinished = (int) Math.Ceiling(1.0 * (project.TargetCost - project.Progress) / progressPerDay);
@@ -2775,8 +2995,10 @@ namespace CraftMagicItems {
                     }
                 }
 
-                var progress = L10NFormat("craftMagicItems-logMessage-made-progress", progressGold, project.TargetCost - project.Progress,
-                    project.ResultItem.Name);
+                var progressKey = project.ItemType == BondedItemRitual
+                    ? "craftMagicItems-logMessage-made-progress-bondedItem"
+                    : "craftMagicItems-logMessage-made-progress";
+                var progress = L10NFormat(progressKey, progressGold, project.TargetCost - project.Progress, project.ResultItem.Name);
                 var checkResult = L10NFormat("craftMagicItems-logMessage-made-progress-check", LocalizedTexts.Instance.Stats.GetText(craftingSkill),
                     skillCheck, dc);
                 AddBattleLogMessage(progress, checkResult);
@@ -2784,8 +3006,13 @@ namespace CraftMagicItems {
                 project.Progress += progressGold;
                 if (project.Progress >= project.TargetCost) {
                     // Completed the project!
-                    AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-crafting-complete", project.ResultItem.Name));
-                    CraftItem(project.ResultItem, project.UpgradeItem);
+                    if (project.ItemType == BondedItemRitual) {
+                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-bonding-ritual-complete", project.ResultItem.Name), project.ResultItem);
+                        BondWithObject(project.Crafter, project.ResultItem);
+                    } else {
+                        AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-crafting-complete", project.ResultItem.Name), project.ResultItem);
+                        CraftItem(project.ResultItem, project.UpgradeItem);
+                    }
                     timer.CraftingProjects.Remove(project);
                     if (project.UpgradeItem == null) {
                         ItemCreationProjects.Remove(project);
@@ -2793,8 +3020,10 @@ namespace CraftMagicItems {
                         ItemUpgradeProjects.Remove(project.UpgradeItem);
                     }
                 } else {
-                    var amountComplete = L10NFormat("craftMagicItems-logMessage-made-progress-amount-complete", project.ResultItem.Name,
-                        100 * project.Progress / project.TargetCost);
+                    var completeKey = project.ItemType == BondedItemRitual
+                        ? "craftMagicItems-logMessage-made-progress-bonding-ritual-amount-complete"
+                        : "craftMagicItems-logMessage-made-progress-amount-complete";
+                    var amountComplete = L10NFormat(completeKey, project.ResultItem.Name, 100 * project.Progress / project.TargetCost);
                     AddBattleLogMessage(amountComplete, project.ResultItem);
                     project.AddMessage($"{progress} {checkResult}");
                 }
@@ -2895,6 +3124,7 @@ namespace CraftMagicItems {
                 foreach (var character in characterList) {
                     // If the mod is disabled, this will clean up crafting timer "buff" from all casters.
                     var timer = GetCraftingTimerComponentForCaster(character.Descriptor, character.IsMainCharacter);
+                    var bondedItemComponent = GetBondedItemComponentForCaster(character.Descriptor);
 
                     if (!modEnabled) {
                         continue;
@@ -2923,6 +3153,11 @@ namespace CraftMagicItems {
                             UpgradeSave(string.IsNullOrEmpty(timer.Version) ? null : Version.Parse(timer.Version));
                             timer.Version = ModEntry.Version.ToString();
                         }
+                    }
+
+                    if (bondedItemComponent != null) {
+                        bondedItemComponent.ownerItem?.PostLoad();
+                        bondedItemComponent.everyoneElseItem?.PostLoad();
                     }
 
                     // Retroactively give character any crafting feats in their past progression data which they don't actually have

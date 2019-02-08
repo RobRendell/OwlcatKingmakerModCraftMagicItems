@@ -44,7 +44,6 @@ namespace CraftMagicItems {
         public readonly FastGetter<Spellbook, Dictionary<BlueprintAbility, int>> GetSpellbookKnownSpellLevels =
             Accessors.CreateGetter<Spellbook, Dictionary<BlueprintAbility, int>>("m_KnownSpellLevels");
 
-
         public readonly FastSetter<BlueprintUnitFact, LocalizedString> SetBlueprintUnitFactDisplayName =
             Accessors.CreateSetter<BlueprintUnitFact, LocalizedString>("m_DisplayName");
 
@@ -116,6 +115,8 @@ namespace CraftMagicItems {
         public readonly FastSetter<LootItemsPackFixed, LootItem> SetLootItemsPackFixedItem = Accessors.CreateSetter<LootItemsPackFixed, LootItem>("m_Item");
 
         public readonly FastSetter<LootItem, BlueprintItem> SetLootItemItem = Accessors.CreateSetter<LootItem, BlueprintItem>("m_Item");
+
+        public readonly FastSetter<RuleDealDamage, int> SetRuleDealDamageDamage = Accessors.CreateSetter<RuleDealDamage, int>("Damage");
 
         public readonly FastStaticInvoker<ItemEntityWeapon, string> CallUIUtilityItemGetQualities =
             Accessors.CreateStaticInvoker<ItemEntityWeapon, string>(typeof(UIUtilityItem), "GetQualities");
