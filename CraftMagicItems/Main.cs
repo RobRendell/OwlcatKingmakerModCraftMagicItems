@@ -693,6 +693,7 @@ namespace CraftMagicItems {
         private static bool RecipeAppliesToBlueprint(RecipeData recipe, BlueprintItem blueprint, bool skipEnchantedCheck = false) {
             return blueprint == null
                    || (skipEnchantedCheck || recipe.CanApplyToMundaneItem || IsEnchanted(blueprint, recipe))
+                   && recipe.ResultItem == null
                    && ItemMatchesRestrictions(blueprint, recipe.Restrictions)
                    // Weapons with special materials can't apply recipes which apply special materials
                    && (!(blueprint is BlueprintItemWeapon weapon) || recipe.Material == 0 || weapon.DamageType.Physical.Material == 0)
@@ -810,32 +811,40 @@ namespace CraftMagicItems {
                 selectedRecipe = availableSubRecipes[selectedSubRecipeIndex];
             }
 
-            // Pick specific enchantment from the recipe
-            var availableEnchantments = selectedRecipe.Enchantments;
-            var supersededEnchantment = upgradeItem != null ? FindSupersededEnchantmentId(upgradeItem.Blueprint, availableEnchantments[0].AssetGuid) : null;
-            if (supersededEnchantment != null) {
-                // Don't offer downgrade options.
-                var existingIndex = availableEnchantments.FindIndex(enchantment => enchantment.AssetGuid == supersededEnchantment);
-                availableEnchantments = availableEnchantments.Skip(existingIndex + 1).ToArray();
+            BlueprintItemEnchantment selectedEnchantment = null;
+            BlueprintItemEnchantment[] availableEnchantments = null;
+            if (selectedRecipe.ResultItem == null) {
+                // Pick specific enchantment from the recipe
+                availableEnchantments = selectedRecipe.Enchantments;
+                var supersededEnchantment = upgradeItem != null ? FindSupersededEnchantmentId(upgradeItem.Blueprint, availableEnchantments[0].AssetGuid) : null;
+                if (supersededEnchantment != null) {
+                    // Don't offer downgrade options.
+                    var existingIndex = availableEnchantments.FindIndex(enchantment => enchantment.AssetGuid == supersededEnchantment);
+                    availableEnchantments = availableEnchantments.Skip(existingIndex + 1).ToArray();
+                }
+
+                if (availableEnchantments.Length > 0 && selectedRecipe.Enchantments.Length > 1) {
+                    var counter = selectedRecipe.Enchantments.Length - availableEnchantments.Length;
+                    var enchantmentNames = availableEnchantments.Select(enchantment => {
+                        counter++;
+                        return enchantment.Name.Empty() ? GetBonusString(counter, selectedRecipe) : enchantment.Name;
+                    });
+                    RenderSelection(ref selectedEnchantmentIndex, "", enchantmentNames.ToArray(), 6);
+                } else if (availableEnchantments.Length == 1) {
+                    selectedEnchantmentIndex = 0;
+                } else {
+                    RenderLabel("This item cannot be further upgraded with this enchantment.");
+                    return;
+                }
+
+                selectedEnchantment = availableEnchantments[selectedEnchantmentIndex];
             }
 
-            if (availableEnchantments.Length > 0 && selectedRecipe.Enchantments.Length > 1) {
-                var counter = selectedRecipe.Enchantments.Length - availableEnchantments.Length;
-                var enchantmentNames = availableEnchantments.Select(enchantment => {
-                    counter++;
-                    return enchantment.Name.Empty() ? GetBonusString(counter, selectedRecipe) : enchantment.Name;
-                });
-                RenderSelection(ref selectedEnchantmentIndex, "", enchantmentNames.ToArray(), 6);
-            } else if (availableEnchantments.Length == 1) {
-                selectedEnchantmentIndex = 0;
-            } else {
-                RenderLabel("This item cannot be further upgraded with this enchantment.");
-                return;
-            }
-
-            var selectedEnchantment = availableEnchantments[selectedEnchantmentIndex];
-            var casterLevel = selectedRecipe.CasterLevelStart + selectedRecipe.Enchantments.IndexOf(selectedEnchantment) * selectedRecipe.CasterLevelMultiplier;
-            if (!string.IsNullOrEmpty(selectedEnchantment.Description)) {
+            var casterLevel = selectedRecipe.CasterLevelStart
+                              + (selectedEnchantment == null
+                                  ? 0
+                                  : selectedRecipe.Enchantments.IndexOf(selectedEnchantment) * selectedRecipe.CasterLevelMultiplier);
+            if (selectedEnchantment != null && !string.IsNullOrEmpty(selectedEnchantment.Description)) {
                 RenderLabel(selectedEnchantment.Description);
             }
 
@@ -863,6 +872,12 @@ namespace CraftMagicItems {
 
             RenderCraftingSkillInformation(caster, StatType.SkillKnowledgeArcana, 5 + casterLevel, casterLevel, selectedRecipe.PrerequisiteSpells,
                 selectedRecipe.AnyPrerequisite, selectedRecipe.CrafterPrerequisites);
+
+            if (selectedRecipe.ResultItem != null) {
+                // Just craft the item resulting from the recipe.
+                RenderRecipeBasedCraftItemControl(caster, craftingData, selectedRecipe, casterLevel, selectedRecipe.ResultItem);
+                return;
+            }
 
             // See if the selected enchantment (plus optional mundane base item) corresponds to a vanilla blueprint.
             var allItemBlueprintsWithEnchantment = FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid);
@@ -1972,6 +1987,8 @@ namespace CraftMagicItems {
             if (recipe != null) {
                 var index = recipe.Enchantments.FindIndex(enchantment => enchantment.AssetGuid == enchantmentId);
                 switch (recipe.CostType) {
+                    case RecipeCostType.Flat:
+                        return recipe.CostFactor;
                     case RecipeCostType.CasterLevel:
                         return recipe.CostFactor * (recipe.CasterLevelStart + index * recipe.CasterLevelMultiplier);
                     case RecipeCostType.LevelSquared:

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Kingmaker.Blueprints.Items;
 using Kingmaker.Blueprints.Items.Ecnchantments;
 using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Enums.Damage;
@@ -61,7 +62,8 @@ namespace CraftMagicItems {
     public enum RecipeCostType {
         LevelSquared,
         EnhancementLevelSquared,
-        CasterLevel
+        CasterLevel,
+        Flat
     }
 
     public enum ItemRestrictions {
@@ -103,6 +105,7 @@ namespace CraftMagicItems {
         [JsonProperty] public string BonusTypeId;
         [JsonProperty] public string BonusToId;
         [JsonProperty] public BlueprintItemEnchantment[] Enchantments;
+        [JsonProperty] public BlueprintItem ResultItem;
         [JsonProperty] public bool EnchantmentsCumulative;
         [JsonProperty] public int CasterLevelStart;
         [JsonProperty] public int CasterLevelMultiplier;

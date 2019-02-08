@@ -60,7 +60,7 @@
     "CasterLevelStart": 5,
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["f3c0b267dd17a2a45a40805e31fe3cd1"],
-    "CostType": "LevelSquared",
+    "CostType": "Flat",
     "CostFactor": 44000
   },
   {
@@ -135,5 +135,16 @@
     "CrafterPrerequisites": ["FeatureChannelEnergy"],
     "CostType": "LevelSquared",
     "CostFactor": 4000
+  },
+  {
+    "Name": "BagOfHolding",
+    "NameId": "e63755a2-b628-4582-bc06-e6735ea99674",
+    "Enchantments": [],
+    "ResultItem": "9ba294466c6090e4dac1c7dfbc158a03",
+    "CasterLevelStart": 9,
+    "PrerequisiteSpells": ["4a648b57935a59547b7a2ee86fb4f26a"],
+    "CostType": "Flat",
+    "CostFactor": 25000,
+    "OnlyForSlots": ["Usable"]
   }
 ]

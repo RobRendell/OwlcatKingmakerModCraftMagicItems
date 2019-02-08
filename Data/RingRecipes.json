@@ -26,7 +26,7 @@
     "CasterLevelStart": 7,
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["486eaff58293f6441a5c2759c4872f98"],
-    "CostType": "LevelSquared",
+    "CostType": "Flat",
     "CostFactor": 25000,
     "OnlyForSlots": ["Ring"]
   },
@@ -39,7 +39,7 @@
     "CasterLevelStart": 7,
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["4c349361d720e844e846ad8c19959b1e"],
-    "CostType": "LevelSquared",
+    "CostType": "Flat",
     "CostFactor": 40000,
     "OnlyForSlots": ["Ring"]
   },
@@ -132,7 +132,7 @@
     "CasterLevelStart": 15,
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["ff8f1534f66559c478448723e16b6624"],
-    "CostType": "LevelSquared",
+    "CostType": "Flat",
     "CostFactor": 90000,
     "OnlyForSlots": ["Ring"]
   },
@@ -145,7 +145,7 @@
     "CasterLevelStart": 5,
     "CasterLevelMultiplier": 0,
     "PrerequisiteSpells": ["faabd2cc67efa4646ac58c7bb3e40fcc"],
-    "CostType": "LevelSquared",
+    "CostType": "Flat",
     "CostFactor": 2500,
     "OnlyForSlots": ["Ring"]
   }

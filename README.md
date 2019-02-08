@@ -4,7 +4,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 * Enchanting mundane belts, rings, amulets, necklaces?
-* Bag of Holding?  Would need to add item-based recipe (rather than enchantment-based)
 * Perhaps put the "Mod disabled" text into Strings_enGB.json anyway, so it can be translated?  Load manually?
 * Crafting using mithral ingots, silver ingots etc.  Consume like material components, reduce the required progress by
         say 150% of the sale price of the ingot (and can be done without having to go back to town to sell the ingot)
