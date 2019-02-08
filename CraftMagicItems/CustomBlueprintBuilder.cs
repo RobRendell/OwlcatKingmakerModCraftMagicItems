@@ -81,7 +81,9 @@ namespace CraftMagicItems {
             if (newAssetId != null) {
                 // Insert patched blueprint into ResourcesLibrary under the new GUID.
                 Main.Accessors.SetBlueprintScriptableObjectAssetGuid(blueprint, newAssetId);
-                ResourcesLibrary.LibraryObject.BlueprintsByAssetId?.Add(newAssetId, blueprint);
+                if (ResourcesLibrary.LibraryObject.BlueprintsByAssetId != null) {
+                    ResourcesLibrary.LibraryObject.BlueprintsByAssetId[newAssetId] = blueprint;
+                }
                 ResourcesLibrary.LibraryObject.GetAllBlueprints().Add(blueprint);
                 // Also record the custom GUID so we can clean it up if the mod is later disabled.
                 CustomBlueprintIDs.Add(newAssetId);

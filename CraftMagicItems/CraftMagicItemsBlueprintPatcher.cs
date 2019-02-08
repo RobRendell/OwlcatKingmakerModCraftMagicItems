@@ -25,16 +25,20 @@ namespace CraftMagicItems {
     public class CraftMagicItemsBlueprintPatcher {
         public const string TimerBlueprintGuid = "52e4be2ba79c8c94d907bdbaf23ec15f#CraftMagicItems(timer)";
 
+        private const string MatchedParensComma = @"([^(),]+|(?<Level>\()|(?<-Level>\))|(?(Level),))+(?(Level)(?!))";
+
         public static readonly Regex BlueprintRegex =
             new Regex($"({OldBlueprintPrefix}|{BlueprintPrefix})"
                       + @"\(("
-                      + @"CL=(?<casterLevel>\d+)(?<spellLevelMatch>,SL=(?<spellLevel>\d+))?(?<spellIdMatch>,spellId=\((?<spellId>([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\))?"
-                      + @"|enchantments=\((?<enchantments>|([^()]+|(?<Level>\()|(?<-Level>\)))+(?(Level)(?!)))\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?"
+                      + @"CL=(?<casterLevel>\d+)(?<spellLevelMatch>,SL=(?<spellLevel>\d+))?(?<spellIdMatch>,spellId=\((?<spellId>" + MatchedParensComma +
+                      @")\))?"
+                      + @"|enchantments=\((?<enchantments>|" + MatchedParensComma + @")\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?"
                       + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?(,visual=(?<visual>null|[0-9a-f]+))?"
                       + @"(,CL=(?<casterLevel>[0-9]+))?(,SL=(?<spellLevel>[0-9]+))?(,perDay=(?<perDay>[0-9]+))?(,nameId=(?<nameId>[^,]+))?(,descriptionId=(?<descriptionId>[^,]+))?"
                       + @"|feat=(?<feat>[-a-z]+)"
                       + @"|(?<timer>timer)"
-                      + @"|(?<components>(Component\[(?<index>[0-9]+)\](?<field>[^=]*)?=(?<value>[^,)]+),?)+(,nameId=(?<nameId>[^,)]+))?(,descriptionId=(?<descriptionId>[^,)]+))?)"
+                      + @"|(?<components>(Component\[(?<index>[0-9]+)\](?<field>[^=]*)?=(?<value>" + MatchedParensComma + @"),?)+(,nameId=(?<nameId>[^,)]+))?"
+                      + @"(,descriptionId=(?<descriptionId>[^,)]+))?)"
                       + @")\)");
 
         private static readonly ItemsFilter.ItemType[] SlotsWhichShowEnchantments = {
@@ -492,7 +496,7 @@ namespace CraftMagicItems {
             component.name = name;
         }
 
-        private string ApplyItemEnchantmentBlueprintPatch(BlueprintItemEnchantment blueprint, Match match) {
+        private string ApplyItemEnchantmentBlueprintPatch(BlueprintScriptableObject blueprint, Match match) {
             var values = new List<string>();
             // Ensure Components array is not shared with base blueprint
             var componentsCopy = blueprint.ComponentsArray.ToArray();
@@ -516,16 +520,26 @@ namespace CraftMagicItems {
             }
 
             blueprint.ComponentsArray = componentsCopy;
+            var enchantment = blueprint as BlueprintItemEnchantment;
+            var feature = blueprint as BlueprintFeature;
             string nameId = null;
             if (match.Groups["nameId"].Success) {
                 nameId = match.Groups["nameId"].Value;
-                accessors.SetBlueprintItemEnchantmentEnchantName(blueprint, new L10NString(nameId));
+                if (enchantment != null) {
+                    accessors.SetBlueprintItemEnchantmentEnchantName(enchantment, new L10NString(nameId));
+                } else if (feature != null) {
+                    accessors.SetBlueprintUnitFactDisplayName(feature, new L10NString(nameId));
+                }
             }
 
             string descriptionId = null;
             if (match.Groups["descriptionId"].Success) {
                 descriptionId = match.Groups["descriptionId"].Value;
-                accessors.SetBlueprintItemEnchantmentDescription(blueprint, new L10NString(descriptionId));
+                if (enchantment != null) {
+                    accessors.SetBlueprintItemEnchantmentDescription(enchantment, new L10NString(descriptionId));
+                } else if (feature != null) {
+                    accessors.SetBlueprintUnitFactDescription(feature, new L10NString(descriptionId));
+                }
             }
 
             return BuildCustomComponentsItemGuid(blueprint.AssetGuid, values.ToArray(), nameId, descriptionId);
@@ -546,6 +560,8 @@ namespace CraftMagicItems {
                     return ApplyRecipeItemBlueprintPatch(equipment, match);
                 case BlueprintItemEnchantment enchantment when match.Groups["components"].Success:
                     return ApplyItemEnchantmentBlueprintPatch(enchantment, match);
+                case BlueprintFeature feature when match.Groups["components"].Success:
+                    return ApplyItemEnchantmentBlueprintPatch(feature, match);
                 default: {
                     throw new Exception($"Match of assetId {match.Value} didn't match blueprint type {blueprint.GetType()}");
                 }
