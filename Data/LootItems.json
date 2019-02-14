@@ -38,5 +38,10 @@
     "AddInVersion": "1.8.10",
     "AssetGuid": "c65f6fc979d5556489b20e478189cbdd#CraftMagicItems(enchantments=(7b95a819181574a4799d93939aa99aff),visual=ab96348a993683c41b1e9fce187fb034,nameId=0b8d1bf5-bec4-407a-85f6-878445fda73a/ +2//+2//)",
     "LootTables": ["SmithVendorTable"]
+  },
+  {
+    "AddInVersion": "1.8.11",
+    "AssetGuid": "394d337603392eb4c817994c45877fc0#CraftMagicItems(CL=1,SL=0,spellId=(16e23c7a8ae53cc42a93066d19766404))",
+    "LootTables": ["C11_BokkenVendorTable"]
   }
 ]
