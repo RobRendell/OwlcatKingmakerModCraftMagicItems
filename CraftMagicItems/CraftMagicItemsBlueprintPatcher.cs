@@ -554,10 +554,10 @@ namespace CraftMagicItems {
                     return ApplyTimerBlueprintPatch(buff);
                 case BlueprintFeature feature when match.Groups["feat"].Success:
                     return ApplyFeatBlueprintPatch(feature, match);
-                case BlueprintItemEquipmentUsable usable when match.Groups["casterLevel"].Success:
-                    return ApplySpellItemBlueprintPatch(usable, match);
                 case BlueprintItemEquipment equipment when match.Groups["enchantments"].Success:
                     return ApplyRecipeItemBlueprintPatch(equipment, match);
+                case BlueprintItemEquipmentUsable usable when match.Groups["casterLevel"].Success:
+                    return ApplySpellItemBlueprintPatch(usable, match);
                 case BlueprintItemEnchantment enchantment when match.Groups["components"].Success:
                     return ApplyItemEnchantmentBlueprintPatch(enchantment, match);
                 case BlueprintFeature feature when match.Groups["components"].Success:
