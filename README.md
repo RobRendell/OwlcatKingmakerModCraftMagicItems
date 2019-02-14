@@ -4,7 +4,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 * Alchemical crafting under Mundane crafting: acid flask, alchemist's fire.
-* Mundane crafting: javelins, darts
 * Double weapons
 * Configuration items to scale crafting progress (magical and mundane).
 

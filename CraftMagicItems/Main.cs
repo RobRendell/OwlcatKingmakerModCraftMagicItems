@@ -93,6 +93,16 @@ namespace CraftMagicItems {
         private static readonly LocalizedString ShieldBashLocalized = new L10NString("314ff56d-e93b-4915-8ca4-24a7670ad436");
         private static readonly LocalizedString QualitiesLocalized = new L10NString("0f84fde9-14ca-4e2f-9c82-b2522039dbff");
 
+        private static readonly WeaponCategory[] AmmunitionWeaponCategories = {
+            WeaponCategory.Longbow,
+            WeaponCategory.Shortbow,
+            WeaponCategory.LightCrossbow,
+            WeaponCategory.HeavyCrossbow,
+            WeaponCategory.HandCrossbow,
+            WeaponCategory.LightRepeatingCrossbow,
+            WeaponCategory.HeavyRepeatingCrossbow
+        };
+
         private enum OpenSection {
             CraftMagicItemsSection,
             CraftMundaneItemsSection,
@@ -674,6 +684,8 @@ namespace CraftMagicItems {
                         case ItemRestrictions.WeaponLight when weapon == null || !weapon.IsLight:
                         case ItemRestrictions.WeaponNotLight when weapon == null || weapon.IsLight:
                         case ItemRestrictions.WeaponMetal when weapon == null || !weapon.Category.HasSubCategory(WeaponSubCategory.Metal):
+                        case ItemRestrictions.WeaponUseAmmunition when weapon == null || !AmmunitionWeaponCategories.Contains(weapon.Category):
+                        case ItemRestrictions.WeaponNotUseAmmunition when weapon == null || AmmunitionWeaponCategories.Contains(weapon.Category):
                         case ItemRestrictions.ArmourMetal when armour == null || !IsMetalArmour(armour.Type):
                         case ItemRestrictions.ArmourNotMetal when armour == null || IsMetalArmour(armour.Type):
                         case ItemRestrictions.ArmourLight when armour == null || armour.Type.ProficiencyGroup != ArmorProficiencyGroup.Light:

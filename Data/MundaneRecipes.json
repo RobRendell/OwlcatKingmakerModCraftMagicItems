@@ -145,7 +145,7 @@
     "CostFactor": 0,
     "MundaneDC": 5,
     "OnlyForSlots": ["Weapon"],
-    "Restrictions": ["WeaponMelee", "WeaponMetal"],
+    "Restrictions": ["WeaponNotUseAmmunition", "WeaponMetal"],
     "CanApplyToMundaneItem": true
   },
   {
@@ -158,7 +158,7 @@
     "CostFactor": 0,
     "MundaneDC": 5,
     "OnlyForSlots": ["Weapon"],
-    "Restrictions": ["WeaponMelee", "WeaponMetal"],
+    "Restrictions": ["WeaponNotUseAmmunition", "WeaponMetal"],
     "CanApplyToMundaneItem": true
   },
   {
@@ -173,7 +173,7 @@
     "CostFactor": 300,
     "MundaneDC": 10,
     "OnlyForSlots": ["Weapon"],
-    "Restrictions": ["WeaponMelee", "WeaponMetal"],
+    "Restrictions": ["WeaponNotUseAmmunition", "WeaponMetal"],
     "CanApplyToMundaneItem": true
   },
   {

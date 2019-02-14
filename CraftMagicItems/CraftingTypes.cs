@@ -79,6 +79,8 @@ namespace CraftMagicItems {
         WeaponLight,
         WeaponNotLight,
         WeaponMetal,
+        WeaponUseAmmunition,
+        WeaponNotUseAmmunition,
         ArmourMetal,
         ArmourNotMetal,
         ArmourLight,
