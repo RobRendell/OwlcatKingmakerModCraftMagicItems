@@ -3,28 +3,38 @@ This is the source for my mod to add crafting of magic items to Owlcat's Pathfin
 For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmaker/mods/54
 
 ## To Do
-* Enchanting mundane belts, rings, amulets, necklaces?
-* Perhaps put the "Mod disabled" text into Strings_enGB.json anyway, so it can be translated?  Load manually?
-* Crafting using mithral ingots, silver ingots etc.  Consume like material components, reduce the required progress by
-        say 150% of the sale price of the ingot (and can be done without having to go back to town to sell the ingot)
+* Alchemical crafting under Mundane crafting: acid flask, alchemist's fire.
+* Mundane crafting: javelins, darts
 * Double weapons
 * Configuration items to scale crafting progress (magical and mundane).
-* Remove assumption that GUIDs are 32 characters long, given more mods with custom GUIDs are becoming available.
-* In BuildCustomRecipeItemGuid, sort enchantments and remove GUIDs lexographically so blueprint is always the same.
-* Add "Fabricate" custom spell to instantly do mundane crafting, and to add special materials to existing items.
-* Make Robes fall under Craft Wondrous Items rather than Arms and Armor.  "Monk's Robe"
-* Ioun stone enchantments?
-* Ghost Touch?
-* Custom "quiver" items which can contain arrows of a particular type, which modify the damage of any ranged weapons you
-        use when they're equipped in your belt slots?
-* Metamagic effects on spells
-* Dragonhide is called "dragonscale"
 
 * Enchanting bonded objects.  Custom buff on caster, contains ref to original item and current item (apply renames to
         original item as well?)  If item is not equipped, switch current and original item in shared stash when the
         current character changes (ideally without printing to the battle log).  Also, if item is not equipped, apply
         concentration check to cast, or if I can't get that to work, RuleCastSpell has a general SpellFailureChance
         percentage which could do an equivalent effect.
+
+* Trailblazer's Helm can cast two different spells!
+* Perhaps crafting projects for characters in your party should be advanced at the adventuring rate when you first enter
+        the capital, to account things more accurately?
+* Enchanting mundane belts, rings, amulets, necklaces?
+* Request: Is it possible to add the option for bonus spell slots, for ring of wizardry.
+* Perhaps put the "Mod disabled" text into Strings_enGB.json anyway, so it can be translated?  Load manually?
+* Crafting using mithral ingots, silver ingots etc.  Consume like material components, reduce the required progress by
+        say 150% of the sale price of the ingot (and can be done without having to go back to town to sell the ingot)
+* Remove assumption that GUIDs are 32 characters long, given more mods with custom GUIDs are becoming available.
+* In BuildCustomRecipeItemGuid, sort enchantments and remove GUIDs lexographically so blueprint is always the same.
+* Add "Fabricate" custom spell to instantly do mundane crafting, and to add special materials to existing items.
+* Make Robes fall under Craft Wondrous Items rather than Arms and Armor.  "Monk's Robe"
+* Ioun stone enchantments?  Could also do as a specific item recipe, a la Bag of Holding.
+* Ghost Touch?
+* Custom "quiver" items which can contain arrows of a particular type, which modify the damage of any ranged weapons you
+        use when they're equipped in your belt slots?
+* Metamagic effects on spells
+* Dragonhide is called "dragonscale".  Ironwood?
+* Request for https://www.d20pfsrd.com/magic-items/wondrous-items/m-p/page-of-spell-knowledge/
+* Wild enchantment, which allows a druid to retain an armor's bonus when they shapeshift.
+
 * Mighty Fists enchantment is stacking - looks like a bug in Owlcat's code
 * Tabletop Amulet of Mighty Fists actually allows all relevant weapon enhancements (such as Flaming or Agile)... not
         sure if the engine can even do that. 
