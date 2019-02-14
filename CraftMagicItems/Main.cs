@@ -2046,7 +2046,7 @@ namespace CraftMagicItems {
             }
 
             if (blueprint is BlueprintItemEquipment equipment && equipment.Ability != null && equipment.RestoreChargesOnRest) {
-                var castSpellCost = equipment.Charges * equipment.CasterLevel * equipment.SpellLevel * 360;
+                var castSpellCost = (int) (equipment.Charges * equipment.CasterLevel * 360 * (equipment.SpellLevel == 0 ? 0.5 : equipment.SpellLevel));
                 cost += castSpellCost;
                 if (mostExpensiveEnchantmentCost < castSpellCost) {
                     mostExpensiveEnchantmentCost = castSpellCost;
@@ -2271,6 +2271,32 @@ namespace CraftMagicItems {
                 if (mNeedReset) {
                     var mSelected = Accessors.GetActionBarManagerSelected(__instance);
                     __instance.Group.Set(mSelected);
+                }
+            }
+        }
+
+        [Harmony12.HarmonyPatch(typeof(BlueprintItemEquipmentUsable), "Cost", Harmony12.MethodType.Getter)]
+        // ReSharper disable once UnusedMember.Local
+        private static class BlueprintItemEquipmentUsableCostPatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix(BlueprintItemEquipmentUsable __instance, ref int __result) {
+                if (__result == 0 && __instance.SpellLevel == 0) {
+                    // Owlcat's cost calculation doesn't handle level 0 spells properly.
+                    int chargeCost;
+                    switch (__instance.Type) {
+                        case UsableItemType.Wand:
+                            chargeCost = 15;
+                            break;
+                        case UsableItemType.Scroll:
+                            chargeCost = 25;
+                            break;
+                        case UsableItemType.Potion:
+                            chargeCost = 50;
+                            break;
+                        default:
+                            return;
+                    }
+                    __result = __instance.CasterLevel * chargeCost * __instance.Charges / 2;
                 }
             }
         }
