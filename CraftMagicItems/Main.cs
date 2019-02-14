@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -91,6 +91,7 @@ namespace CraftMagicItems {
         private static readonly LocalizedString CasterLevelLocalized = new L10NString("dfb34498-61df-49b1-af18-0a84ce47fc98");
         private static readonly LocalizedString CharacterUsedItemLocalized = new L10NString("be7942ed-3af1-4fc7-b20b-41966d2f80b7");
         private static readonly LocalizedString ShieldBashLocalized = new L10NString("314ff56d-e93b-4915-8ca4-24a7670ad436");
+        private static readonly LocalizedString QualitiesLocalized = new L10NString("0f84fde9-14ca-4e2f-9c82-b2522039dbff");
 
         private enum OpenSection {
             CraftMagicItemsSection,
@@ -778,7 +779,7 @@ namespace CraftMagicItems {
             var index = selectedUpgradeItemIndex - (canCreateNew ? 1 : 0);
             var upgradeItem = index < 0 ? null : items[index];
             if (upgradeItem != null) {
-                RenderLabel(upgradeItem.Description);
+                RenderLabel(BuildItemDescription(upgradeItem));
             }
 
             // Pick recipe to apply, but make any with the same ParentNameId appear in a second level menu under their parent name.
@@ -927,6 +928,37 @@ namespace CraftMagicItems {
                     RenderLabel($"This would result in {itemToCraft.Name} having an equivalent enhancement bonus of more than +10");
                 }
             }
+        }
+
+        private static string GetEnchantmentNames(BlueprintItem blueprint) {
+            var weapon = blueprint as BlueprintItemWeapon;
+            var material = weapon ? weapon.DamageType.Physical.Material : 0;
+            return blueprint.Enchantments
+                .Where(enchantment => !string.IsNullOrEmpty(enchantment.Name))
+                .Select(enchantment => enchantment.Name)
+                .OrderBy(name => name)
+                .PrependConditional(material != 0, LocalizedTexts.Instance.DamageMaterial.GetText(material))
+                .Join();
+        }
+
+        private static string BuildItemDescription(ItemEntity item) {
+            var description = item.Description;
+            if (CraftMagicItemsBlueprintPatcher.SlotsWhichShowEnchantments.Contains(item.Blueprint.ItemType)) {
+                string qualities;
+                if (item.Blueprint is BlueprintItemShield shield) {
+                    qualities = GetEnchantmentNames(shield.ArmorComponent);
+                    var weaponQualities = shield.WeaponComponent == null ? null : GetEnchantmentNames(shield.WeaponComponent);
+                    if (!string.IsNullOrEmpty(weaponQualities)) {
+                        qualities = $"{qualities}{(string.IsNullOrEmpty(qualities) ? "" : ", ")}{ShieldBashLocalized}: {weaponQualities}";
+                    }
+                } else {
+                    qualities = GetEnchantmentNames(item.Blueprint);
+                }
+                if (!string.IsNullOrEmpty(qualities)) {
+                    description += $"{(string.IsNullOrEmpty(description) ? "" : "\n")}{QualitiesLocalized}: {qualities}";
+                }
+            }
+            return description;
         }
 
         private static void SelectRandomApplicableBaseGuid(ItemCraftingData craftingData, ItemsFilter.ItemType selectedSlot) {
@@ -1365,7 +1397,7 @@ namespace CraftMagicItems {
             var firstItem = true;
             foreach (var project in timer.CraftingProjects.ToArray()) {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label($"   <b>{project.ResultItem.Name}</b> is {100 * project.Progress / project.TargetCost}% complete.  {project.LastMessage}",
+                GUILayout.Label($"   <b>{project.ResultItem.Name}</b> is {100 * project.Progress / project.TargetCost}% complete.",
                     GUILayout.Width(600f));
                 if (GUILayout.Button("<color=red>✖</color>", GUILayout.ExpandWidth(false))) {
                     CancelCraftingProject(project);
@@ -1377,8 +1409,9 @@ namespace CraftMagicItems {
                     timer.CraftingProjects.Remove(project);
                     timer.CraftingProjects.Insert(0, project);
                 }
-
                 GUILayout.EndHorizontal();
+                RenderLabel($"       {BuildItemDescription(project.ResultItem).Replace("\n", "\n       ")}");
+                RenderLabel($"       {project.LastMessage}");
             }
         }
 

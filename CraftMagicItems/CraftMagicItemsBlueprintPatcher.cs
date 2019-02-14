@@ -41,7 +41,7 @@ namespace CraftMagicItems {
                       + @"(,descriptionId=(?<descriptionId>[^,)]+))?)"
                       + @")\)");
 
-        private static readonly ItemsFilter.ItemType[] SlotsWhichShowEnchantments = {
+        public static readonly ItemsFilter.ItemType[] SlotsWhichShowEnchantments = {
             ItemsFilter.ItemType.Weapon,
             ItemsFilter.ItemType.Armor,
             ItemsFilter.ItemType.Shield
