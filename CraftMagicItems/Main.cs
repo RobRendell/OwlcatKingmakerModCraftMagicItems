@@ -1534,7 +1534,9 @@ namespace CraftMagicItems {
             }
 
             if (render) {
-                var partyNames = characters.Select(entity => entity.CharacterName).ToArray();
+                var partyNames = characters.Select(entity => $"{entity.CharacterName}" +
+                                                             $"{((GetCraftingTimerComponentForCaster(entity.Descriptor)?.CraftingProjects.Any() ?? false) ? "*" : "")}")
+                    .ToArray();
                 var indexBefore = selectedSpellcasterIndex;
                 RenderSelection(ref selectedSpellcasterIndex, "Crafter: ", partyNames, 8);
                 if (indexBefore != selectedSpellcasterIndex) {
