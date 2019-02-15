@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -134,6 +134,7 @@ namespace CraftMagicItems {
         private static int selectedCasterLevel;
         private static bool selectedShowPreparedSpells;
         private static int selectedItemSlotIndex;
+        private static bool selectedDoubleWeaponSecondEnd;
         private static int selectedUpgradeItemIndex;
         private static int selectedRecipeIndex;
         private static int selectedSubRecipeIndex;
@@ -794,7 +795,24 @@ namespace CraftMagicItems {
             // See existing item details and enchantments.
             var index = selectedUpgradeItemIndex - (canCreateNew ? 1 : 0);
             var upgradeItem = index < 0 ? null : items[index];
+            var upgradeItemDoubleWeapon = upgradeItem as ItemEntityWeapon;
             if (upgradeItem != null) {
+                if (upgradeItemDoubleWeapon != null && upgradeItemDoubleWeapon.Blueprint.Double) {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label($"{upgradeItem.Name} is a double weapon; enchanting ", GUILayout.ExpandWidth(false));
+                    var label = selectedDoubleWeaponSecondEnd ? "Secondary end" : "Primary end";
+                    if (GUILayout.Button(label, GUILayout.ExpandWidth(false))) {
+                        selectedDoubleWeaponSecondEnd = !selectedDoubleWeaponSecondEnd;
+                    }
+                    if (selectedDoubleWeaponSecondEnd) {
+                        upgradeItem = upgradeItemDoubleWeapon.Second;
+                    } else {
+                        upgradeItemDoubleWeapon = null;
+                    }
+                    GUILayout.EndHorizontal();
+                } else {
+                    upgradeItemDoubleWeapon = null;
+                }
                 RenderLabel(BuildItemDescription(upgradeItem));
             }
 
@@ -806,7 +824,7 @@ namespace CraftMagicItems {
                 .OrderBy(recipe => new L10NString(recipe.ParentNameId ?? recipe.NameId).ToString())
                 .ToArray();
             var recipeNames = availableRecipes.Select(recipe => new L10NString(recipe.ParentNameId ?? recipe.NameId).ToString())
-                .Concat(upgradeItem == null && craftingData.NewItemBaseIDs == null
+                .Concat(upgradeItem == null && craftingData.NewItemBaseIDs == null || upgradeItemDoubleWeapon != null
                     ? new string[0]
                     : new[] {new L10NString("craftMagicItems-label-cast-spell-n-times").ToString()})
                 .ToArray();
@@ -909,7 +927,9 @@ namespace CraftMagicItems {
                 itemToCraft = matchingItem;
             } else if (upgradeItem != null) {
                 // Upgrading to a custom blueprint
-                RenderCustomNameField(upgradeItem.Blueprint.Name);
+                var name = upgradeItemDoubleWeapon?.Blueprint.Name ?? upgradeItem.Blueprint.Name;
+                RenderCustomNameField(name);
+                name = selectedCustomName == name ? null : selectedCustomName;
                 IEnumerable<string> enchantments;
                 string supersededEnchantmentId;
                 if (selectedRecipe.EnchantmentsCumulative) {
@@ -921,8 +941,13 @@ namespace CraftMagicItems {
                 }
 
                 itemGuid = blueprintPatcher.BuildCustomRecipeItemGuid(upgradeItem.Blueprint.AssetGuid, enchantments,
-                    supersededEnchantmentId == null ? null : new[] {supersededEnchantmentId},
-                    selectedCustomName == upgradeItem.Blueprint.Name ? null : selectedCustomName, descriptionId: "null");
+                    supersededEnchantmentId == null ? null : new[] {supersededEnchantmentId}, name, descriptionId: "null");
+                if (upgradeItemDoubleWeapon != null) {
+                    // itemGuid is the blueprint GUID of the second end of upgradeItemWeapon - build the overall blueprint with the custom second end.
+                    itemGuid = blueprintPatcher.BuildCustomRecipeItemGuid(upgradeItemDoubleWeapon.Blueprint.AssetGuid, Enumerable.Empty<string>(),
+                        name: name, descriptionId: "null", secondEndGuid: itemGuid);
+                    upgradeItem = upgradeItemDoubleWeapon;
+                }
                 itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(itemGuid);
             } else {
                 // Crafting a new custom blueprint from scratch.
@@ -1341,7 +1366,7 @@ namespace CraftMagicItems {
             RenderCraftingSkillInformation(crafter, StatType.SkillKnowledgeWorld, dc);
 
             // Upgrading to a custom blueprint, rather than use the standard mithral/adamantine blueprints.
-            var enchantments = selectedEnchantment == null ? Enumerable.Empty<string>() : new List<string> {selectedEnchantment.AssetGuid};
+            var enchantments = selectedEnchantment == null ? new List<string>() : new List<string> {selectedEnchantment.AssetGuid};
             var upgradeName = selectedRecipe != null && selectedRecipe.Material != 0
                 ? new L10NString(selectedRecipe.NameId).ToString()
                 : selectedEnchantment == null
@@ -1349,10 +1374,26 @@ namespace CraftMagicItems {
                     : selectedEnchantment.Name;
             var name = upgradeName == null ? baseBlueprint.Name : $"{upgradeName} {baseBlueprint.Name}";
             var visual = ApplyVisualMapping(selectedRecipe, baseBlueprint);
-            var itemGuid = selectedRecipe == null
-                ? baseBlueprint.AssetGuid
-                : blueprintPatcher.BuildCustomRecipeItemGuid(baseBlueprint.AssetGuid, enchantments, null, name, null, null, selectedRecipe.Material, visual);
-            var itemToCraft = selectedRecipe == null ? baseBlueprint : ResourcesLibrary.TryGetBlueprint<BlueprintItem>(itemGuid);
+            var itemToCraft = baseBlueprint;
+            var itemGuid = "[not set]";
+            if (selectedRecipe != null) {
+                var doubleWeapon = baseBlueprint as BlueprintItemWeapon;
+                if (doubleWeapon) {
+                    if (doubleWeapon.Double) {
+                        baseBlueprint = doubleWeapon.SecondWeapon;
+                    } else {
+                        doubleWeapon = null;
+                    }
+                }
+                itemGuid = blueprintPatcher.BuildCustomRecipeItemGuid(baseBlueprint.AssetGuid, enchantments, null, name, null, null,
+                    selectedRecipe.Material, visual);
+                if (doubleWeapon) {
+                    baseBlueprint = doubleWeapon;
+                    itemGuid = blueprintPatcher.BuildCustomRecipeItemGuid(baseBlueprint.AssetGuid, enchantments, null, name, null, null,
+                        selectedRecipe.Material, visual, secondEndGuid: itemGuid);
+                }
+                itemToCraft = ResourcesLibrary.TryGetBlueprint<BlueprintItem>(itemGuid);
+            }
 
             if (!itemToCraft) {
                 RenderLabel($"Error: null custom item from looking up blueprint ID {itemGuid}");
@@ -2126,7 +2167,11 @@ namespace CraftMagicItems {
 
                 var enhancementLevel = ItemPlusEquivalent(blueprint);
                 var factor = blueprint is BlueprintItemWeapon ? WeaponPlusCost : ArmourPlusCost;
-                return cost + enhancementLevel * enhancementLevel * factor;
+                cost += enhancementLevel * enhancementLevel * factor;
+                if (blueprint is BlueprintItemWeapon doubleWeapon && doubleWeapon.Double) {
+                    return cost + RulesRecipeItemCost(doubleWeapon.SecondWeapon);
+                }
+                return cost;
             }
 
             // Usable (belt slot) items cost double.

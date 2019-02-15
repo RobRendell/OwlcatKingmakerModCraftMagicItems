@@ -33,8 +33,9 @@ namespace CraftMagicItems {
                       + @"CL=(?<casterLevel>\d+)(?<spellLevelMatch>,SL=(?<spellLevel>\d+))?(?<spellIdMatch>,spellId=\((?<spellId>" + MatchedParensComma +
                       @")\))?"
                       + @"|enchantments=\((?<enchantments>|" + MatchedParensComma + @")\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?"
-                      + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?(,visual=(?<visual>null|[0-9a-f]+))?"
-                      + @"(,CL=(?<casterLevel>[0-9]+))?(,SL=(?<spellLevel>[0-9]+))?(,perDay=(?<perDay>[0-9]+))?(,nameId=(?<nameId>[^,]+))?(,descriptionId=(?<descriptionId>[^,]+))?"
+                          + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?(,visual=(?<visual>null|[0-9a-f]+))?"
+                          + @"(,CL=(?<casterLevel>[0-9]+))?(,SL=(?<spellLevel>[0-9]+))?(,perDay=(?<perDay>[0-9]+))?(,nameId=(?<nameId>[^,]+))?(,descriptionId=(?<descriptionId>[^,]+))?"
+                          + $"(,secondEnd=(?<secondEnd>{MatchedParensComma}))?"
                       + @"|feat=(?<feat>[-a-z]+)"
                       + @"|(?<timer>timer)"
                       + @"|(?<components>(Component\[(?<index>[0-9]+)\](?<field>[^=]*)?=(?<value>" + MatchedParensComma + @"),?)+(,nameId=(?<nameId>[^,)]+))?"
@@ -84,7 +85,7 @@ namespace CraftMagicItems {
 
         public string BuildCustomRecipeItemGuid(string originalGuid, IEnumerable<string> enchantments, string[] remove = null, string name = null,
             string ability = null, string activatableAbility = null, PhysicalDamageMaterial material = 0, string visual = null, int casterLevel = -1,
-            int spellLevel = -1, int perDay = -1, string nameId = null, string descriptionId = null) {
+            int spellLevel = -1, int perDay = -1, string nameId = null, string descriptionId = null, string secondEndGuid = null) {
             // Check if GUID is already customised by this mod
             var match = BlueprintRegex.Match(originalGuid);
             if (match.Success && match.Groups["enchantments"].Success) {
@@ -145,6 +146,10 @@ namespace CraftMagicItems {
                     descriptionId = match.Groups["descriptionId"].Value;
                 }
 
+                if (secondEndGuid == null && match.Groups["secondEnd"].Success) {
+                    secondEndGuid = match.Groups["secondEnd"].Value;
+                }
+
                 // Remove the original customisation.
                 originalGuid = CustomBlueprintBuilder.AssetGuidWithoutMatch(originalGuid, match);
             }
@@ -161,6 +166,7 @@ namespace CraftMagicItems {
                    $"{(perDay == -1 ? "" : $",perDay={perDay}")}" +
                    $"{(nameId == null ? "" : $",nameId={nameId}")}" +
                    $"{(descriptionId == null || descriptionId == "null" ? "" : $",descriptionId={descriptionId}")}" +
+                   $"{(secondEndGuid == null ? "" : $",secondEnd={secondEndGuid}")}" +
                    ")";
         }
 
@@ -362,6 +368,12 @@ namespace CraftMagicItems {
                 descriptionId = match.Groups["descriptionId"].Value;
             }
 
+            string secondEndGuid = null;
+            if (match.Groups["secondEnd"].Success && blueprint is BlueprintItemWeapon doubleWeapon) {
+                secondEndGuid = match.Groups["secondEnd"].Value;
+                doubleWeapon.SecondWeapon = ResourcesLibrary.TryGetBlueprint<BlueprintItemWeapon>(secondEndGuid);
+            }
+            
             if (!SlotsWhichShowEnchantments.Contains(blueprint.ItemType)) {
                 accessors.SetBlueprintItemDescriptionText(blueprint,
                     descriptionId != null
@@ -375,7 +387,7 @@ namespace CraftMagicItems {
 
             accessors.SetBlueprintItemCost(blueprint, Main.RulesRecipeItemCost(blueprint) + priceDelta);
             return BuildCustomRecipeItemGuid(blueprint.AssetGuid, enchantmentIds, removedIds, name, ability, activatableAbility, material, visual, casterLevel,
-                spellLevel, perDay, nameId, descriptionId);
+                spellLevel, perDay, nameId, descriptionId, secondEndGuid);
         }
 
         private T CloneObject<T>(T originalObject) {
