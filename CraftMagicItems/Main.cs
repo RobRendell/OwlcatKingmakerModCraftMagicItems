@@ -54,6 +54,9 @@ using Random = System.Random;
 
 namespace CraftMagicItems {
     public class Settings : UnityModManager.ModSettings {
+        public const int MagicCraftingProgressPerDay = 500;
+        public const int MundaneCraftingProgressPerDay = 5;
+
         public bool CraftingCostsNoGold;
         public bool IgnoreCraftingFeats;
         public bool CraftingTakesNoTime;
@@ -61,6 +64,9 @@ namespace CraftMagicItems {
         public bool CraftAtFullSpeedWhileAdventuring;
         public bool IgnoreFeatCasterLevelRestriction;
         public bool IgnorePlusTenItemMaximum;
+        public bool CustomCraftRate;
+        public int MagicCraftingRate = MagicCraftingProgressPerDay;
+        public int MundaneCraftingRate = MundaneCraftingProgressPerDay;
 
         public override void Save(UnityModManager.ModEntry modEntry) {
             Save(this, modEntry);
@@ -68,8 +74,6 @@ namespace CraftMagicItems {
     }
 
     public static class Main {
-        private const int MagicCraftingProgressPerDay = 500;
-        private const int MundaneCraftingProgressPerDay = 5;
         private const int MissingPrerequisiteDCModifier = 5;
         private const int OppositionSchoolDCModifier = 4;
         private const int AdventuringProgressPenalty = 4;
@@ -1514,6 +1518,18 @@ namespace CraftMagicItems {
 
             RenderCheckbox(ref ModSettings.IgnoreCraftingFeats, "Crafting does not require characters to take crafting feats.");
             RenderCheckbox(ref ModSettings.CraftingTakesNoTime, "Crafting takes no time to complete.");
+            if (!ModSettings.CraftingTakesNoTime) {
+                RenderCheckbox(ref ModSettings.CustomCraftRate, "Craft at a non-standard rate.");
+                if (ModSettings.CustomCraftRate) {
+                    var maxMagicRate = ((ModSettings.MagicCraftingRate + 1000) / 1000) * 1000;
+                    RenderIntSlider(ref ModSettings.MagicCraftingRate, "Magic Item Crafting Rate", 1, maxMagicRate);
+                    var maxMundaneRate = ((ModSettings.MundaneCraftingRate + 10) / 10) * 10;
+                    RenderIntSlider(ref ModSettings.MundaneCraftingRate, "Mundane Item Crafting Rate", 1, maxMundaneRate);
+                } else {
+                    ModSettings.MagicCraftingRate = Settings.MagicCraftingProgressPerDay;
+                    ModSettings.MundaneCraftingRate = Settings.MundaneCraftingProgressPerDay;
+                }
+            }
             RenderCheckbox(ref ModSettings.CraftAtFullSpeedWhileAdventuring, "Characters craft at full speed while adventuring (instead of 25% speed).");
             RenderCheckbox(ref ModSettings.IgnorePlusTenItemMaximum, "Ignore the rule that limits arms and armor to a maximum of +10 equivalent.");
             RenderCheckbox(ref ModSettings.IgnoreFeatCasterLevelRestriction, "Ignore the crafting feat Caster Level prerequisites when learning feats.");
@@ -1763,11 +1779,11 @@ namespace CraftMagicItems {
                 craftingSkill = StatType.SkillKnowledgeWorld;
                 var recipeBasedItemCraftingData = (RecipeBasedItemCraftingData) craftingData;
                 dc = CalculateMundaneCraftingDC(recipeBasedItemCraftingData, project.ResultItem.Blueprint, project.Crafter.Descriptor);
-                progressRate = MundaneCraftingProgressPerDay;
+                progressRate = ModSettings.MundaneCraftingRate;
             } else {
                 craftingSkill = StatType.SkillKnowledgeArcana;
                 dc = 5 + project.CasterLevel;
-                progressRate = MagicCraftingProgressPerDay;
+                progressRate = ModSettings.MagicCraftingRate;
             }
 
             var skillMargin = RenderCraftingSkillInformation(project.Crafter, craftingSkill, dc, project.CasterLevel, project.Prerequisites,
@@ -2652,7 +2668,7 @@ namespace CraftMagicItems {
                 // Cleared the last hurdle, so caster is going to make progress on this project.
                 // You only work at 1/4 speed if you're crafting while adventuring.
                 var adventuringPenalty = !isAdventuring || ModSettings.CraftAtFullSpeedWhileAdventuring ? 1 : AdventuringProgressPenalty;
-                var progressRate = IsMundaneCraftingData(craftingData) ? MundaneCraftingProgressPerDay : MagicCraftingProgressPerDay;
+                var progressRate = IsMundaneCraftingData(craftingData) ? ModSettings.MundaneCraftingRate : ModSettings.MagicCraftingRate;
                 // Each 1 by which the skill check exceeds the DC increases the crafting rate by 20% of the base progressRate
                 var progressPerDay = (int) (progressRate * (1 + (float) (skillCheck - dc) / 5) / adventuringPenalty);
                 var daysUntilProjectFinished = (int) Math.Ceiling(1.0 * (project.TargetCost - project.Progress) / progressPerDay);

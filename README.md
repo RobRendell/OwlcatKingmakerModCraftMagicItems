@@ -4,7 +4,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 * Double weapons
-* Configuration items to scale crafting progress (magical and mundane).
 
 * Enchanting bonded objects.  Custom buff on caster, contains ref to original item and current item (apply renames to
         original item as well?)  If item is not equipped, switch current and original item in shared stash when the
