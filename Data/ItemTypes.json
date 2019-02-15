@@ -262,5 +262,17 @@
     "MundaneEnhancementsStackable": true,
     "RecipeFileNames": ["MundaneRecipes.json"],
     "Slots": ["Weapon"]
+  },
+  {
+    "DataType": "RecipeBased",
+    "Name": "CraftMundaneAlchemicalItems",
+    "NameId": "43190791-b32a-4df1-b278-91cbbc25592a",
+    "NewItemBaseIDs": [
+      "4639724c4a9cc9544a2f622b66931658",
+      "fd56596e273d1ff49a8c29cc9802ae6e"
+    ],
+    "MundaneBaseDC": 15,
+    "RecipeFileNames": ["MundaneRecipes.json"],
+    "Slots": ["Usable"]
   }
 ]

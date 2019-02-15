@@ -1237,7 +1237,10 @@ namespace CraftMagicItems {
                             dc -= 3;
                         }
                     }
-
+                    break;
+                case BlueprintItemEquipmentUsable usable when usable.AssetGuid == "fd56596e273d1ff49a8c29cc9802ae6e":
+                    // Alchemist's Fire has a DC of 20
+                    dc += 5;
                     break;
             }
 

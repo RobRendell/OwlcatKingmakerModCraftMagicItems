@@ -3,7 +3,6 @@ This is the source for my mod to add crafting of magic items to Owlcat's Pathfin
 For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmaker/mods/54
 
 ## To Do
-* Alchemical crafting under Mundane crafting: acid flask, alchemist's fire.
 * Double weapons
 * Configuration items to scale crafting progress (magical and mundane).
 
