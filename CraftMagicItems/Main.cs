@@ -62,6 +62,7 @@ namespace CraftMagicItems {
         public bool CraftingTakesNoTime;
         public float CraftingPriceScale = 1;
         public bool CraftAtFullSpeedWhileAdventuring;
+        public bool CasterLevelIsSinglePrerequisite;
         public bool IgnoreFeatCasterLevelRestriction;
         public bool IgnorePlusTenItemMaximum;
         public bool CustomCraftRate;
@@ -1158,25 +1159,22 @@ namespace CraftMagicItems {
                 // ReSharper disable once UnusedVariable
                 out var spellsToCast);
             missing += GetMissingCrafterPrerequisites(crafterPrerequisites, crafter.Descriptor).Count;
+            var crafterCasterLevel = CharacterCasterLevel(crafter.Descriptor);
+            var casterLevelShortfall = Math.Max(0, casterLevel - crafterCasterLevel);
+            if (casterLevelShortfall > 0 && ModSettings.CasterLevelIsSinglePrerequisite) {
+                missing++;
+                casterLevelShortfall = 0;
+            }
             if (missing > 0 && render) {
                 RenderLabel(
                     $"{crafter.CharacterName} is unable to meet {missing} of the prerequisites, raising the DC by {MissingPrerequisiteDCModifier * missing}");
             }
-
-            var crafterCasterLevel = CharacterCasterLevel(crafter.Descriptor);
-            if (crafterCasterLevel < casterLevel) {
-                var casterLevelShortfall = casterLevel - crafterCasterLevel;
-                if (render) {
-                    RenderLabel(L10NFormat("craftMagicItems-logMessage-low-caster-level", casterLevel, MissingPrerequisiteDCModifier * casterLevelShortfall));
-                }
-
-                missing += casterLevelShortfall;
+            if (casterLevelShortfall > 0 && render) {
+                RenderLabel(L10NFormat("craftMagicItems-logMessage-low-caster-level", casterLevel, MissingPrerequisiteDCModifier * casterLevelShortfall));
             }
-
-            if (missing > 0) {
-                dc += MissingPrerequisiteDCModifier * missing;
-            }
-
+            // Rob's ruling... if you're below the prerequisite caster level, you're considered to be missing a prerequisite for each
+            // level you fall short.
+            dc += MissingPrerequisiteDCModifier * (missing + casterLevelShortfall);
             var oppositionSchool = CheckForOppositionSchool(crafter.Descriptor, prerequisiteSpells);
             if (oppositionSchool != SpellSchool.None) {
                 dc += OppositionSchoolDCModifier;
@@ -1573,6 +1571,8 @@ namespace CraftMagicItems {
                     ModSettings.MundaneCraftingRate = Settings.MundaneCraftingProgressPerDay;
                 }
             }
+            RenderCheckbox(ref ModSettings.CasterLevelIsSinglePrerequisite,
+                "When crafting, a Caster Level less than the prerequisite counts as a single missing prerequisite.");
             RenderCheckbox(ref ModSettings.CraftAtFullSpeedWhileAdventuring, "Characters craft at full speed while adventuring (instead of 25% speed).");
             RenderCheckbox(ref ModSettings.IgnorePlusTenItemMaximum, "Ignore the rule that limits arms and armor to a maximum of +10 equivalent.");
             RenderCheckbox(ref ModSettings.IgnoreFeatCasterLevelRestriction, "Ignore the crafting feat Caster Level prerequisites when learning feats.");
@@ -2691,10 +2691,12 @@ namespace CraftMagicItems {
                 var casterLevel = CharacterCasterLevel(caster);
                 if (casterLevel < project.CasterLevel) {
                     // Rob's ruling... if you're below the prerequisite caster level, you're considered to be missing a prerequisite for each
-                    // level you fall short.
-                    var casterLevelPenalty = MissingPrerequisiteDCModifier * (project.CasterLevel - casterLevel);
-                    AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-low-caster-level", project.CasterLevel, casterLevelPenalty));
+                    // level you fall short, unless ModSettings.CasterLevelIsSinglePrerequisite is true.
+                    var casterLevelPenalty = ModSettings.CasterLevelIsSinglePrerequisite
+                        ? MissingPrerequisiteDCModifier
+                        : MissingPrerequisiteDCModifier * (project.CasterLevel - casterLevel);
                     dc += casterLevelPenalty;
+                    AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-low-caster-level", project.CasterLevel, casterLevelPenalty));
                 }
                 var oppositionSchool = CheckForOppositionSchool(caster, project.Prerequisites);
                 if (oppositionSchool != SpellSchool.None) {

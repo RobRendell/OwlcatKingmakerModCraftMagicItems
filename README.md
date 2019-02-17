@@ -10,7 +10,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
         concentration check to cast, or if I can't get that to work, RuleCastSpell has a general SpellFailureChance
         percentage which could do an equivalent effect.
 
-* Option to make any CL shortfall a single missing prerequisite.
 * Trailblazer's Helm can cast two different spells!
 * Perhaps crafting projects for characters in your party should be advanced at the adventuring rate when you first enter
         the capital, to account things more accurately?
