@@ -1314,11 +1314,9 @@ namespace CraftMagicItems {
             var casterLevel = 0;
             var booksToCheck = forSpellbook == null ? character.Spellbooks : Enumerable.Repeat(forSpellbook, 1);
             foreach (var spellbook in booksToCheck) {
-                // Cantrips calculate Caster Level based purely on the levels of the base class, rather than using Spellbook.CasterLevel, which factors in
-                // additional things like Prestige Classes.  So, avoid cantrips if possible, but use them if they're all we have.  
-                var spell = spellbook.GetAllKnownSpells().OrderBy(knownSpell => -knownSpell.SpellLevel).FirstOrDefault();
-                if (spellbook.CasterLevel > 0 && spell != null) {
-                    var rule = new RuleCalculateAbilityParams(character.Unit, spell);
+                if (spellbook.CasterLevel > 0) {
+                    var blueprintAbility = ScriptableObject.CreateInstance<BlueprintAbility>();
+                    var rule = new RuleCalculateAbilityParams(character.Unit, blueprintAbility, spellbook);
                     RulebookEventBus.OnEventAboutToTrigger(rule);
                     rule.OnTrigger(null);
                     casterLevel = rule.Result.CasterLevel > casterLevel ? rule.Result.CasterLevel : casterLevel;
