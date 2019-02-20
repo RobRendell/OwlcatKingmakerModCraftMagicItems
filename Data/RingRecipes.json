@@ -131,7 +131,7 @@
     ],
     "CasterLevelStart": 15,
     "CasterLevelMultiplier": 0,
-    "PrerequisiteSpells": ["ff8f1534f66559c478448723e16b6624"],
+    "PrerequisiteSpells": ["5da172c4c89f9eb4cbb614f3a67357d3"],
     "CostType": "Flat",
     "CostFactor": 90000,
     "OnlyForSlots": ["Ring"]
