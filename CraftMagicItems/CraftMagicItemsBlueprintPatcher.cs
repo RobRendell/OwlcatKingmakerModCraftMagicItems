@@ -34,9 +34,9 @@ namespace CraftMagicItems {
                       + @"CL=(?<casterLevel>\d+)(?<spellLevelMatch>,SL=(?<spellLevel>\d+))?(?<spellIdMatch>,spellId=\((?<spellId>" + MatchedParensComma +
                       @")\))?"
                       + @"|enchantments=\((?<enchantments>|" + MatchedParensComma + @")\)(,remove=(?<remove>[0-9a-f;]+))?(,name=(?<name>[^✔]+)✔)?"
-                          + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?(,visual=(?<visual>null|[0-9a-f]+))?"
-                          + @"(,CL=(?<casterLevel>[0-9]+))?(,SL=(?<spellLevel>[0-9]+))?(,perDay=(?<perDay>[0-9]+))?(,nameId=(?<nameId>[^,]+))?(,descriptionId=(?<descriptionId>[^,]+))?"
-                          + $"(,secondEnd=(?<secondEnd>{MatchedParensComma}))?"
+                      + @"(,ability=(?<ability>null|[0-9a-f]+))?(,activatableAbility=(?<activatableAbility>null|[0-9a-f]+))?(,material=(?<material>[a-zA-Z]+))?(,visual=(?<visual>null|[0-9a-f]+))?"
+                      + @"(,CL=(?<casterLevel>[0-9]+))?(,SL=(?<spellLevel>[0-9]+))?(,perDay=(?<perDay>[0-9]+))?(,nameId=(?<nameId>[^,]+))?(,descriptionId=(?<descriptionId>[^,]+))?"
+                      + $"(,secondEnd=(?<secondEnd>{MatchedParensComma}))?"
                       + @"|feat=(?<feat>[-a-z]+)"
                       + @"|(?<timer>timer)"
                       + @"|(?<bondedItem>bondedItem)"
@@ -53,6 +53,8 @@ namespace CraftMagicItems {
         // TODO remove the ScribeScroll prefix eventually
         private const string OldBlueprintPrefix = "#ScribeScroll";
         public const string BlueprintPrefix = "#CraftMagicItems";
+
+        private const string MithralEnchantmentGuid = "7b95a819181574a4799d93939aa99aff";
 
         private readonly CraftMagicItemsAccessors accessors;
 
@@ -315,6 +317,10 @@ namespace CraftMagicItems {
                     }
 
                     enchantmentsForDescription.Add(enchantment);
+                    if (guid == MithralEnchantmentGuid) {
+                        // Mithral equipment has half weight
+                        accessors.SetBlueprintItemWeight(blueprint, blueprint.Weight / 2);
+                    }
 
                     if (!(blueprint is BlueprintItemShield) && (Main.GetItemType(blueprint) != ItemsFilter.ItemType.Shield
                                                                 || Main.FindSourceRecipe(guid, blueprint) != null)) {
@@ -384,7 +390,7 @@ namespace CraftMagicItems {
                 secondEndGuid = match.Groups["secondEnd"].Value;
                 doubleWeapon.SecondWeapon = ResourcesLibrary.TryGetBlueprint<BlueprintItemWeapon>(secondEndGuid);
             }
-            
+
             if (!SlotsWhichShowEnchantments.Contains(blueprint.ItemType)) {
                 accessors.SetBlueprintItemDescriptionText(blueprint,
                     descriptionId != null

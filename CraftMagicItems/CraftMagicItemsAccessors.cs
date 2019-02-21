@@ -118,6 +118,8 @@ namespace CraftMagicItems {
 
         public readonly FastSetter<RuleDealDamage, int> SetRuleDealDamageDamage = Accessors.CreateSetter<RuleDealDamage, int>("Damage");
 
+        public readonly FastSetter<BlueprintItem, float> SetBlueprintItemWeight = Accessors.CreateSetter<BlueprintItem, float>("m_Weight");
+
         public readonly FastStaticInvoker<ItemEntityWeapon, string> CallUIUtilityItemGetQualities =
             Accessors.CreateStaticInvoker<ItemEntityWeapon, string>(typeof(UIUtilityItem), "GetQualities");
 
