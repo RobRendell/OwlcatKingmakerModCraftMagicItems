@@ -1057,8 +1057,13 @@ namespace CraftMagicItems {
                               + (selectedEnchantment == null
                                   ? 0
                                   : selectedRecipe.Enchantments.IndexOf(selectedEnchantment) * selectedRecipe.CasterLevelMultiplier);
-            if (selectedEnchantment != null && !string.IsNullOrEmpty(selectedEnchantment.Description)) {
-                RenderLabel(selectedEnchantment.Description);
+            if (selectedEnchantment != null) {
+                if (!string.IsNullOrEmpty(selectedEnchantment.Description)) {
+                    RenderLabel(selectedEnchantment.Description);
+                }
+                if (selectedRecipe.CostType == RecipeCostType.EnhancementLevelSquared) {
+                    RenderLabel($"Plus equivalent: +{(selectedRecipe.Enchantments.IndexOf(selectedEnchantment) + 1) * selectedRecipe.CostFactor}");
+                }
             }
 
             if (upgradeItem?.Blueprint.ItemType == ItemsFilter.ItemType.Shield && (selectedRecipe.OnlyForSlots?.Contains(ItemsFilter.ItemType.Weapon) ?? false)
