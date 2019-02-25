@@ -291,7 +291,9 @@ namespace CraftMagicItems {
             // Set GameLogContext so the caster will be used when generating localized strings.
             GameLogContext.SourceUnit = sourceUnit;
             var template = new L10NString(key);
-            return string.Format(template.ToString(), args);
+            var result = string.Format(template.ToString(), args);
+            GameLogContext.Clear();
+            return result;
         }
 
         private static string L10NFormat(string key, params object[] args) {
@@ -1260,6 +1262,7 @@ namespace CraftMagicItems {
                 spellLevel = equipment.SpellLevel;
                 GameLogContext.Count = equipment.Charges;
                 RenderLabel($"Current: {L10NFormat("craftMagicItems-label-cast-spell-n-times-details", ability.Name, equipment.CasterLevel)}");
+                GameLogContext.Clear();
             }
 
             // Choose a caster level
@@ -1302,6 +1305,7 @@ namespace CraftMagicItems {
             // Render craft button
             GameLogContext.Count = selectedCastsPerDay;
             RenderLabel(L10NFormat("craftMagicItems-label-cast-spell-n-times-details", ability.Name, selectedCasterLevel));
+            GameLogContext.Clear();
             var recipe = new RecipeData {
                 PrerequisiteSpells = new[] {ability}
             };
@@ -2054,6 +2058,7 @@ namespace CraftMagicItems {
                     ? new L10NString("craftMagicItems-time-estimate-one-day")
                     : L10NFormat("craftMagicItems-time-estimate-adventuring-capital", adventuringDayCount));
             }
+            GameLogContext.Clear();
 
             AddBattleLogMessage(project.LastMessage);
         }
@@ -2230,6 +2235,7 @@ namespace CraftMagicItems {
             if (blueprint is BlueprintItemEquipment equipment && (ability != null && ability != "null" || casterLevel > -1 || perDay > -1)) {
                 GameLogContext.Count = equipment.Charges;
                 description += "\n * " + L10NFormat("craftMagicItems-label-cast-spell-n-times-details", equipment.Ability.Name, equipment.CasterLevel);
+                GameLogContext.Clear();
             }
 
             return new FakeL10NString(description);
@@ -2983,6 +2989,7 @@ namespace CraftMagicItems {
                                 GameLogContext.SourceUnit = caster.Unit;
                                 GameLogContext.Text = itemSpell.SourceItem.Name;
                                 AddBattleLogMessage(CharacterUsedItemLocalized);
+                                GameLogContext.Clear();
                                 itemSpell.SourceItem.SpendCharges(caster);
                             }
                         }
