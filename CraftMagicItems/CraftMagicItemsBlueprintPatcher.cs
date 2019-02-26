@@ -366,6 +366,8 @@ namespace CraftMagicItems {
             if (match.Groups["perDay"].Success) {
                 perDay = int.Parse(match.Groups["perDay"].Value);
                 blueprint.Charges = perDay;
+                blueprint.SpendCharges = true;
+                blueprint.RestoreChargesOnRest = true;
             }
 
             string name = null;
