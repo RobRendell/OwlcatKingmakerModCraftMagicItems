@@ -289,7 +289,6 @@ namespace CraftMagicItems {
             if (match.Groups["ability"].Success) {
                 ability = match.Groups["ability"].Value;
                 blueprint.Ability = ability == "null" ? null : ResourcesLibrary.TryGetBlueprint<BlueprintAbility>(ability);
-                blueprint.RestoreChargesOnRest = (ability != "null");
             }
 
             string activatableAbility = null;
@@ -368,6 +367,11 @@ namespace CraftMagicItems {
                 blueprint.Charges = perDay;
                 blueprint.SpendCharges = true;
                 blueprint.RestoreChargesOnRest = true;
+                if (blueprint.Ability.LocalizedSavingThrow != null && blueprint.Ability.LocalizedSavingThrow.IsSet()) {
+                    blueprint.DC = 10 + blueprint.SpellLevel * 3 / 2;
+                } else {
+                    blueprint.DC = 0;
+                }
             }
 
             string name = null;
