@@ -1486,10 +1486,9 @@ namespace CraftMagicItems {
                                && (data.ParentNameId == null || SubCraftingData[data.ParentNameId][0] == data))
                 .ToArray();
             var itemTypeNames = itemTypes.Select(data => new L10NString(data.ParentNameId ?? data.NameId).ToString()).ToArray();
-            var selectedItemTypeIndex = 0;
-            if (upgradingBlueprint == null) {
-                selectedItemTypeIndex = RenderSelection("Crafting: ", itemTypeNames, 6, ref selectedCustomName);
-            }
+            var selectedItemTypeIndex = upgradingBlueprint == null
+                ? RenderSelection("Crafting: ", itemTypeNames, 6, ref selectedCustomName)
+                : GetSelectionIndex("Crafting: ");
 
             var selectedCraftingData = itemTypes[selectedItemTypeIndex];
             if (selectedCraftingData.ParentNameId != null) {
@@ -1800,7 +1799,7 @@ namespace CraftMagicItems {
             }
 
             const string label = "Crafter: ";
-            var selectedSpellcasterIndex = SelectedIndex.ContainsKey(label) ? SelectedIndex[label] : 0;
+            var selectedSpellcasterIndex = GetSelectionIndex(label);
             if (render) {
                 var partyNames = characters.Select(entity => $"{entity.CharacterName}" +
                                                              $"{((GetCraftingTimerComponentForCaster(entity.Descriptor)?.CraftingProjects.Any() ?? false) ? "*" : "")}")
@@ -1816,8 +1815,12 @@ namespace CraftMagicItems {
             return RenderSelection(label, options, xCount, ref dummy);
         }
 
+        private static int GetSelectionIndex(string label) {
+            return SelectedIndex.ContainsKey(label) ? SelectedIndex[label] : 0;
+        }
+
         private static int RenderSelection<T>(string label, string[] options, int xCount, ref T emptyOnChange) {
-            var index = SelectedIndex.ContainsKey(label) ? SelectedIndex[label] : 0;
+            var index = GetSelectionIndex(label);
             if (index >= options.Length) {
                 index = 0;
             }
