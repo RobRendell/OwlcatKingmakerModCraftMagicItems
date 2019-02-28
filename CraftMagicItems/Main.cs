@@ -2206,11 +2206,15 @@ namespace CraftMagicItems {
             var description = allKnown
                 ? new L10NString("craftMagicItems-custom-description-start")
                 : blueprint.Description + new L10NString("craftMagicItems-custom-description-additional");
-            foreach (var enchantment in allKnown ? blueprint.Enchantments : enchantments) {
-                var recipe = FindSourceRecipe(enchantment.AssetGuid, blueprint);
-                if (!string.IsNullOrEmpty(enchantment.Name)) {
-                    description += "\n * " + enchantment.Name;
-                } else if (recipe.Enchantments.Length > 1) {
+            description += (allKnown ? blueprint.Enchantments : enchantments)
+                .Select(enchantment => {
+                    if (!string.IsNullOrEmpty(enchantment.Name)) {
+                        return enchantment.Name;
+                    }
+                    var recipe = FindSourceRecipe(enchantment.AssetGuid, blueprint);
+                    if (recipe.Enchantments.Length <= 1) {
+                        return new L10NString(recipe.NameId);
+                    }
                     var bonusString = GetBonusString(recipe.Enchantments.IndexOf(enchantment) + 1, recipe);
                     var bonusDescription = recipe.BonusTypeId != null
                         ? L10NFormat("craftMagicItems-custom-description-bonus-to", new L10NString(recipe.BonusTypeId), new L10NString(recipe.NameId))
@@ -2219,16 +2223,15 @@ namespace CraftMagicItems {
                             : L10NFormat("craftMagicItems-custom-description-bonus", new L10NString(recipe.NameId));
                     var upgradeFrom = allKnown ? null : removed.FirstOrDefault(remove => FindSourceRecipe(remove.AssetGuid, blueprint) == recipe);
                     if (upgradeFrom == null) {
-                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-template", bonusString, bonusDescription);
-                    } else {
-                        var oldBonus = recipe.Enchantments.IndexOf(upgradeFrom) + 1;
-                        description += "\n * " + L10NFormat("craftMagicItems-custom-description-enchantment-upgrade-template", bonusDescription, oldBonus,
-                                           bonusString);
+                        return L10NFormat("craftMagicItems-custom-description-enchantment-template", bonusString, bonusDescription);
                     }
-                } else {
-                    description += "\n * " + new L10NString(recipe.NameId);
-                }
-            }
+                    var oldBonus = recipe.Enchantments.IndexOf(upgradeFrom) + 1;
+                    return L10NFormat("craftMagicItems-custom-description-enchantment-upgrade-template", bonusDescription, oldBonus,
+                        bonusString);
+                })
+                .OrderBy(enchantmentDescription => enchantmentDescription)
+                .Select(enchantmentDescription => "\n * " + enchantmentDescription)
+                .Join("");
 
             if (blueprint is BlueprintItemEquipment equipment && (ability != null && ability != "null" || casterLevel > -1 || perDay > -1)) {
                 GameLogContext.Count = equipment.Charges;
