@@ -893,16 +893,14 @@ namespace CraftMagicItems {
 
         private static ItemEntity BuildItemEntity(BlueprintItem blueprint, ItemCraftingData craftingData) {
             var item = blueprint.CreateEntity();
-            item.IsIdentified = true;
+            item.Identify();
             if (craftingData is SpellBasedItemCraftingData spellBased) {
                 item.Charges = spellBased.Charges; // Set the charges, since wand blueprints have random values.
             }
 
-            if (item is ItemEntityShield shield) {
-                shield.ArmorComponent.IsIdentified = item.IsIdentified;
-                if (shield.WeaponComponent != null) {
-                    shield.WeaponComponent.IsIdentified = item.IsIdentified;
-                }
+            if (item is ItemEntityShield shield && item.IsIdentified) {
+                shield.ArmorComponent.Identify();
+                shield.WeaponComponent?.Identify();
             }
 
             item.PostLoad();
@@ -3204,10 +3202,8 @@ namespace CraftMagicItems {
             private static void Prefix(ItemEntity item) {
                 if (item is ItemEntityShield shield && shield.IsIdentified) {
                     // It appears that shields are not properly identified when found.
-                    shield.ArmorComponent.IsIdentified = true;
-                    if (shield.WeaponComponent != null) {
-                        shield.WeaponComponent.IsIdentified = true;
-                    }
+                    shield.ArmorComponent.Identify();
+                    shield.WeaponComponent?.Identify();
                 }
             }
 

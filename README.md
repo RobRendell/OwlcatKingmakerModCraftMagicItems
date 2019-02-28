@@ -5,6 +5,8 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 ## To Do
 
 * Add some text to vanilla Bonded Item ability
+* DC of offensive cast-N-times spells is 0
+* Regression: adding multiple options to mundane weapons
 * Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
 * Trailblazer's Helm can cast two different spells!
 * Perhaps crafting projects for characters in your party should be advanced at the adventuring rate when you first enter
