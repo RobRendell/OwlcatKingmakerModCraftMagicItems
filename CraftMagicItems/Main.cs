@@ -456,7 +456,7 @@ namespace CraftMagicItems {
         private static void RenderBondedItemCrafting(UnitEntityData caster) {
             // Check if the caster is performing a bonded item ritual.
             var projects = GetCraftingTimerComponentForCaster(caster.Descriptor);
-            var ritualProject = projects.CraftingProjects.FirstOrDefault(project => project.ItemType == BondedItemRitual);
+            var ritualProject = projects == null ? null : projects.CraftingProjects.FirstOrDefault(project => project.ItemType == BondedItemRitual);
             if (ritualProject != null) {
                 RenderLabel($"{caster.CharacterName} is in the process of bonding with {ritualProject.ResultItem.Name}");
                 return;
