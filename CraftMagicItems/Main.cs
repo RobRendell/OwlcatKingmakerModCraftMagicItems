@@ -2593,6 +2593,7 @@ namespace CraftMagicItems {
                     // If the mod is enabled and we're past the Start of main menu, (re-)initialise.
                     InitialiseMod();
                 }
+                L10n.SetEnabled(modEnabled);
             }
         }
 

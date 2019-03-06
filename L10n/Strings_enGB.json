@@ -47,6 +47,14 @@
 		"key": "craftMagicItems-feat-ring-description",
 		"value": "You can create or upgrade magic rings."
 	},
+  {
+    "key": "c086ea95-fd31-4297-bd58-f2f0f122bf66",
+    "value": "+\n<b>Craft Magic Items mod:</b> You may select an amulet, a weapon or a ring as your bonded object.  You can enchant your bonded object as if you had the prerequisite item crafting feat, as long as you also meet the caster level prerequisite for that feat (3rd for an amulet, 5th for a weapon, 7th for a ring).\nOnce selected, if you do not have your bonded object equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
+  },
+  {
+    "key": "d31cb5ad-6b57-433a-bb92-8872873e8286",
+    "value": "+\n<b>Craft Magic Items mod:</b> You may select an amulet, a weapon or a ring as your bonded object.  You can enchant your bonded object as if you had the prerequisite item crafting feat, as long as you also meet the caster level prerequisite for that feat (3rd for an amulet, 5th for a weapon, 7th for a ring).\nOnce selected, if you do not have your bonded object equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
+  },
 	{
 		"key": "craftMagicItems-itemType-wondrous",
 		"value": "Wondrous Item"
