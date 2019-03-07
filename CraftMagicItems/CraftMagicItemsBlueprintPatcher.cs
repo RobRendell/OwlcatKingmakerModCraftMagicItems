@@ -54,7 +54,13 @@ namespace CraftMagicItems {
         private const string OldBlueprintPrefix = "#ScribeScroll";
         public const string BlueprintPrefix = "#CraftMagicItems";
 
-        private const string MithralEnchantmentGuid = "7b95a819181574a4799d93939aa99aff";
+        private const string MithralArmourEnchantmentGuid = "7b95a819181574a4799d93939aa99aff";
+
+        public readonly Dictionary<PhysicalDamageMaterial, string> PhysicalDamageMaterialEnchantments = new Dictionary<PhysicalDamageMaterial, string>() {
+            {PhysicalDamageMaterial.Adamantite, "ab39e7d59dd12f4429ffef5dca88dc7b"},
+            {PhysicalDamageMaterial.ColdIron, "e5990dc76d2a613409916071c898eee8"},
+            {PhysicalDamageMaterial.Silver, "0ae8fc9f2e255584faf4d14835224875"}
+        };
 
         private readonly CraftMagicItemsAccessors accessors;
 
@@ -316,7 +322,7 @@ namespace CraftMagicItems {
                     }
 
                     enchantmentsForDescription.Add(enchantment);
-                    if (guid == MithralEnchantmentGuid) {
+                    if (guid == MithralArmourEnchantmentGuid) {
                         // Mithral equipment has half weight
                         accessors.SetBlueprintItemWeight(blueprint, blueprint.Weight / 2);
                     }
@@ -333,6 +339,14 @@ namespace CraftMagicItems {
                 Enum.TryParse(match.Groups["material"].Value, out material);
                 accessors.SetBlueprintItemWeaponDamageType(weapon, TraverseCloneAndSetField(weapon.DamageType, "Physical.Material", material.ToString()));
                 accessors.SetBlueprintItemWeaponOverrideDamageType(weapon, true);
+                var materialGuid = PhysicalDamageMaterialEnchantments[material];
+                var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>(materialGuid);
+                enchantmentsCopy.Add(enchantment);
+                enchantmentsForDescription.Add(enchantment);
+                if (material == PhysicalDamageMaterial.Silver) {
+                    // PhysicalDamageMaterial.Silver is really Mithral, and Mithral equipment has half weight
+                    accessors.SetBlueprintItemWeight(blueprint, blueprint.Weight / 2);
+                }
             }
 
             string visual = null;
@@ -389,6 +403,10 @@ namespace CraftMagicItems {
             string descriptionId = null;
             if (match.Groups["descriptionId"].Success) {
                 descriptionId = match.Groups["descriptionId"].Value;
+                if (descriptionId == "craftMagicItems-material-silver-weapon-description") {
+                    // Backwards compatibility - remove custom silver weapon description
+                    descriptionId = null;
+                }
             }
 
             string secondEndGuid = null;

@@ -11,17 +11,17 @@
   },
   {
     "AddInVersion": "1.8.10",
-    "AssetGuid": "aa514dbf4c3d61f4e9c0738bd4d373cb#CraftMagicItems(enchantments=(6b38844e2bffbac48b63036b66e735be),material=Silver,nameId=craftMagicItems-item-silver-dagger-name,descriptionId=craftMagicItems-material-silver-weapon-description)",
+    "AssetGuid": "aa514dbf4c3d61f4e9c0738bd4d373cb#CraftMagicItems(enchantments=(6b38844e2bffbac48b63036b66e735be),material=Silver,nameId=craftMagicItems-item-silver-dagger-name)",
     "LootTables": ["C11_OlegVendorTable"]
   },
   {
     "AddInVersion": "1.8.10",
-    "AssetGuid": "6fd0a849531617844b195f452661b2cd#CraftMagicItems(enchantments=(d42fc23b92c640846ac137dc26e000d4),material=Silver,nameId=craftMagicItems-item-silver-longsword+1-name,descriptionId=craftMagicItems-material-silver-weapon-description)",
+    "AssetGuid": "6fd0a849531617844b195f452661b2cd#CraftMagicItems(enchantments=(d42fc23b92c640846ac137dc26e000d4),material=Silver,nameId=craftMagicItems-item-silver-longsword+1-name)",
     "LootTables": ["SmithVendorTable"]
   },
   {
     "AddInVersion": "1.8.10",
-    "AssetGuid": "07531989333442348b7d0102b24af236#CraftMagicItems(enchantments=(d42fc23b92c640846ac137dc26e000d4),material=Silver,nameId=craftMagicItems-item-silver-bastard-sword+1-name,descriptionId=craftMagicItems-material-silver-weapon-description)",
+    "AssetGuid": "07531989333442348b7d0102b24af236#CraftMagicItems(enchantments=(d42fc23b92c640846ac137dc26e000d4),material=Silver,nameId=craftMagicItems-item-silver-bastard-sword+1-name)",
     "LootTables": ["SmithVendorTable"]
   },
   {

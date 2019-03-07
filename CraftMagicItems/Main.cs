@@ -1155,13 +1155,10 @@ namespace CraftMagicItems {
         }
 
         private static string GetEnchantmentNames(BlueprintItem blueprint) {
-            var weapon = blueprint as BlueprintItemWeapon;
-            var material = weapon ? weapon.DamageType.Physical.Material : 0;
             return blueprint.Enchantments
                 .Where(enchantment => !string.IsNullOrEmpty(enchantment.Name))
                 .Select(enchantment => enchantment.Name)
                 .OrderBy(name => name)
-                .PrependConditional(material != 0, LocalizedTexts.Instance.DamageMaterial.GetText(material))
                 .Join();
         }
 
@@ -1609,16 +1606,9 @@ namespace CraftMagicItems {
         }
 
         private static string GetWeaponMaterialDescription(PhysicalDamageMaterial material) {
-            switch (material) {
-                case PhysicalDamageMaterial.Silver:
-                    return new L10NString("craftMagicItems-material-silver-weapon-description").ToString();
-                case PhysicalDamageMaterial.ColdIron:
-                    return new L10NString("craftMagicItems-material-coldIron-weapon-description").ToString();
-                case PhysicalDamageMaterial.Adamantite:
-                    return new L10NString("craftMagicItems-material-adamantite-weapon-description").ToString();
-                default:
-                    return "";
-            }
+            var guid = blueprintPatcher.PhysicalDamageMaterialEnchantments[material];
+            var enchantment = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>(guid);
+            return enchantment != null ? enchantment.Description : "";
         }
 
         private static string ApplyVisualMapping(RecipeData recipe, BlueprintItem blueprint) {
@@ -2340,15 +2330,13 @@ namespace CraftMagicItems {
                     var enhancementLevel = ItemPlusEquivalent(weapon);
                     var assetGuid = CustomBlueprintBuilder.AssetGuidWithoutMatch(weapon.AssetGuid);
                     var baseWeapon = ResourcesLibrary.TryGetBlueprint<BlueprintItemWeapon>(assetGuid);
-                    // Silver weapons cost double, including the masterwork component and for enchanting the first +1
+                    // Cold Iron weapons cost double, including the masterwork component and for enchanting the first +1
                     return (baseWeapon == null ? 0 : baseWeapon.Cost) +
                            (enhancementLevel > 0 ? WeaponPlusCost + MasterworkCost : IsMasterwork(weapon) ? MasterworkCost : 0);
-                case PhysicalDamageMaterial.Silver when weapon.Category.HasSubCategory(WeaponSubCategory.Light):
-                    return 20;
-                case PhysicalDamageMaterial.Silver when weapon.Category.HasSubCategory(WeaponSubCategory.TwoHanded) || weapon.Double:
-                    return 180;
                 case PhysicalDamageMaterial.Silver:
-                    return 90;
+                    // PhysicalDamageMaterial.Silver is really Mithral.  Non-armour Mithral items cost 500 gp per pound of the original, non-Mithral item, which
+                    // translates to 1000 gp per pound of Mithral.  See https://paizo.com/paizo/faq/v5748nruor1fm#v5748eaic9r9u
+                    return (int) (1000 * weapon.Weight) - MasterworkCost; // Cost of masterwork is subsumed by the cost of mithral
                 default:
                     return 0;
             }
@@ -3220,18 +3208,7 @@ namespace CraftMagicItems {
                     return;
                 }
 
-                if (item is ItemEntityWeapon weapon) {
-                    if (weapon.Blueprint.DamageType.Physical.Material != 0) {
-                        var description = new StringBuilder();
-                        description.Append(LocalizedTexts.Instance.DamageMaterial.GetText(weapon.Blueprint.DamageType.Physical.Material));
-                        if (!string.IsNullOrEmpty(__result)) {
-                            description.Append(", ");
-                            description.Append(__result);
-                        }
-
-                        __result = description.ToString();
-                    }
-                } else if (item is ItemEntityShield shield && shield.WeaponComponent != null) {
+                if (item is ItemEntityShield shield && shield.WeaponComponent != null) {
                     var weaponQualities = Accessors.CallUIUtilityItemGetQualities(shield.WeaponComponent);
                     if (!string.IsNullOrEmpty(weaponQualities)) {
                         __result = string.IsNullOrEmpty(__result)

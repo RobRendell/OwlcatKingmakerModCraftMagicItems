@@ -284,33 +284,21 @@
 		"value": "able to Channel Energy"
 	},
 	{
-		"key": "craftMagicItems-material-silver-weapon-description",
-		"value": "A complex process involving metallurgy and alchemy can bond silver to a weapon made of steel so that it bypasses the damage reduction of creatures such as lycanthropes."
-	},
-	{
 		"key": "craftMagicItems-item-silver-dagger-name",
-		"value": "Masterwork Silver Dagger"
+		"value": "Mithral Dagger"
 	},
 	{
 		"key": "craftMagicItems-item-silver-longsword+1-name",
-		"value": "Silver Longsword +1"
+		"value": "Mithral Longsword +1"
 	},
 	{
 		"key": "craftMagicItems-item-silver-bastard-sword+1-name",
-		"value": "Silver Bastard Sword +1"
+		"value": "Mithral Bastard Sword +1"
 	},
     {
         "key": "craftMagicItems-item-mithral-breastplate-name",
         "value": "Mithral Breastplate"
     },
-	{
-		"key": "craftMagicItems-material-coldIron-weapon-description",
-		"value": "This iron, mined deep underground and known for its effectiveness against demons and fey creatures, is forged at a lower temperature to preserve its delicate properties. Weapons made of cold iron cost twice as much to make as their normal counterparts, including costing twice as much to initially enchant the weapon to +1."
-	},
-	{
-		"key": "craftMagicItems-material-adamantite-weapon-description",
-		"value": "Weapons fashioned from adamantine have a natural ability to bypass hardness when sundering weapons or attacking objects, ignoring hardness less than 20.  Adamantine requires so much skill to work that weapons made from it are always of masterwork quality."
-	},
 	{
 		"key": "craftMagicItems-enchantment-sustenance-name",
 		"value": "Sustenance"

@@ -149,9 +149,11 @@
     "CanApplyToMundaneItem": true
   },
   {
-    "Name": "SilverWeapon",
-    "NameId": "28efe9ff-4335-4fba-946c-61099352d42b",
-    "Enchantments": [],
+    "Name": "MithralWeapon",
+    "NameId": "968d3992-149d-4895-8f57-0f46745a7f2a",
+    "Enchantments": [
+      "6b38844e2bffbac48b63036b66e735be"
+    ],
     "Material": "Silver",
     "PrerequisiteSpells": [],
     "CostType": "Flat",
