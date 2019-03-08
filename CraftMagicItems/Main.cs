@@ -2307,13 +2307,15 @@ namespace CraftMagicItems {
             var recipe = FindSourceRecipe(enchantmentId, blueprint);
             if (recipe != null) {
                 var index = recipe.Enchantments.FindIndex(enchantment => enchantment.AssetGuid == enchantmentId);
+                var casterLevel = recipe.CasterLevelStart + index * recipe.CasterLevelMultiplier;
+                var epicFactor = casterLevel > 20 ? 2 : 1;
                 switch (recipe.CostType) {
                     case RecipeCostType.Flat:
-                        return recipe.CostFactor;
+                        return recipe.CostFactor * epicFactor;
                     case RecipeCostType.CasterLevel:
-                        return recipe.CostFactor * (recipe.CasterLevelStart + index * recipe.CasterLevelMultiplier);
+                        return recipe.CostFactor * casterLevel * epicFactor;
                     case RecipeCostType.LevelSquared:
-                        return recipe.CostFactor * (index + 1) * (index + 1);
+                        return recipe.CostFactor * (index + 1) * (index + 1) * epicFactor;
                     default:
                         return 0;
                 }
