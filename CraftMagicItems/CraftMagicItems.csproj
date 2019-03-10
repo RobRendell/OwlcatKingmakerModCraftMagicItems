@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony12, Version=1.2.0.1, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\Downloads\UnityModManager 0.13\0Harmony12.dll</HintPath>
+      <HintPath>..\..\..\Downloads\UnityModManager\0Harmony12.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -71,8 +71,8 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="UnityModManager, Version=0.13.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\Downloads\UnityModManager 0.13\UnityModManager.dll</HintPath>
+    <Reference Include="UnityModManager, Version=0.14.1.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\Downloads\UnityModManager\UnityModManager.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
