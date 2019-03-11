@@ -4,8 +4,10 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 
-* LocalizedTexts.Instance.DamageMaterial.GetText(material) is falling back on the enum labels.
+* Bug: Magus adding "Cast Flare Burst (CL 1) 1/day" to a Light Crossbow +1 resulted in a cost of 0.
 * Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
+* On load, Fast Healing 1 effect from regeneration ring becomes Fast Healing 5... doesn't change GUID?
+
 * Trailblazer's Helm can cast two different spells!
 * Perhaps crafting projects for characters in your party should be advanced at the adventuring rate when you first enter
         the capital, to account things more accurately?
@@ -19,7 +21,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 * Add "Fabricate" custom spell to instantly do mundane crafting, and to add special materials to existing items.
 * Make Robes fall under Craft Wondrous Items rather than Arms and Armor.  "Monk's Robe"
 * Ioun stone enchantments?  Could also do as a specific item recipe, a la Bag of Holding.
-* Ghost Touch?
 * Custom "quiver" items which can contain arrows of a particular type, which modify the damage of any ranged weapons you
         use when they're equipped in your belt slots?
 * Metamagic effects on spells

@@ -1230,6 +1230,11 @@ namespace CraftMagicItems {
                     var spellNames = spellOptions.Select(spell => spell.Name).ToArray();
                     var selectedSpellIndex = RenderSelection("Spell: ", spellNames, 4, ref selectedCustomName);
                     ability = spellOptions[selectedSpellIndex];
+                    if (ability.HasVariants && ability.Variants != null) {
+                        var selectedVariantIndex =
+                            RenderSelection("Variant: ", ability.Variants.Select(spell => spell.Name).ToArray(), 4, ref selectedCustomName);
+                        ability = ability.Variants[selectedVariantIndex];
+                    }
                 } else {
                     var itemBlueprints = Game.Instance.Player.Inventory
                         .Where(item => item.Wielder == caster.Descriptor)
