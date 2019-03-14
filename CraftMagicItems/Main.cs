@@ -390,16 +390,17 @@ namespace CraftMagicItems {
                 return;
             }
 
+            var hasBondedItemFeature =
+                caster.Descriptor.Progression.Features.Enumerable.Any(feature => BondedItemFeatures.Contains(feature.Blueprint.AssetGuid));
+
             var itemTypes = ItemCraftingData
                 .Where(data => data.FeatGuid != null && (ModSettings.IgnoreCraftingFeats || CharacterHasFeat(caster, data.FeatGuid)))
                 .ToArray();
-            if (!Enumerable.Any(itemTypes)) {
+            if (!Enumerable.Any(itemTypes) && !hasBondedItemFeature) {
                 RenderLabel($"{caster.CharacterName} does not know any crafting feats.");
                 return;
             }
 
-            var hasBondedItemFeature =
-                caster.Descriptor.Progression.Features.Enumerable.Any(feature => BondedItemFeatures.Contains(feature.Blueprint.AssetGuid));
             var itemTypeNames = itemTypes.Select(data => new L10NString(data.NameId).ToString())
                 .PrependConditional(hasBondedItemFeature, new L10NString("craftMagicItems-bonded-object-name")).ToArray();
             var selectedItemTypeIndex = RenderSelection("Crafting: ", itemTypeNames, 6, ref selectedCustomName);
@@ -461,6 +462,7 @@ namespace CraftMagicItems {
                 return;
             }
             var bondedComponent = GetBondedItemComponentForCaster(caster.Descriptor);
+            var characterCasterLevel = CharacterCasterLevel(caster.Descriptor);
             if (bondedComponent == null || bondedComponent.ownerItem == null || selectedBondWithNewObject) {
                 if (selectedBondWithNewObject) {
                     RenderLabel("You may bond with a different object by performing a special ritual that costs 200 gp per caster level. This ritual takes 8 " +
@@ -495,7 +497,7 @@ namespace CraftMagicItems {
                 var itemNames = items.Select(item => item.Name).ToArray();
                 var selectedUpgradeItemIndex = RenderSelection("Item: ", itemNames, 5);
                 var selectedItem = items[selectedUpgradeItemIndex];
-                var goldCost = !selectedBondWithNewObject || ModSettings.CraftingCostsNoGold ? 0 : 200 * CharacterCasterLevel(caster.Descriptor);
+                var goldCost = !selectedBondWithNewObject || ModSettings.CraftingCostsNoGold ? 0 : 200 * characterCasterLevel;
                 var canAfford = BuildCostString(out var cost, null, goldCost);
                 var label = $"Make {selectedItem.Name} your bonded item{(goldCost == 0 ? "" : " for " + cost)}";
                 if (!canAfford) {
@@ -520,20 +522,20 @@ namespace CraftMagicItems {
                     BondWithObject(caster, selectedItem);
                 }
             } else {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"<b>Your bonded item</b>: {bondedComponent.ownerItem.Name}");
+                if (GUILayout.Button("Bond with a different item", GUILayout.ExpandWidth(false))) {
+                    selectedBondWithNewObject = true;
+                }
+                GUILayout.EndHorizontal();
                 var craftingData = GetBondedItemCraftingData(bondedComponent);
                 if (bondedComponent.ownerItem.Wielder != null && !IsPlayerInCapital()
                                                               && !Game.Instance.Player.PartyCharacters.Contains(bondedComponent.ownerItem.Wielder.Unit)) {
-                    RenderLabel($"You cannot currently access {bondedComponent.ownerItem.Name}.");
-                } else if (!ModSettings.IgnoreFeatCasterLevelRestriction && CharacterCasterLevel(caster.Descriptor) < craftingData.MinimumCasterLevel) {
+                    RenderLabel($"You cannot enchant {bondedComponent.ownerItem.Name} because you cannot currently access it.");
+                } else if (!ModSettings.IgnoreFeatCasterLevelRestriction && characterCasterLevel < craftingData.MinimumCasterLevel) {
                     RenderLabel($"You will not be able to enchant your bonded item until your caster level reaches {craftingData.MinimumCasterLevel} " +
-                                $"(currently {CharacterCasterLevel(caster.Descriptor)}).");
+                                $"(currently {characterCasterLevel}).");
                 } else {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label($"<b>Your bonded item</b>: {bondedComponent.ownerItem.Name}");
-                    if (GUILayout.Button("Bond with a different item", GUILayout.ExpandWidth(false))) {
-                        selectedBondWithNewObject = true;
-                    }
-                    GUILayout.EndHorizontal();
                     RenderRecipeBasedCrafting(caster, craftingData, bondedComponent.ownerItem);
                 }
             }
