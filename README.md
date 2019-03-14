@@ -4,7 +4,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 
-* Bug: Magus adding "Cast Flare Burst (CL 1) 1/day" to a Light Crossbow +1 resulted in a cost of 0.
 * Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
 * On load, Fast Healing 1 effect from regeneration ring becomes Fast Healing 5... doesn't change GUID?
 * It's possible to sell your bonded item to a merchant, and the "downgraded" version appears in your inventory, so you

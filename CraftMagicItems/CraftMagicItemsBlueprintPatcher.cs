@@ -295,6 +295,8 @@ namespace CraftMagicItems {
             if (match.Groups["ability"].Success) {
                 ability = match.Groups["ability"].Value;
                 blueprint.Ability = ability == "null" ? null : ResourcesLibrary.TryGetBlueprint<BlueprintAbility>(ability);
+                blueprint.SpendCharges = true;
+                blueprint.RestoreChargesOnRest = true;
             }
 
             string activatableAbility = null;
