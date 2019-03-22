@@ -4,11 +4,13 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 
+* Enchantments with restrictions (such as Celestial "minimum +3") should be displayed in the UI.
 * Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
 * On load, Fast Healing 1 effect from regeneration ring becomes Fast Healing 5... doesn't change GUID?
 * It's possible to sell your bonded item to a merchant, and the "downgraded" version appears in your inventory, so you
         can re-equip it and do it again.
 
+* Rebase custom items on more valuable vanilla items?  E.g. increasing the enhancement bonus of a magic weapon might change to being based on the vanilla weapon with that bonus.
 * Trailblazer's Helm can cast two different spells!
 * Perhaps crafting projects for characters in your party should be advanced at the adventuring rate when you first enter
         the capital, to account things more accurately?

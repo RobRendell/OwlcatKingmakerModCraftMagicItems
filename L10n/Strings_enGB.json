@@ -1,346 +1,346 @@
 [
 	{
-		"key": "craftMagicItems-feat-scroll-displayName",
-		"value": "Crafting (Scribe Scroll)"
+      "Key": "craftMagicItems-feat-scroll-displayName",
+      "Value": "Crafting (Scribe Scroll)"
 	},
 	{
-		"key": "craftMagicItems-feat-scroll-description",
-		"value": "You can create scrolls of any spell that you know.  To scribe a scroll, you must use up raw materials costing the same as the scroll's sale price, as well as expending any costly material components."
+      "Key": "craftMagicItems-feat-scroll-description",
+      "Value": "You can create scrolls of any spell that you know.  To scribe a scroll, you must use up raw materials costing the same as the scroll's sale price, as well as expending any costly material components."
 	},
 	{
-		"key": "craftMagicItems-feat-potion-displayName",
-		"value": "Crafting (Brew Potion)"
+      "Key": "craftMagicItems-feat-potion-displayName",
+      "Value": "Crafting (Brew Potion)"
 	},
 	{
-		"key": "craftMagicItems-feat-potion-description",
-		"value": "You can create potions of any 3rd-level or lower spell that you know that targets one or more creatures or objects.  To brew a potion, you must use up raw materials costing the same as the potion's sale price, as well as expending any costly material components."
+      "Key": "craftMagicItems-feat-potion-description",
+      "Value": "You can create potions of any 3rd-level or lower spell that you know that targets one or more creatures or objects.  To brew a potion, you must use up raw materials costing the same as the potion's sale price, as well as expending any costly material components."
 	},
 	{
-		"key": "craftMagicItems-feat-wand-displayName",
-		"value": "Crafting (Craft Wand)"
+      "Key": "craftMagicItems-feat-wand-displayName",
+      "Value": "Crafting (Craft Wand)"
 	},
 	{
-		"key": "craftMagicItems-feat-wand-description",
-		"value": "You can create wands of any 4th-level or lower spell that you know.  A newly created wand has 50 charges.  To craft a wand, you must use up raw materials costing the same as the wand's sale price, as well as expending 50 times any expensive material components."
+      "Key": "craftMagicItems-feat-wand-description",
+      "Value": "You can create wands of any 4th-level or lower spell that you know.  A newly created wand has 50 charges.  To craft a wand, you must use up raw materials costing the same as the wand's sale price, as well as expending 50 times any expensive material components."
 	},
 	{
-		"key": "craftMagicItems-feat-wondrous-displayName",
-		"value": "Crafting (Craft Wondrous Item)"
+      "Key": "craftMagicItems-feat-wondrous-displayName",
+      "Value": "Crafting (Craft Wondrous Item)"
 	},
 	{
-		"key": "craftMagicItems-feat-wondrous-description",
-		"value": "You can create a wide variety of magic wondrous items, such as amulets, belts, boots, cloaks, gloves and headbands, but not rings."
+      "Key": "craftMagicItems-feat-wondrous-description",
+      "Value": "You can create a wide variety of magic wondrous items, such as amulets, belts, boots, cloaks, gloves and headbands, but not rings."
 	},
 	{
-		"key": "craftMagicItems-feat-arms-armour-displayName",
-		"value": "Crafting (Arms and Armor)"
+      "Key": "craftMagicItems-feat-arms-armour-displayName",
+      "Value": "Crafting (Arms and Armor)"
 	},
 	{
-		"key": "craftMagicItems-feat-arms-armour-description",
-		"value": "You can upgrade weapons, armor, or shields with magical enhancements. Weapons to be enchanted must be at least masterwork quality."
+      "Key": "craftMagicItems-feat-arms-armour-description",
+      "Value": "You can upgrade weapons, armor, or shields with magical enhancements. Weapons to be enchanted must be at least masterwork quality."
 	},
 	{
-		"key": "craftMagicItems-feat-ring-displayName",
-		"value": "Crafting (Forge Ring)"
+      "Key": "craftMagicItems-feat-ring-displayName",
+      "Value": "Crafting (Forge Ring)"
 	},
 	{
-		"key": "craftMagicItems-feat-ring-description",
-		"value": "You can create or upgrade magic rings."
-	},
+      "Key": "craftMagicItems-feat-ring-description",
+      "Value": "You can create or upgrade magic rings."
+    },
   {
-    "key": "c086ea95-fd31-4297-bd58-f2f0f122bf66",
-    "value": "+\n<b>Craft Magic Items mod:</b> You may select an amulet, a weapon or a ring as your bonded object.  You can enchant your bonded object as if you had the prerequisite item crafting feat, as long as you also meet the caster level prerequisite for that feat (3rd for an amulet, 5th for a weapon, 7th for a ring).\nOnce selected, if you do not have your bonded object equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
+    "Key": "c086ea95-fd31-4297-bd58-f2f0f122bf66",
+    "Value": "+\n<b>Craft Magic Items mod:</b> You may select an amulet, a weapon or a ring as your bonded object.  You can enchant your bonded object as if you had the prerequisite item crafting feat, as long as you also meet the caster level prerequisite for that feat (3rd for an amulet, 5th for a weapon, 7th for a ring).\nOnce selected, if you do not have your bonded object equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
   },
   {
-    "key": "d31cb5ad-6b57-433a-bb92-8872873e8286",
-    "value": "+\n<b>Craft Magic Items mod:</b> You may select an amulet, a weapon or a ring as your bonded object.  You can enchant your bonded object as if you had the prerequisite item crafting feat, as long as you also meet the caster level prerequisite for that feat (3rd for an amulet, 5th for a weapon, 7th for a ring).\nOnce selected, if you do not have your bonded object equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
+    "Key": "d31cb5ad-6b57-433a-bb92-8872873e8286",
+    "Value": "+\n<b>Craft Magic Items mod:</b> You may select an amulet, a weapon or a ring as your bonded object.  You can enchant your bonded object as if you had the prerequisite item crafting feat, as long as you also meet the caster level prerequisite for that feat (3rd for an amulet, 5th for a weapon, 7th for a ring).\nOnce selected, if you do not have your bonded object equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
   },
-	{
-		"key": "craftMagicItems-itemType-wondrous",
-		"value": "Wondrous Item"
+  {
+    "Key": "craftMagicItems-itemType-wondrous",
+    "Value": "Wondrous Item"
 	},
 	{
-		"key": "craftMagicItems-itemType-arms-armour",
-		"value": "Arms and Armor"
+      "Key": "craftMagicItems-itemType-arms-armour",
+      "Value": "Arms and Armor"
 	},
 	{
-		"key": "craftMagicItems-recipeType-unarmed",
-		"value": "Unarmed Attacks"
+      "Key": "craftMagicItems-recipeType-unarmed",
+      "Value": "Unarmed Attacks"
 	},
 	{
-		"key": "craftMagicItems-timer-buff-name",
-		"value": "Craft Magic Items project schedule"
+      "Key": "craftMagicItems-timer-buff-name",
+      "Value": "Craft Magic Items project schedule"
 	},
 	{
-		"key": "craftMagicItems-bondedItem-buff-name",
-		"value": "Craft Magic Items bonded item data"
+      "Key": "craftMagicItems-bondedItem-buff-name",
+      "Value": "Craft Magic Items bonded item data"
 	},
 	{
-		"key": "craftMagicItems-label-no-item-exists",
-		"value": "There is no {0} {1}"
+      "Key": "craftMagicItems-label-no-item-exists",
+      "Value": "There is no {0} {1}"
 	},
 	{
-		"key": "craftMagicItems-label-craft-new-item",
-		"value": "(New Item)"
-	},
-    {
-      "key": "craftMagicItems-label-cast-spell-n-times",
-      "value": "Cast spell N times a day"
-    },
-    {
-      "key": "craftMagicItems-label-cast-spell-n-times-details",
-      "value": "Cast {0} (caster level {1}) {count} {count_form|time|times} a day"
-    },
-	{
-		"key": "craftMagicItems-label-cost-free",
-		"value": "nothing (cheating)"
-	},
-	{
-		"key": "craftMagicItems-label-cost-gold",
-		"value": "{0} gold{1}"
-	},
-	{
-		"key": "craftMagicItems-label-cost-gold-too-much",
-		"value": " (which you can't afford)"
-	},
-	{
-		"key": "craftMagicItems-label-cost-gold-and-items",
-		"value": " and {0} {1}{2}"
-	},
-	{
-		"key": "craftMagicItems-label-cost-items-too-much",
-		"value": " (which you don't have)"
-	},
-	{
-		"key": "craftMagicItems-label-custom",
-		"value": "(custom) "
-	},
-	{
-		"key": "craftMagicItems-label-craft-spell-item",
-		"value": "Craft {0}{1} {2} for {3}"
-	},
-	{
-		"key": "craftMagicItems-label-craft-item",
-		"value": "Craft {0}{1} for {2}"
-	},
-	{
-		"key": "craftMagicItems-label-upgrade-item",
-		"value": "Upgrade {0} to {1}{2} for {3}"
-	},
-	{
-		"key": "craftMagicItems-logMessage-begin-crafting",
-		"value": "Spent {0} to begin crafting <b>{1}</b>."
-	},
-	{
-		"key": "craftMagicItems-logMessage-begin-ritual-bonded-item",
-		"value": "Spent {0} to begin the ritual to bond with <b>{1}</b>."
+      "Key": "craftMagicItems-label-craft-new-item",
+      "Value": "(New Item)"
 	},
     {
-        "key": "craftMagicItems-bonded-object-name",
-        "value": "Bonded Item"
+      "Key": "craftMagicItems-label-cast-spell-n-times",
+      "Value": "Cast spell N times a day"
     },
     {
-        "key": "craftMagicItems-bonded-item-glossary",
-        "value": "If you do not have your bonded item equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
+      "Key": "craftMagicItems-label-cast-spell-n-times-details",
+      "Value": "Cast {0} (caster level {1}) {count} {count_form|time|times} a day"
     },
 	{
-		"key": "craftMagicItems-logMessage-not-wielding-bonded-item",
-		"value": "<b>{Source}</b> is not wielding {mf|his|her} bonded item <b>{0}</b>!"
+      "Key": "craftMagicItems-label-cost-free",
+      "Value": "nothing (cheating)"
 	},
 	{
-		"key": "craftMagicItems-time-estimate-single-rate",
-		"value": "Crafting should take about {count} {count_form|day|days}."
+      "Key": "craftMagicItems-label-cost-gold",
+      "Value": "{0} gold{1}"
 	},
 	{
-		"key": "craftMagicItems-time-estimate-one-day",
-		"value": "Crafting should take about 1 day."
+      "Key": "craftMagicItems-label-cost-gold-too-much",
+      "Value": " (which you can't afford)"
 	},
 	{
-		"key": "craftMagicItems-time-estimate-adventuring-capital",
-		"value": "Crafting should take about {0} days while adventuring, or {count} {count_form|day|days} somewhere safe."
+      "Key": "craftMagicItems-label-cost-gold-and-items",
+      "Value": " and {0} {1}{2}"
 	},
 	{
-		"key": "craftMagicItems-logMessage-not-full-day",
-		"value": "Resting resulted in no progress because it is less than a day since {Source} last did some crafting."
+      "Key": "craftMagicItems-label-cost-items-too-much",
+      "Value": " (which you don't have)"
 	},
 	{
-		"key": "craftMagicItems-logMessage-missing-upgrade-item",
-		"value": "{Source} was unable to make progress on upgrading <b>{0}</b> because {mf|he|she} couldn't access it."
+      "Key": "craftMagicItems-label-custom",
+      "Value": "(custom) "
 	},
 	{
-		"key": "craftMagicItems-logMessage-missing-prerequisite",
-		"value": "{Source} was unable to make further progress on <b>{0}</b> because {mf|he|she} couldn't cast the mandatory prerequisite <i>{1}</i>."
+      "Key": "craftMagicItems-label-craft-spell-item",
+      "Value": "Craft {0}{1} {2} for {3}"
 	},
 	{
-		"key": "craftMagicItems-logMessage-missing-spell",
-		"value": "{Source} is not able to cast prerequisite <i>{0}</i>, which raises the crafting DC by {1}."
+      "Key": "craftMagicItems-label-craft-item",
+      "Value": "Craft {0}{1} for {2}"
 	},
 	{
-		"key": "craftMagicItems-logMessage-low-caster-level",
-		"value": "{Source} is below caster level {0}, raising the crafting DC by {1}."
+      "Key": "craftMagicItems-label-upgrade-item",
+      "Value": "Upgrade {0} to {1}{2} for {3}"
 	},
 	{
-		"key": "craftMagicItems-logMessage-opposition-school",
-		"value": "Crafting involves magic from the school of {0}, raising the crafting DC by {1}."
+      "Key": "craftMagicItems-logMessage-begin-crafting",
+      "Value": "Spent {0} to begin crafting <b>{1}</b>."
 	},
 	{
-		"key": "craftMagicItems-logMessage-missing-crafter-prerequisite",
-		"value": "{Source} is not {0}, which raises the crafting DC by {1}."
-	},
-	{
-		"key": "craftMagicItems-logMessage-dc-too-high",
-		"value": "{Source} was unable to make further progress on <b>{0}</b> because the skill check is too hard (take 10 {1} check result {2} vs. DC {3})."
-	},
-	{
-		"key": "craftMagicItems-logMessage-expend-spell",
-		"value": "{Source} expends a use of <i>{0}</i>."
-	},
-	{
-		"key": "craftMagicItems-logMessage-made-progress",
-		"value": "{Source} made {0} progress of {1} remaining towards completing <b>{2}</b>."
-	},
-	{
-		"key": "craftMagicItems-logMessage-made-progress-bondedItem",
-		"value": "{Source} made {0} progress of {1} remaining towards bonding with <b>{2}</b>."
-	},
-	{
-		"key": "craftMagicItems-logMessage-made-progress-check",
-		"value": "Take 10 {0} check result {1} vs. DC {2}."
-	},
-	{
-		"key": "craftMagicItems-logMessage-made-progress-amount-complete",
-		"value": "Crafting of <b>{0}</b> is {1}% complete."
-	},
-	{
-		"key": "craftMagicItems-logMessage-made-progress-bonding-ritual-amount-complete",
-		"value": "Bonding with <b>{0}</b> is {1}% complete."
-	},
-	{
-		"key": "craftMagicItems-logMessage-crafting-complete",
-		"value": "{Source} has completed crafting <b>{0}</b>!"
-	},
-	{
-		"key": "craftMagicItems-logMessage-bonding-ritual-complete",
-		"value": "{Source} has completed the ritual to bond with <b>{0}</b>!"
-	},
-	{
-		"key": "craftMagicItems-logMessage-crafting-cancelled",
-		"value": "Cancelled crafting of <b>{0}</b> - refunded {1}."
-	},
-	{
-		"key": "craftMagicItems-logMessage-comma-list-and",
-		"value": "{0} and {1}"
-	},
-	{
-		"key": "craftMagicItems-logMessage-comma-list-or",
-		"value": "{0} or {1}"
-	},
-	{
-		"key": "craftMagicItems-custom-description-start",
-		"value": "This item was hand-crafted to your specifications."
-	},
-	{
-		"key": "craftMagicItems-custom-description-additional",
-		"value": "\nIn addition, you have had further enchanting done:"
-	},
-	{
-		"key": "craftMagicItems-custom-description-bonus",
-		"value": "{0} bonus"
-	},
-	{
-		"key": "craftMagicItems-custom-description-bonus-to",
-		"value": "{0} bonus to {1}"
-	},
-	{
-		"key": "craftMagicItems-custom-description-enchantment-template",
-		"value": "+{0} {1}"
-	},
-	{
-		"key": "craftMagicItems-custom-description-enchantment-upgrade-template",
-		"value": "{0} upgraded from +{1} to +{2}"
-	},
-	{
-		"key": "craftMagicItems-crafter-prerequisite-required",
-		"value": "Crafter must be {0}."
-	},
-	{
-		"key": "craftMagicItems-crafter-prerequisite-AlignmentLawful",
-		"value": "of Lawful alignment"
-	},
-	{
-		"key": "craftMagicItems-crafter-prerequisite-AlignmentGood",
-		"value": "of Good alignment"
-	},
-	{
-		"key": "craftMagicItems-crafter-prerequisite-AlignmentChaotic",
-		"value": "of Chaotic alignment"
-	},
-	{
-		"key": "craftMagicItems-crafter-prerequisite-AlignmentEvil",
-		"value": "of Evil alignment"
-	},
-	{
-		"key": "craftMagicItems-crafter-prerequisite-FeatureChannelEnergy",
-		"value": "able to Channel Energy"
-	},
-	{
-		"key": "craftMagicItems-item-silver-dagger-name",
-		"value": "Mithral Dagger"
-	},
-	{
-		"key": "craftMagicItems-item-silver-longsword+1-name",
-		"value": "Mithral Longsword +1"
-	},
-	{
-		"key": "craftMagicItems-item-silver-bastard-sword+1-name",
-		"value": "Mithral Bastard Sword +1"
+      "Key": "craftMagicItems-logMessage-begin-ritual-bonded-item",
+      "Value": "Spent {0} to begin the ritual to bond with <b>{1}</b>."
 	},
     {
-        "key": "craftMagicItems-item-mithral-breastplate-name",
-        "value": "Mithral Breastplate"
+      "Key": "craftMagicItems-bonded-object-name",
+      "Value": "Bonded Item"
+    },
+    {
+      "Key": "craftMagicItems-bonded-item-glossary",
+      "Value": "If you do not have your bonded item equipped whenever you cast a spell, you must make a Concentration check (DC 20 + the spell's level) or lose the spell."
     },
 	{
-		"key": "craftMagicItems-enchantment-sustenance-name",
-		"value": "Sustenance"
+      "Key": "craftMagicItems-logMessage-not-wielding-bonded-item",
+      "Value": "<b>{Source}</b> is not wielding {mf|his|her} bonded item <b>{0}</b>!"
 	},
 	{
-		"key": "craftMagicItems-item-ring-sustenance-name",
-		"value": "Ring of Sustenance"
+      "Key": "craftMagicItems-time-estimate-single-rate",
+      "Value": "Crafting should take about {count} {count_form|day|days}."
 	},
 	{
-		"key": "craftMagicItems-enchantment-sustenance-description",
-		"value": "This ring continually provides its wearer with life-sustaining nourishment. The ring also refreshes the body and mind, so that its wearer needs only sleep 2 hours per day to gain the benefit of 8 hours of sleep. This allows them to perform two roles in camp."
+      "Key": "craftMagicItems-time-estimate-one-day",
+      "Value": "Crafting should take about 1 day."
 	},
 	{
-		"key": "craftMagicItems-item-ring-of-regeneration-name",
-		"value": "Ring of Regeneration"
+      "Key": "craftMagicItems-time-estimate-adventuring-capital",
+      "Value": "Crafting should take about {0} days while adventuring, or {count} {count_form|day|days} somewhere safe."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-not-full-day",
+      "Value": "Resting resulted in no progress because it is less than a day since {Source} last did some crafting."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-missing-upgrade-item",
+      "Value": "{Source} was unable to make progress on upgrading <b>{0}</b> because {mf|he|she} couldn't access it."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-missing-prerequisite",
+      "Value": "{Source} was unable to make further progress on <b>{0}</b> because {mf|he|she} couldn't cast the mandatory prerequisite <i>{1}</i>."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-missing-spell",
+      "Value": "{Source} is not able to cast prerequisite <i>{0}</i>, which raises the crafting DC by {1}."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-low-caster-level",
+      "Value": "{Source} is below caster level {0}, raising the crafting DC by {1}."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-opposition-school",
+      "Value": "Crafting involves magic from the school of {0}, raising the crafting DC by {1}."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-missing-crafter-prerequisite",
+      "Value": "{Source} is not {0}, which raises the crafting DC by {1}."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-dc-too-high",
+      "Value": "{Source} was unable to make further progress on <b>{0}</b> because the skill check is too hard (take 10 {1} check result {2} vs. DC {3})."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-expend-spell",
+      "Value": "{Source} expends a use of <i>{0}</i>."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-made-progress",
+      "Value": "{Source} made {0} progress of {1} remaining towards completing <b>{2}</b>."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-made-progress-bondedItem",
+      "Value": "{Source} made {0} progress of {1} remaining towards bonding with <b>{2}</b>."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-made-progress-check",
+      "Value": "Take 10 {0} check result {1} vs. DC {2}."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-made-progress-amount-complete",
+      "Value": "Crafting of <b>{0}</b> is {1}% complete."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-made-progress-bonding-ritual-amount-complete",
+      "Value": "Bonding with <b>{0}</b> is {1}% complete."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-crafting-complete",
+      "Value": "{Source} has completed crafting <b>{0}</b>!"
+	},
+	{
+      "Key": "craftMagicItems-logMessage-bonding-ritual-complete",
+      "Value": "{Source} has completed the ritual to bond with <b>{0}</b>!"
+	},
+	{
+      "Key": "craftMagicItems-logMessage-crafting-cancelled",
+      "Value": "Cancelled crafting of <b>{0}</b> - refunded {1}."
+	},
+	{
+      "Key": "craftMagicItems-logMessage-comma-list-and",
+      "Value": "{0} and {1}"
+	},
+	{
+      "Key": "craftMagicItems-logMessage-comma-list-or",
+      "Value": "{0} or {1}"
+	},
+	{
+      "Key": "craftMagicItems-custom-description-start",
+      "Value": "This item was hand-crafted to your specifications."
+	},
+	{
+      "Key": "craftMagicItems-custom-description-additional",
+      "Value": "\nIn addition, you have had further enchanting done:"
+	},
+	{
+      "Key": "craftMagicItems-custom-description-bonus",
+      "Value": "{0} bonus"
+	},
+	{
+      "Key": "craftMagicItems-custom-description-bonus-to",
+      "Value": "{0} bonus to {1}"
+	},
+	{
+      "Key": "craftMagicItems-custom-description-enchantment-template",
+      "Value": "+{0} {1}"
+	},
+	{
+      "Key": "craftMagicItems-custom-description-enchantment-upgrade-template",
+      "Value": "{0} upgraded from +{1} to +{2}"
+	},
+	{
+      "Key": "craftMagicItems-crafter-prerequisite-required",
+      "Value": "Crafter must be {0}."
+	},
+	{
+      "Key": "craftMagicItems-crafter-prerequisite-AlignmentLawful",
+      "Value": "of Lawful alignment"
+	},
+	{
+      "Key": "craftMagicItems-crafter-prerequisite-AlignmentGood",
+      "Value": "of Good alignment"
+	},
+	{
+      "Key": "craftMagicItems-crafter-prerequisite-AlignmentChaotic",
+      "Value": "of Chaotic alignment"
+	},
+	{
+      "Key": "craftMagicItems-crafter-prerequisite-AlignmentEvil",
+      "Value": "of Evil alignment"
+	},
+	{
+      "Key": "craftMagicItems-crafter-prerequisite-FeatureChannelEnergy",
+      "Value": "able to Channel Energy"
+	},
+	{
+      "Key": "craftMagicItems-item-silver-dagger-name",
+      "Value": "Mithral Dagger"
+	},
+	{
+      "Key": "craftMagicItems-item-silver-longsword+1-name",
+      "Value": "Mithral Longsword +1"
+	},
+	{
+      "Key": "craftMagicItems-item-silver-bastard-sword+1-name",
+      "Value": "Mithral Bastard Sword +1"
 	},
     {
-      "key": "craftMagicItems-enchantment-ring-of-regeneration-description",
-      "value": "When worn, this ring continually allows a living wearer to heal 1 point of damage per round."
+      "Key": "craftMagicItems-item-mithral-breastplate-name",
+      "Value": "Mithral Breastplate"
     },
 	{
-		"key": "craftMagicItems-enchantment-impact-name",
-		"value": "Impact"
+      "Key": "craftMagicItems-enchantment-sustenance-name",
+      "Value": "Sustenance"
 	},
 	{
-		"key": "craftMagicItems-enchantment-impact-description",
-		"value": "This special ability can only be placed on melee weapons that are not light weapons. An impact weapon delivers a potent kinetic jolt when it strikes, dealing damage as if the weapon were one size category larger."
+      "Key": "craftMagicItems-item-ring-sustenance-name",
+      "Value": "Ring of Sustenance"
 	},
 	{
-		"key": "craftMagicItems-enchantment-corrosive-burst-name",
-		"value": "Corrosive Burst"
+      "Key": "craftMagicItems-enchantment-sustenance-description",
+      "Value": "This ring continually provides its wearer with life-sustaining nourishment. The ring also refreshes the body and mind, so that its wearer needs only sleep 2 hours per day to gain the benefit of 8 hours of sleep. This allows them to perform two roles in camp."
 	},
 	{
-		"key": "craftMagicItems-enchantment-corrosive-burst-description",
-		"value": "A corrosive burst weapon functions as a corrosive weapon that also explodes with acid upon striking a successful critical hit. The acid does not harm the wielder. In addition to the extra 1d6 acid damage from the corrosive ability, a corrosive burst weapon deals an extra 1d10 points of acid damage on a successful critical hit. If the weapon's critical multiplier is ×3, add an extra 2d10 points of acid damage instead, and if the multiplier is ×4, add an extra 3d10 points of acid damage."
+      "Key": "craftMagicItems-item-ring-of-regeneration-name",
+      "Value": "Ring of Regeneration"
+	},
+    {
+      "Key": "craftMagicItems-enchantment-ring-of-regeneration-description",
+      "Value": "When worn, this ring continually allows a living wearer to heal 1 point of damage per round."
+    },
+	{
+      "Key": "craftMagicItems-enchantment-impact-name",
+      "Value": "Impact"
 	},
 	{
-		"key": "craftMagicItems-item-boots-striding-springing-name",
-		"value": "Boots of Striding and Springing"
+      "Key": "craftMagicItems-enchantment-impact-description",
+      "Value": "This special ability can only be placed on melee weapons that are not light weapons. An impact weapon delivers a potent kinetic jolt when it strikes, dealing damage as if the weapon were one size category larger."
 	},
 	{
-		"key": "craftMagicItems-item-boots-striding-springing-description",
-		"value": "These boots increase the wearer’s base land speed by 10 feet. In addition to this striding ability (considered an enhancement bonus), these boots allow the wearer to make great leaps, granting a +5 competence bonus to Mobility checks."
+      "Key": "craftMagicItems-enchantment-corrosive-burst-name",
+      "Value": "Corrosive Burst"
+	},
+	{
+      "Key": "craftMagicItems-enchantment-corrosive-burst-description",
+      "Value": "A corrosive burst weapon functions as a corrosive weapon that also explodes with acid upon striking a successful critical hit. The acid does not harm the wielder. In addition to the extra 1d6 acid damage from the corrosive ability, a corrosive burst weapon deals an extra 1d10 points of acid damage on a successful critical hit. If the weapon's critical multiplier is ×3, add an extra 2d10 points of acid damage instead, and if the multiplier is ×4, add an extra 3d10 points of acid damage."
+	},
+	{
+      "Key": "craftMagicItems-item-boots-striding-springing-name",
+      "Value": "Boots of Striding and Springing"
+	},
+	{
+      "Key": "craftMagicItems-item-boots-striding-springing-description",
+      "Value": "These boots increase the wearer’s base land speed by 10 feet. In addition to this striding ability (considered an enhancement bonus), these boots allow the wearer to make great leaps, granting a +5 competence bonus to Mobility checks."
 	}
 ]

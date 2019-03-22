@@ -1,7 +1,5 @@
-using System.Linq;
 using Kingmaker.Blueprints.Classes.Prerequisites;
 using Kingmaker.Localization;
-using Kingmaker.UI.Common;
 using Kingmaker.UnitLogic;
 using Kingmaker.UnitLogic.Class.LevelUp;
 
@@ -19,14 +17,8 @@ namespace CraftMagicItems {
             return Main.ModSettings.IgnoreFeatCasterLevelRestriction || Main.CharacterCasterLevel(unit) >= minimumCasterLevel;
         }
 
-        [Harmony12.HarmonyPatch(typeof(UIUtility), "GetPrerequisiteObject")]
-        private static class UIUtilityGetPrerequisiteObjectPatch {
-            // ReSharper disable once UnusedMember.Local
-            private static void Postfix(Prerequisite prerequisite, ref string __result) {
-                if (prerequisite is PrerequisiteCasterLevel prerequisiteCasterLevel) {
-                    __result = $"{CasterLevelLocalized} {prerequisiteCasterLevel.minimumCasterLevel}";
-                }
-            }
+        public override string GetUIText() {
+            return $"{CasterLevelLocalized} {minimumCasterLevel}";
         }
     }
 }

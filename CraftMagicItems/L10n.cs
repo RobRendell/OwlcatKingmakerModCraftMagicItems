@@ -1,12 +1,16 @@
 ﻿using Kingmaker.Localization;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using Kingmaker;
-using Kingmaker.Designers.EventConditionActionSystem.Actions;
+using Newtonsoft.Json;
 
 namespace CraftMagicItems {
+    public class L10NData {
+        [JsonProperty] public string Key;
+        [JsonProperty] public string Value;
+    }
+
     class L10n {
         private static readonly Dictionary<string, string> ModifiedL10NStrings = new Dictionary<string, string>();
 
@@ -27,18 +31,17 @@ namespace CraftMagicItems {
             }
 
             try {
-                var allStringPairs = Main.ReadJsonFile<DataTable>(fileName);
-                foreach (DataRow row in allStringPairs.Rows) {
-                    var key = row["key"].ToString();
-                    var value = row["value"].ToString();
-                    if (LocalizationManager.CurrentPack.Strings.ContainsKey(key)) {
-                        var original = LocalizationManager.CurrentPack.Strings[key];
-                        ModifiedL10NStrings.Add(key, original);
+                var allStrings = Main.ReadJsonFile<L10NData[]>(fileName);
+                foreach (var data in allStrings) {
+                    var value = data.Value;
+                    if (LocalizationManager.CurrentPack.Strings.ContainsKey(data.Key)) {
+                        var original = LocalizationManager.CurrentPack.Strings[data.Key];
+                        ModifiedL10NStrings.Add(data.Key, original);
                         if (value[0] == '+') {
                             value = original + value.Substring(1);
                         }
                     }
-                    LocalizationManager.CurrentPack.Strings[key] = value;
+                    LocalizationManager.CurrentPack.Strings[data.Key] = value;
                 }
             } catch (Exception e) {
                 Main.ModEntry.Logger.Warning($"Exception loading L10n data for locale {currentLocale}: {e}");
