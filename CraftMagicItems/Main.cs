@@ -831,8 +831,9 @@ namespace CraftMagicItems {
 
         private static bool IsMetalArmour(BlueprintArmorType armourType) {
             // Rely on the fact that the only light armour that is metal is a Chain Shirt, and the only medium armour that is not metal is Hide.
-            return (armourType.ProficiencyGroup != ArmorProficiencyGroup.Light || armourType.AssetGuid == "7467b0ab8641d8f43af7fc46f2108a1a")
-                   && (armourType.ProficiencyGroup != ArmorProficiencyGroup.Medium || armourType.AssetGuid != "7a01292cef39bf2408f7fae7a9f47594");
+            return armourType.ProficiencyGroup == ArmorProficiencyGroup.Light && armourType.AssetGuid == "7467b0ab8641d8f43af7fc46f2108a1a"
+                   || armourType.ProficiencyGroup == ArmorProficiencyGroup.Medium && armourType.AssetGuid != "7a01292cef39bf2408f7fae7a9f47594"
+                   || armourType.ProficiencyGroup == ArmorProficiencyGroup.Heavy;
         }
 
         private static bool ItemMatchesRestrictions(BlueprintItem blueprint, IEnumerable<ItemRestrictions> restrictions) {
