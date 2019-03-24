@@ -82,7 +82,7 @@ namespace CraftMagicItems {
         }
 
         public void AddProject(CraftingProjectData project) {
-            if (!CraftingProjects.Any()) {
+            if (!CraftingProjects.Any() && LastUpdated.CompareTo(Game.Instance.Player.GameTime) < 0) {
                 LastUpdated = Game.Instance.Player.GameTime;
             }
 
