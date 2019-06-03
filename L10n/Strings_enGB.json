@@ -215,6 +215,10 @@
       "Key": "craftMagicItems-logMessage-made-progress-bonding-ritual-amount-complete",
       "Value": "Bonding with <b>{0}</b> is {1}% complete."
 	},
+    {
+      "Key": "craftMagicItems-crafted-source-description",
+      "Value": "This item was crafted by {0}."
+    },
 	{
       "Key": "craftMagicItems-logMessage-crafting-complete",
       "Value": "{Source} has completed crafting <b>{0}</b>!"

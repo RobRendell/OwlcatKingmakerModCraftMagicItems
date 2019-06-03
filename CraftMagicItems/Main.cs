@@ -893,9 +893,10 @@ namespace CraftMagicItems {
                 ;
         }
 
-        private static ItemEntity BuildItemEntity(BlueprintItem blueprint, ItemCraftingData craftingData) {
+        private static ItemEntity BuildItemEntity(BlueprintItem blueprint, ItemCraftingData craftingData, UnitEntityData crafter) {
             var item = blueprint.CreateEntity();
             item.Identify();
+            item.SetVendorIfNull(crafter);
             if (craftingData is SpellBasedItemCraftingData spellBased) {
                 item.Charges = spellBased.Charges; // Set the charges, since wand blueprints have random values.
             }
@@ -2113,7 +2114,7 @@ namespace CraftMagicItems {
                     }
                 }
 
-                var resultItem = BuildItemEntity(itemBlueprint, craftingData);
+                var resultItem = BuildItemEntity(itemBlueprint, craftingData, caster);
                 AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-crafting", cost, itemBlueprint.Name), resultItem);
                 if (ModSettings.CraftingTakesNoTime) {
                     AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-expend-spell", spell.Name));
@@ -2180,7 +2181,7 @@ namespace CraftMagicItems {
                     }
                 }
 
-                var resultItem = BuildItemEntity(itemBlueprint, craftingData);
+                var resultItem = BuildItemEntity(itemBlueprint, craftingData, caster);
                 AddBattleLogMessage(L10NFormat("craftMagicItems-logMessage-begin-crafting", cost, itemBlueprint.Name), resultItem);
                 if (ModSettings.CraftingTakesNoTime) {
                     CraftItem(resultItem, upgradeItem);
@@ -3142,11 +3143,15 @@ namespace CraftMagicItems {
                             if (project.ItemBlueprint != null) {
                                 // Migrate all projects using ItemBlueprint to use ResultItem
                                 var craftingData = ItemCraftingData.First(data => data.Name == project.ItemType);
-                                project.ResultItem = BuildItemEntity(project.ItemBlueprint, craftingData);
+                                project.ResultItem = BuildItemEntity(project.ItemBlueprint, craftingData, character);
                                 project.ItemBlueprint = null;
                             }
 
                             project.Crafter = character;
+                            if (!project.ResultItem.HasUniqueVendor) {
+                                // Set "vendor" of item if it's already in progress
+                                project.ResultItem.SetVendorIfNull(character);
+                            }
                             project.ResultItem.PostLoad();
                             if (project.UpgradeItem == null) {
                                 ItemCreationProjects.Add(project);
@@ -3244,5 +3249,20 @@ namespace CraftMagicItems {
                 }
             }
         }
+        
+        [Harmony12.HarmonyPatch(typeof(ItemEntity), "VendorDescription", Harmony12.MethodType.Getter)]
+        // ReSharper disable once UnusedMember.Local
+        private static class ItemEntityVendorDescriptionPatch {
+            // ReSharper disable once UnusedMember.Local
+            private static bool Prefix(ItemEntity __instance, ref string __result) {
+                // If the "vendor" is a party member, return that the item was crafted rather than from a merchant
+                if (__instance.Vendor != null && __instance.Vendor.IsPlayerFaction) {
+                    __result = L10NFormat("craftMagicItems-crafted-source-description", __instance.Vendor.CharacterName);
+                    return false;
+                }
+                return true;
+            }
+        }
+        
     }
 }
