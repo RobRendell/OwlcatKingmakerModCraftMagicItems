@@ -2,7 +2,7 @@
   "Id": "CraftMagicItems",
   "DisplayName": "Craft Magic Items",
   "Author": "RobRendell",
-  "Version": "1.10.0",
+  "Version": "1.10.1",
   "ManagerVersion": "0.14.1",
   "EntryMethod": "CraftMagicItems.Main.Load",
   "HomePage": "https://www.nexusmods.com/pathfinderkingmaker/mods/54",

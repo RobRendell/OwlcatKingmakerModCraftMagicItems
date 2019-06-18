@@ -45,6 +45,7 @@ using Kingmaker.UnitLogic.Alignments;
 using Kingmaker.UnitLogic.Buffs;
 using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.UnitLogic.FactLogic;
+using Kingmaker.UnitLogic.Parts;
 using Kingmaker.Utility;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -573,8 +574,7 @@ namespace CraftMagicItems {
             List<AbilityData> spellOptions;
             if (selectedShowPreparedSpells) {
                 // Prepared spellcaster
-                spellOptions = spellbook.GetMemorizedSpells(spellLevel).Where(slot => slot.Spell != null && slot.Available).Select(slot => slot.Spell)
-                    .ToList();
+                spellOptions = spellbook.GetMemorizedSpells(spellLevel).Where(slot => slot.Available).Select(slot => slot.Spell).ToList();
             } else {
                 // Cantrips/Orisons or Spontaneous spellcaster or showing all known spells
                 if (spellLevel > 0 && spellbook.Blueprint.Spontaneous) {
@@ -605,7 +605,7 @@ namespace CraftMagicItems {
                 if (selectedShowPreparedSpells && spellbook.GetSpontaneousConversionSpells(spellLevel).Any()) {
                     var firstSpell = spellbook.Blueprint.Spontaneous
                         ? spellbook.GetKnownSpells(spellLevel).First(spell => true)
-                        : spellbook.GetMemorizedSpells(spellLevel).FirstOrDefault(slot => slot.Spell != null && slot.Available)?.Spell;
+                        : spellbook.GetMemorizedSpells(spellLevel).FirstOrDefault(slot => slot.Available)?.Spell;
                     if (firstSpell != null) {
                         foreach (var spontaneousBlueprint in spellbook.GetSpontaneousConversionSpells(spellLevel)) {
                             // Only add spontaneous spells that aren't already in the list.
@@ -3249,7 +3249,7 @@ namespace CraftMagicItems {
                 }
             }
         }
-        
+
         [Harmony12.HarmonyPatch(typeof(ItemEntity), "VendorDescription", Harmony12.MethodType.Getter)]
         // ReSharper disable once UnusedMember.Local
         private static class ItemEntityVendorDescriptionPatch {
@@ -3263,6 +3263,17 @@ namespace CraftMagicItems {
                 return true;
             }
         }
-        
+
+        // Owlcat's code doesn't filter out undamaged characters, so will always return someone.
+        [Harmony12.HarmonyPatch(typeof(UnitUseSpellsOnRest), "GetUnitWithMaxDamage")]
+        // ReSharper disable once UnusedMember.Local
+        private static class UnitUseSpellsOnRestGetUnitWithMaxDamagePatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix(ref UnitEntityData __result) {
+                if (__result.Damage == 0 && (UnitPartDualCompanion.GetPair(__result)?.Damage ?? 0) == 0) {
+                    __result = null;
+                }
+            }
+        }
     }
 }
