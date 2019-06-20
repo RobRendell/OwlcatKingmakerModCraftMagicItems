@@ -393,6 +393,20 @@ namespace CraftMagicItems {
 
             var hasBondedItemFeature =
                 caster.Descriptor.Progression.Features.Enumerable.Any(feature => BondedItemFeatures.Contains(feature.Blueprint.AssetGuid));
+            var bondedItemData = GetBondedItemComponentForCaster(caster.Descriptor);
+
+            if (!hasBondedItemFeature && bondedItemData && bondedItemData.ownerItem != null) {
+                // Cleanup - they've presumably respecced the character.
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("This character has a bonded item, but does not seem to have the bonded item class feature!",
+                    new GUIStyle {normal = {textColor = Color.red}});
+                GUILayout.EndHorizontal();
+                if (GUILayout.Button("Revert the bonded item and clean up.", GUILayout.ExpandWidth(false))) {
+                    UnBondFromCurrentBondedItem(caster);
+                    var timerBlueprint = (BlueprintBuff) ResourcesLibrary.TryGetBlueprint(CraftMagicItemsBlueprintPatcher.BondedItemBuffBlueprintGuid);
+                    caster.Descriptor.RemoveFact(timerBlueprint);
+                }
+            }
 
             var itemTypes = ItemCraftingData
                 .Where(data => data.FeatGuid != null && (ModSettings.IgnoreCraftingFeats || CharacterHasFeat(caster, data.FeatGuid)))
@@ -425,9 +439,9 @@ namespace CraftMagicItems {
                 .First(data => data.Slots.Contains(bondedComponent.ownerItem.Blueprint.ItemType) && !IsMundaneCraftingData(data));
         }
 
-        private static void BondWithObject(UnitEntityData caster, ItemEntity item) {
-            var bondedComponent = GetBondedItemComponentForCaster(caster.Descriptor, true);
-            if (bondedComponent.ownerItem != null && bondedComponent.everyoneElseItem != null) {
+        private static void UnBondFromCurrentBondedItem(UnitEntityData caster) {
+            var bondedComponent = GetBondedItemComponentForCaster(caster.Descriptor);
+            if (bondedComponent && bondedComponent.ownerItem != null && bondedComponent.everyoneElseItem != null) {
                 var ownerItem = bondedComponent.ownerItem;
                 var everyoneElseItem = bondedComponent.everyoneElseItem;
                 // Need to set these to null now so the unequipping/equipping below doesn't invoke the automagic item swapping.
@@ -446,6 +460,11 @@ namespace CraftMagicItems {
                     CancelCraftingProject(ItemUpgradeProjects[ownerItem]);
                 }
             }
+        }
+
+        private static void BondWithObject(UnitEntityData caster, ItemEntity item) {
+            UnBondFromCurrentBondedItem(caster);
+            var bondedComponent = GetBondedItemComponentForCaster(caster.Descriptor, true);
             bondedComponent.ownerItem = item;
             bondedComponent.everyoneElseItem = item;
             // Cancel any pending crafting projects by other characters for the new bonded item.
@@ -469,7 +488,7 @@ namespace CraftMagicItems {
                     RenderLabel("You may bond with a different object by performing a special ritual that costs 200 gp per caster level. This ritual takes 8 " +
                                 "hours to complete. Items replaced in this way do not possess any of the additional enchantments of the previous bonded item, " +
                                 "and the previous bonded item loses any enchantments you added via your bond.");
-                    if (GUILayout.Button($"Cancel bonding to a new object")) {
+                    if (GUILayout.Button("Cancel bonding to a new object")) {
                         selectedBondWithNewObject = false;
                     }
                 }
