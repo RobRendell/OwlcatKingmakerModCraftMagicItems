@@ -97,6 +97,22 @@ namespace CraftMagicItems {
         private const string ScrollSavantArchetypeGuid = "f43c78692a4e10d43a38bd6aedf53c1b";
         private const string MartialWeaponProficiencies = "203992ef5b35c864390b4e4a1e200629";
         private const string ChannelEnergyFeatureGuid = "a79013ff4bcd4864cb669622a29ddafb";
+
+        private static readonly string[] SafeBlueprintAreaGuids = {
+            "141f6999dada5a842a46bb3f029c287a", // Dire Narlmarches village
+            "e0852647faf68a641a0a5ec5436fc0bf", // Dunsward village
+            "537acbd9039b6a04f915dfc21572affb", // Glenebon village
+            "3ddf191773e8c2f448d31289b8d654bf", // Kamelands village
+            "f1b76870cc69e6a479c767cbe3c8a8ca", // North Narlmarches village
+            "ea3788bcdf33d884baffc34440ff620f", // Outskirts village
+            "e7292eab463c4924c8f14548545e25b7", // Silverstep village
+            "7c4a954c65e8d7146a6edc00c498a582", // South Narlmarches village
+            "7d9616b3807840c47ba3b2ab380c55a0", // Tors of Levenies village
+            "653811192a3fcd148816384a9492bd08", // Secluded Lodge
+            "fd1b6fa9f788ca24e86bd922a10da080", // Tenebrous Depths start hub
+            "c49315fe499f0e5468af6f19242499a2" // Tenebrous Depths start hub (Roguelike)
+        };
+
         private const string CustomPriceLabel = "Crafting Cost: ";
         private static readonly LocalizedString CasterLevelLocalized = new L10NString("dfb34498-61df-49b1-af18-0a84ce47fc98");
         private static readonly LocalizedString CharacterUsedItemLocalized = new L10NString("be7942ed-3af1-4fc7-b20b-41966d2f80b7");
@@ -1795,6 +1811,14 @@ namespace CraftMagicItems {
             GUILayout.EndHorizontal();
         }
 
+        private static bool IsPlayerSomewhereSafe() {
+            if (Game.Instance.CurrentlyLoadedArea != null && SafeBlueprintAreaGuids.Contains(Game.Instance.CurrentlyLoadedArea.AssetGuid)) {
+                return true;
+            }
+            // Otherwise, check if they're in the capital.
+            return IsPlayerInCapital();
+        }
+
         private static bool IsPlayerInCapital() {
             // Detect if the player is in the capital, or in kingdom management from the throne room.
             return (Game.Instance.CurrentlyLoadedArea != null && Game.Instance.CurrentlyLoadedArea.IsCapital) ||
@@ -2872,7 +2896,7 @@ namespace CraftMagicItems {
                 return;
             }
 
-            var isAdventuring = withPlayer && !playerInCapital;
+            var isAdventuring = withPlayer && !IsPlayerSomewhereSafe();
             var timer = GetCraftingTimerComponentForCaster(caster);
             if (timer == null || timer.CraftingProjects.Count == 0) {
                 // Character is not doing any crafting
