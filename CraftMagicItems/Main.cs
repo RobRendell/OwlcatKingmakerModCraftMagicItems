@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using Harmony12;
 using Kingmaker;
 using Kingmaker.Blueprints;
 using Kingmaker.Blueprints.Classes;
@@ -92,6 +93,7 @@ namespace CraftMagicItems {
         private static readonly FeatureGroup[] CraftingFeatGroups = {FeatureGroup.Feat, FeatureGroup.WizardFeat};
         private const string MasterworkGuid = "6b38844e2bffbac48b63036b66e735be";
         private const string AlchemistProgressionGuid = "efd55ff9be2fda34981f5b9c83afe4f1";
+        private const string AlchemistGrenadierArchetypeGuid = "6af888a7800b3e949a40f558ff204aae";
         private const string MartialWeaponProficiencies = "203992ef5b35c864390b4e4a1e200629";
         private const string ChannelEnergyFeatureGuid = "a79013ff4bcd4864cb669622a29ddafb";
         private const string CustomPriceLabel = "Crafting Cost: ";
@@ -2564,20 +2566,25 @@ namespace CraftMagicItems {
                     AddCraftingFeats(idGenerator, characterClass.Progression);
                 }
 
-                // Alchemists get Brew Potion as a bonus 1st level feat
+                // Alchemists get Brew Potion as a bonus 1st level feat, except for Grenadier archetype alchemists.
                 var brewPotionData = ItemCraftingData.First(data => data.Name == "Potion");
                 var brewPotion = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(brewPotionData.FeatGuid);
                 var alchemistProgression = ResourcesLibrary.TryGetBlueprint<BlueprintProgression>(AlchemistProgressionGuid);
-                if (brewPotion != null && alchemistProgression != null) {
-                    foreach (var levelEntry in alchemistProgression.LevelEntries) {
-                        if (levelEntry.Level == 1) {
-                            levelEntry.Features.Add(brewPotion);
-                        }
-                    }
-
+                var grenadierArchetype = ResourcesLibrary.TryGetBlueprint<BlueprintArchetype>(AlchemistGrenadierArchetypeGuid);
+                if (brewPotion != null && alchemistProgression != null && grenadierArchetype != null) {
+                    var firstLevelIndex = alchemistProgression.LevelEntries.FindIndex((levelEntry) => (levelEntry.Level == 1));
+                    alchemistProgression.LevelEntries[firstLevelIndex].Features.Add(brewPotion);
                     alchemistProgression.UIDeterminatorsGroup = alchemistProgression.UIDeterminatorsGroup.Concat(new[] {brewPotion}).ToArray();
+                    // Vanilla Grenadier has no level 1 RemoveFeatures, but a mod may have changed that, so search for it as well.
+                    var firstLevelGrenadierRemoveIndex = grenadierArchetype.RemoveFeatures.FindIndex((levelEntry) => (levelEntry.Level == 1));
+                    if (firstLevelGrenadierRemoveIndex < 0) {
+                        var removeFeatures = new[] {new LevelEntry {Level = 1}};
+                        grenadierArchetype.RemoveFeatures = removeFeatures.Concat(grenadierArchetype.RemoveFeatures).ToArray();
+                        firstLevelGrenadierRemoveIndex = 0;
+                    }
+                    grenadierArchetype.RemoveFeatures[firstLevelGrenadierRemoveIndex].Features.Add(brewPotion);
                 } else {
-                    ModEntry.Logger.Warning("Failed to locate Alchemist progression or Brew Potion feat!");
+                    ModEntry.Logger.Warning("Failed to locate Alchemist progression, Grenadier archetype or Brew Potion feat!");
                 }
             }
 

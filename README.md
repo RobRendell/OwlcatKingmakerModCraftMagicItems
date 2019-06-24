@@ -4,7 +4,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 
-* Alchemist / Grenadier archetype shouldn't get Brew Potion
 * Wizard / Scroll Savant archetype should get Scribe Scroll at 1st level.
 * Enchantments with restrictions (such as Celestial "minimum +3") should be displayed in the UI.
 * Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
