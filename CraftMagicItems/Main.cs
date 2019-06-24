@@ -94,6 +94,7 @@ namespace CraftMagicItems {
         private const string MasterworkGuid = "6b38844e2bffbac48b63036b66e735be";
         private const string AlchemistProgressionGuid = "efd55ff9be2fda34981f5b9c83afe4f1";
         private const string AlchemistGrenadierArchetypeGuid = "6af888a7800b3e949a40f558ff204aae";
+        private const string ScrollSavantArchetypeGuid = "f43c78692a4e10d43a38bd6aedf53c1b";
         private const string MartialWeaponProficiencies = "203992ef5b35c864390b4e4a1e200629";
         private const string ChannelEnergyFeatureGuid = "a79013ff4bcd4864cb669622a29ddafb";
         private const string CustomPriceLabel = "Crafting Cost: ";
@@ -2585,6 +2586,17 @@ namespace CraftMagicItems {
                     grenadierArchetype.RemoveFeatures[firstLevelGrenadierRemoveIndex].Features.Add(brewPotion);
                 } else {
                     ModEntry.Logger.Warning("Failed to locate Alchemist progression, Grenadier archetype or Brew Potion feat!");
+                }
+
+                // Scroll Savant should get Scribe Scroll as a bonus 1st level feat.
+                var scribeScrollData = ItemCraftingData.First(data => data.Name == "Scroll");
+                var scribeScroll = ResourcesLibrary.TryGetBlueprint<BlueprintFeature>(scribeScrollData.FeatGuid);
+                var scrollSavantArchetype = ResourcesLibrary.TryGetBlueprint<BlueprintArchetype>(ScrollSavantArchetypeGuid);
+                if (scribeScroll != null && scrollSavantArchetype != null) {
+                    var firstLevelAdd = scrollSavantArchetype.AddFeatures.First((levelEntry) => (levelEntry.Level == 1));
+                    firstLevelAdd.Features.Add(scribeScroll);
+                } else {
+                    ModEntry.Logger.Warning("Failed to locate Scroll Savant archetype or Scribe Scroll feat!");
                 }
             }
 

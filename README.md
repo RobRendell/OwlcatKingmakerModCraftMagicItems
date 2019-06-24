@@ -4,15 +4,14 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 
-* Wizard / Scroll Savant archetype should get Scribe Scroll at 1st level.
+* Treat surface for Tenebrous Depths in rogue-like mode as a safe resting place: Since, you know, that's a fancy banquet table under the
+        watchful eye of a silver dragon. This implies time to relax and get other crap done.
 * Enchantments with restrictions (such as Celestial "minimum +3") should be displayed in the UI.
 * Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
 * On load, Fast Healing 1 effect from regeneration ring becomes Fast Healing 5... doesn't change GUID?
 * It's possible to sell your bonded item to a merchant, and the "downgraded" version appears in your inventory, so you
         can re-equip it and do it again.
 * After upgrading the Cloak of Sold Souls a few times its effects duplicate, I have 2 -4 penalties to con and I get +4 to necromancy spells DC
-* Treat surface for Tenebrous Depths in rogue-like mode as a safe resting place: Since, you know, that's a fancy banquet table under the
-        watchful eye of a silver dragon. This implies time to relax and get other crap done.
 
 
 * Rebase custom items on more valuable vanilla items?  E.g. increasing the enhancement bonus of a magic weapon might change to being based on the vanilla weapon with that bonus.
