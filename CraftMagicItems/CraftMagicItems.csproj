@@ -91,6 +91,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SustenanceEnchantment.cs" />
     <Compile Include="WeaponSizeChange.cs" />
+    <Compile Include="WildEnchantment.cs"/>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data" />

@@ -113,6 +113,24 @@
     "Restrictions": ["ArmourMetal", "EnhancmentBonus3"]
   },
   {
+    "Name": "Wild",
+    "NameId": "craftMagicItems-enchantment-wild-name",
+    "Enchantments": [
+      "dd0e096412423d646929d9b945fd6d4c#CraftMagicItems(wildEnchantment)"
+    ],
+    "CasterLevelStart": 9,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": [
+      "3105d6e9febdc3f41a08d2b7dda1fe74"
+    ],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 3,
+    "OnlyForSlots": [
+      "Armor",
+      "Shield"
+    ]
+  },
+  {
     "Name": "ShieldEnhancementBonus",
     "NameId": "7901b076-42d2-401e-a8e3-9ce0d4aa12df",
     "Enchantments": [

@@ -31,7 +31,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 * Metamagic effects on spells
 * Dragonhide is called "dragonscale".  Ironwood?
 * Request for https://www.d20pfsrd.com/magic-items/wondrous-items/m-p/page-of-spell-knowledge/
-* Wild enchantment, which allows a druid to retain an armor's bonus when they shapeshift.
 
 * Mighty Fists enchantment is stacking - looks like a bug in Owlcat's code
 * Tabletop Amulet of Mighty Fists actually allows all relevant weapon enhancements (such as Flaming or Agile)... not

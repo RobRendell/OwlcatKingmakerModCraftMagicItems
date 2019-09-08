@@ -315,6 +315,14 @@
       "Key": "craftMagicItems-enchantment-sustenance-description",
       "Value": "This ring continually provides its wearer with life-sustaining nourishment. The ring also refreshes the body and mind, so that its wearer needs only sleep 2 hours per day to gain the benefit of 8 hours of sleep. This allows them to perform two roles in camp."
 	},
+  {
+    "Key": "craftMagicItems-enchantment-wild-name",
+    "Value": "Wild"
+  },
+  {
+    "Key": "craftMagicItems-enchantment-wild-description",
+    "Value": "The wearer of a suit of armor or a shield with this ability preserves their armor bonus (and any enhancement bonus) while in wild shape."
+  },
 	{
       "Key": "craftMagicItems-item-ring-of-regeneration-name",
       "Value": "Ring of Regeneration"
