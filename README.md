@@ -4,15 +4,21 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 ## To Do
 
-* Enchantments with restrictions (such as Celestial "minimum +3") should be displayed in the UI.
-* Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
+* Oversize weapon (+ Impact?) shows base damage on item card.
+* Someone reported swapping bonded ring between ring slots made it vanish.
+* Double weapons: craft DCs 3 lower than expected for special materials (9 vs. 12 for cold iron, 14 vs. 17 for mithral / adamantine / masterwork, 19 vs 21 for oversized)
+* Double weapons: receive 1000 instead of 500 increase from adamantine, and have exceptional prices with mithral (1337 for GHH, 1684 for TBS, 2009 for DU, 2510 for ODA) and noticeably more than double base price with cold iron
+* After upgrading the Cloak of Sold Souls a few times its effects duplicate, I have 2 -4 penalties to con and I get +4 to necromancy spells DC
 * On load, Fast Healing 1 effect from regeneration ring becomes Fast Healing 5... doesn't change GUID?
 * It's possible to sell your bonded item to a merchant, and the "downgraded" version appears in your inventory, so you
         can re-equip it and do it again.
-* After upgrading the Cloak of Sold Souls a few times its effects duplicate, I have 2 -4 penalties to con and I get +4 to necromancy spells DC
-
-
+* The ui is *really* dense. I think if you could add line-breaks between the "Crafting" "Item type" "Item" and "Enhancement" sub sections it would make the mod much easier to utilize. Also not sure, but if you can do font size / bold, maybe doing that to keep the craft mundane/magical/etc from getting visually lost that'd be nice.
 * Rebase custom items on more valuable vanilla items?  E.g. increasing the enhancement bonus of a magic weapon might change to being based on the vanilla weapon with that bonus.
+* Make Robes fall under Craft Wondrous Items rather than Arms and Armor.  "Monk's Robe"
+
+
+* Enchantments with restrictions (such as Celestial "minimum +3") should be displayed in the UI.
+* Make characters in town work from the "stash" (and their own equipment) rather than from the party inventory.
 * Trailblazer's Helm can cast two different spells!
 * Perhaps crafting projects for characters in your party should be advanced at the adventuring rate when you first enter
         the capital, to account things more accurately?
@@ -24,7 +30,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 * Remove assumption that GUIDs are 32 characters long, given more mods with custom GUIDs are becoming available.
 * In BuildCustomRecipeItemGuid, sort enchantments and remove GUIDs lexographically so blueprint is always the same.
 * Add "Fabricate" custom spell to instantly do mundane crafting, and to add special materials to existing items.
-* Make Robes fall under Craft Wondrous Items rather than Arms and Armor.  "Monk's Robe"
 * Ioun stone enchantments?  Could also do as a specific item recipe, a la Bag of Holding.
 * Custom "quiver" items which can contain arrows of a particular type, which modify the damage of any ranged weapons you
         use when they're equipped in your belt slots?
