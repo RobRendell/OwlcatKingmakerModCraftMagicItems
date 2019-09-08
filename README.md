@@ -39,7 +39,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 * Craft Rod?
 * In-game GUI
 * Bracers of archery (lesser/greater) - requires both Craft Wondrous Items and Craft Arms and Armor
-* Fortification enchantment - doesn't appear to be in the base game?
 * Craft Construct?  Either a build-your-own-pet, Eidolon style, or a Golem-in-a-bottle like arrangement.
 
 there are some dragonhide equipment entities, but there doesn't seem to be any blueprints associated with them?

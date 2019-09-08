@@ -963,6 +963,10 @@ namespace CraftMagicItems {
                 .Any(bondedComponent => bondedComponent != null && (bondedComponent.ownerItem == item || bondedComponent.everyoneElseItem == item));
         }
 
+        private static int GetPlusOfRecipe(RecipeData recipe, int level) {
+            return recipe.CostFactor * level + recipe.CostAdjustment;
+        }
+
         private static void RenderRecipeBasedCrafting(UnitEntityData caster, RecipeBasedItemCraftingData craftingData, ItemEntity upgradeItem = null) {
             ItemsFilter.ItemType selectedSlot;
             if (upgradeItem != null) {
@@ -1102,7 +1106,7 @@ namespace CraftMagicItems {
                     RenderLabel(selectedEnchantment.Description);
                 }
                 if (selectedRecipe.CostType == RecipeCostType.EnhancementLevelSquared) {
-                    RenderLabel($"Plus equivalent: +{(selectedRecipe.Enchantments.IndexOf(selectedEnchantment) + 1) * selectedRecipe.CostFactor}");
+                    RenderLabel($"Plus equivalent: +{GetPlusOfRecipe(selectedRecipe, selectedRecipe.Enchantments.IndexOf(selectedEnchantment) + 1)}");
                 }
             }
 
@@ -2330,14 +2334,14 @@ namespace CraftMagicItems {
                         if (recipe.EnchantmentsCumulative) {
                             cumulative[recipe] = cumulative.ContainsKey(recipe) ? Math.Max(level, cumulative[recipe]) : level;
                         } else {
-                            enhancementLevel += recipe.CostFactor * level;
+                            enhancementLevel += GetPlusOfRecipe(recipe, level);
                         }
                     }
                 }
             }
 
             foreach (var recipeLevelPair in cumulative) {
-                enhancementLevel += recipeLevelPair.Key.CostFactor * recipeLevelPair.Value;
+                enhancementLevel += GetPlusOfRecipe(recipeLevelPair.Key, recipeLevelPair.Value);
             }
 
             return enhancementLevel;

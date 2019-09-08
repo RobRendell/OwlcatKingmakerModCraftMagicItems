@@ -125,10 +125,23 @@
     ],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 3,
-    "OnlyForSlots": [
-      "Armor",
-      "Shield"
-    ]
+    "OnlyForSlots": ["Armor", "Shield"]
+  },
+  {
+    "Name": "Fortification",
+    "NameId": "craftMagicItems-enchantment-fortification-name",
+    "Enchantments": [
+      "dd0e096412423d646929d9b945fd6d4c#CraftMagicItems(Component[0].Feature=3acd292384279f34e859992011344967,Component[0].Feature.m_DisplayName=craftMagicItems-enchantment-light-fortification-name,Component[0].Feature.m_Description=craftMagicItems-enchantment-light-fortification-description,Component[0].Feature.Components[0].Bonus=25,nameId=craftMagicItems-enchantment-light-fortification-name,descriptionId=craftMagicItems-enchantment-light-fortification-description)",
+      "dd0e096412423d646929d9b945fd6d4c#CraftMagicItems(Component[0].Feature=3acd292384279f34e859992011344967,Component[0].Feature.m_DisplayName=craftMagicItems-enchantment-medium-fortification-name,Component[0].Feature.m_Description=craftMagicItems-enchantment-medium-fortification-description,nameId=craftMagicItems-enchantment-medium-fortification-name,descriptionId=craftMagicItems-enchantment-medium-fortification-description)",
+      "dd0e096412423d646929d9b945fd6d4c#CraftMagicItems(Component[0].Feature=3acd292384279f34e859992011344967,Component[0].Feature.m_DisplayName=craftMagicItems-enchantment-heavy-fortification-name,Component[0].Feature.m_Description=craftMagicItems-enchantment-heavy-fortification-description,Component[0].Feature.Components[0].Bonus=75,nameId=craftMagicItems-enchantment-heavy-fortification-name,descriptionId=craftMagicItems-enchantment-heavy-fortification-description)"
+    ],
+    "CasterLevelStart": 13,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": [],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 2,
+    "CostAdjustment": -1,
+    "OnlyForSlots": ["Armor", "Shield"]
   },
   {
     "Name": "ShieldEnhancementBonus",

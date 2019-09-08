@@ -127,6 +127,8 @@ namespace CraftMagicItems {
 
         [JsonProperty] public int CostFactor;
 
+        [JsonProperty] public int CostAdjustment;
+
         [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
         public ItemsFilter.ItemType[] OnlyForSlots;
 
