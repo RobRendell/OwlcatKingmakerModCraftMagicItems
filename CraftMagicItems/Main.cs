@@ -516,7 +516,7 @@ namespace CraftMagicItems {
                     "enchantments to your bonded item.");
                 RenderLabel(new L10NString("craftMagicItems-bonded-item-glossary"));
                 RenderLabel("Choose your bonded item.");
-                var names = BondedItemSlots.Select(slot => new L10NString(GetSlotStringKey(slot)).ToString()).ToArray();
+                var names = BondedItemSlots.Select(slot => new L10NString(GetSlotStringKey(slot, null)).ToString()).ToArray();
                 var selectedItemSlotIndex = RenderSelection("Item type", names, 10);
                 var selectedSlot = BondedItemSlots[selectedItemSlotIndex];
                 var items = Game.Instance.Player.Inventory
@@ -668,14 +668,15 @@ namespace CraftMagicItems {
             }
         }
 
-        private static string GetSlotStringKey(ItemsFilter.ItemType slot) {
+        private static string GetSlotStringKey(ItemsFilter.ItemType slot, SlotRestrictionEnum[] restrictions) {
             switch (slot) {
                 case ItemsFilter.ItemType.Weapon:
                     return "e5e94f49-4bf6-4813-b4d7-8e4e9ede3d11";
                 case ItemsFilter.ItemType.Shield:
                     return "dfa95469-ed91-4fc6-b5ef-89a466c50d71";
                 case ItemsFilter.ItemType.Armor:
-                    return "99d4ca00-bf3d-4d42-bf9c-aac1f4a407d6";
+                    return (restrictions != null && restrictions.Contains(SlotRestrictionEnum.ArmourOnlyRobes)) ?
+                        "craftMagicItems-item-category-name-robe" : "b43922c2-5435-45eb-bdf9-6e33e6bef0ae";
                 case ItemsFilter.ItemType.Ring:
                     return "04d0daf3-ba89-44d5-8b6e-84b544e6748d";
                 case ItemsFilter.ItemType.Belt:
@@ -751,7 +752,7 @@ namespace CraftMagicItems {
             return null;
         }
 
-        private static bool DoesItemMatchEnchantments(BlueprintItemEquipment blueprint, string selectedEnchantmentId,
+        private static bool DoesItemMatchAllEnchantments(BlueprintItemEquipment blueprint, string selectedEnchantmentId,
             BlueprintItemEquipment upgradeItem = null, bool checkPrice = false) {
             var isNotable = upgradeItem && upgradeItem.IsNotable;
             var ability = upgradeItem ? upgradeItem.Ability : null;
@@ -834,7 +835,7 @@ namespace CraftMagicItems {
 
             switch (blueprint) {
                 case BlueprintItemArmor armor:
-                    return ItemPlusEquivalent(armor) > 0;
+                    return ItemPlusEquivalent(armor) > 0 || !armor.IsArmor;
                 case BlueprintItemWeapon weapon:
                     return ItemPlusEquivalent(weapon) > 0;
                 case BlueprintItemShield shield:
@@ -951,6 +952,24 @@ namespace CraftMagicItems {
             return blueprint.ItemType == slot || slot == ItemsFilter.ItemType.Usable && blueprint is BlueprintItemEquipmentUsable;
         }
 
+        private static bool DoesBlueprintMatchRestrictions(BlueprintItemEquipment blueprint, ItemsFilter.ItemType slot, SlotRestrictionEnum[] restrictions) {
+            if (restrictions != null) {
+                foreach (var restriction in restrictions) {
+                    switch (restriction) {
+                        case SlotRestrictionEnum.ArmourOnlyRobes:
+                        case SlotRestrictionEnum.ArmourExceptRobes:
+                            if (slot == ItemsFilter.ItemType.Armor
+                                && blueprint is BlueprintItemArmor armour
+                                && armour.IsArmor == (restriction == SlotRestrictionEnum.ArmourOnlyRobes)) {
+                                return false;
+                            }
+                            break;
+                    }
+                }    
+            }
+            return true;
+        }
+
         private static string GetBonusString(int bonus, RecipeData recipe) {
             bonus *= recipe.BonusMultiplier == 0 ? 1 : recipe.BonusMultiplier;
             return recipe.BonusDieSize != 0 ? new DiceFormula(bonus, recipe.BonusDieSize).ToString() : bonus.ToString();
@@ -979,7 +998,7 @@ namespace CraftMagicItems {
                 // Choose slot/weapon type.
                 var selectedItemSlotIndex = 0;
                 if (craftingData.Slots.Length > 1) {
-                    var names = craftingData.Slots.Select(slot => new L10NString(GetSlotStringKey(slot)).ToString()).ToArray();
+                    var names = craftingData.Slots.Select(slot => new L10NString(GetSlotStringKey(slot, craftingData.SlotRestrictions)).ToString()).ToArray();
                     selectedItemSlotIndex = RenderSelection("Item type", names, 10, ref selectedCustomName);
                 }
 
@@ -990,6 +1009,7 @@ namespace CraftMagicItems {
                     .Concat(ItemCreationProjects.Select(project => project.ResultItem))
                     .Where(item => item.Blueprint is BlueprintItemEquipment blueprint
                                    && DoesBlueprintMatchSlot(blueprint, selectedSlot)
+                                   && DoesBlueprintMatchRestrictions(blueprint, selectedSlot, craftingData.SlotRestrictions)
                                    && CanEnchant(item)
                                    && !IsAnotherCastersBondedItem(item, caster)
                                    && CanRemove(blueprint)
@@ -1142,10 +1162,10 @@ namespace CraftMagicItems {
             }
 
             // See if the selected enchantment (plus optional mundane base item) corresponds to a vanilla blueprint.
-            var allItemBlueprintsWithEnchantment = FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid);
+            var allItemBlueprintsWithEnchantment = FindItemBlueprintForEnchantmentId(selectedEnchantment.AssetGuid)?.Where(blueprint =>
+                DoesBlueprintMatchSlot(blueprint, selectedSlot) && DoesBlueprintMatchRestrictions(blueprint, selectedSlot, craftingData.SlotRestrictions));
             var matchingItem = allItemBlueprintsWithEnchantment?.FirstOrDefault(blueprint =>
-                DoesBlueprintMatchSlot(blueprint, selectedSlot)
-                && DoesItemMatchEnchantments(blueprint, selectedEnchantment.AssetGuid, upgradeItem?.Blueprint as BlueprintItemEquipment, true)
+                DoesItemMatchAllEnchantments(blueprint, selectedEnchantment.AssetGuid, upgradeItem?.Blueprint as BlueprintItemEquipment, true)
             );
             BlueprintItemEquipment itemToCraft;
             var itemGuid = "[not set]";
@@ -1180,7 +1200,7 @@ namespace CraftMagicItems {
                 // Crafting a new custom blueprint from scratch.
                 SelectRandomApplicableBaseGuid(craftingData, selectedSlot);
                 var baseBlueprint = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(selectedBaseGuid);
-                RenderCustomNameField($"{new L10NString(selectedRecipe.NameId)} {new L10NString(GetSlotStringKey(selectedSlot))}");
+                RenderCustomNameField($"{new L10NString(selectedRecipe.NameId)} {new L10NString(GetSlotStringKey(selectedSlot, craftingData.SlotRestrictions))}");
                 var enchantmentsToRemove = GetEnchantments(baseBlueprint, selectedRecipe).Select(enchantment => enchantment.AssetGuid).ToArray();
                 itemGuid = blueprintPatcher.BuildCustomRecipeItemGuid(selectedBaseGuid, new List<string> {selectedEnchantment.AssetGuid}, enchantmentsToRemove,
                     selectedCustomName ?? "[custom item]", "null", "null");
@@ -1238,7 +1258,7 @@ namespace CraftMagicItems {
                                    guid => DoesBlueprintMatchSlot(ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipment>(guid), selectedSlot));
         }
 
-        private static void RenderCastSpellNTimes(UnitEntityData caster, ItemCraftingData craftingData, ItemEntity upgradeItem,
+        private static void RenderCastSpellNTimes(UnitEntityData caster, RecipeBasedItemCraftingData craftingData, ItemEntity upgradeItem,
             ItemsFilter.ItemType selectedSlot) {
             BlueprintItemEquipment equipment = null;
             if (upgradeItem != null) {
@@ -1326,7 +1346,7 @@ namespace CraftMagicItems {
             string itemGuid;
             if (upgradeItem == null) {
                 // Option to rename item
-                RenderCustomNameField($"{ability.Name} {new L10NString(GetSlotStringKey(selectedSlot))}");
+                RenderCustomNameField($"{ability.Name} {new L10NString(GetSlotStringKey(selectedSlot, craftingData.SlotRestrictions))}");
                 // Pick random base item
                 SelectRandomApplicableBaseGuid(craftingData, selectedSlot);
                 // Create customised item GUID
@@ -2542,7 +2562,7 @@ namespace CraftMagicItems {
                 foreach (var enchantment in allNonRecipeEnchantmentsInItems) {
                     var itemsWithEnchantment = EnchantmentIdToItem[enchantment.AssetGuid];
                     foreach (var item in itemsWithEnchantment) {
-                        if (DoesItemMatchEnchantments(item, enchantment.AssetGuid)) {
+                        if (DoesItemMatchAllEnchantments(item, enchantment.AssetGuid)) {
                             EnchantmentIdToCost[enchantment.AssetGuid] = item.Cost;
                             break;
                         }

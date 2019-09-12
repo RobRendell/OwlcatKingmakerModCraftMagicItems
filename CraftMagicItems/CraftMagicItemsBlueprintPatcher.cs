@@ -257,6 +257,14 @@ namespace CraftMagicItems {
             return BuildCustomSpellItemGuid(blueprint.AssetGuid, casterLevel, spellLevel, spellId);
         }
 
+        private bool DoesBlueprintShowEnchantments(BlueprintItemEquipment blueprint) {
+            // Special handling of Robes :(
+            if (blueprint is BlueprintItemArmor armour) {
+                return armour.IsArmor;
+            }
+            return SlotsWhichShowEnchantments.Contains(blueprint.ItemType);
+        }
+
         private string ApplyRecipeItemBlueprintPatch(BlueprintItemEquipment blueprint, Match match) {
             var priceDelta = blueprint.Cost - Main.RulesRecipeItemCost(blueprint);
             if (blueprint is BlueprintItemShield shield) {
@@ -417,7 +425,7 @@ namespace CraftMagicItems {
                 doubleWeapon.SecondWeapon = ResourcesLibrary.TryGetBlueprint<BlueprintItemWeapon>(secondEndGuid);
             }
 
-            if (!SlotsWhichShowEnchantments.Contains(blueprint.ItemType)) {
+            if (!DoesBlueprintShowEnchantments(blueprint)) {
                 accessors.SetBlueprintItemDescriptionText(blueprint,
                     descriptionId != null
                         ? new L10NString(descriptionId)

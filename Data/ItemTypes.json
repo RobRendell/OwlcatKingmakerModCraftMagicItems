@@ -66,6 +66,10 @@
     "MinimumCasterLevel": 3,
     "PrerequisitesMandatory": false,
     "NewItemBaseIDs": [
+      "b5a204f4311dafe42ab06d1d8ee7c1b9",
+      "beba168ccba9ccd4facd66d99ef031ef",
+      "86f0292dc48f0e8458384f9198f4db81",
+      "028cee4babc7c9c4d95043fc4a1f4359",
       "ec34985b81b9f744488456e7009044ee",
       "5e94d9ac3448c774db72a51007aab1df",
       "be3cadb084c816448b873dd791eec3e4",
@@ -103,7 +107,8 @@
       "fedfe06fec617c8429b2db25eb584cd6#CraftMagicItems(enchantments=(),visual=1575d992db377af4298d966cdeaca1be)"
     ],
     "RecipeFileNames": ["CommonRecipes.json", "WondrousRecipes.json"],
-    "Slots": ["Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist", "Usable"]
+    "Slots": ["Armor", "Belt", "Feet", "Gloves", "Head", "Neck", "Shoulders", "Wrist", "Usable"],
+    "SlotRestrictions": ["ArmourOnlyRobes"]
   },
   {
     "DataType": "RecipeBased",
@@ -113,7 +118,8 @@
     "MinimumCasterLevel": 5,
     "PrerequisitesMandatory": false,
     "RecipeFileNames": ["ArmsArmourRecipes.json"],
-    "Slots": ["Armor", "Shield", "Weapon"]
+    "Slots": ["Armor", "Shield", "Weapon"],
+    "SlotRestrictions": ["ArmourExceptRobes"]
   },
   {
     "DataType": "RecipeBased",

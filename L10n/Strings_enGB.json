@@ -288,6 +288,10 @@
     "Value": "able to Channel Energy"
   },
   {
+    "Key": "craftMagicItems-item-category-name-robe",
+    "Value": "Robe"
+  },
+  {
     "Key": "craftMagicItems-item-silver-dagger-name",
     "Value": "Mithral Dagger"
   },

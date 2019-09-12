@@ -14,7 +14,9 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
         can re-equip it and do it again.
 * The ui is *really* dense. I think if you could add line-breaks between the "Crafting" "Item type" "Item" and "Enhancement" sub sections it would make the mod much easier to utilize. Also not sure, but if you can do font size / bold, maybe doing that to keep the craft mundane/magical/etc from getting visually lost that'd be nice.
 * Rebase custom items on more valuable vanilla items?  E.g. increasing the enhancement bonus of a magic weapon might change to being based on the vanilla weapon with that bonus.
-* Make Robes fall under Craft Wondrous Items rather than Arms and Armor.  "Monk's Robe"
+* Undead characters (Jaethal) eat rations and sleep normally.  Could give them the benefits of Sustenance...
+* Craft Rod.
+* Mechanism for 3rd party mods to add more recipes, either for vanilla enchantments or their own custom enchantments.
 
 
 * Enchantments with restrictions (such as Celestial "minimum +3") should be displayed in the UI.

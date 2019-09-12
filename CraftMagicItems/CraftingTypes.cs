@@ -17,6 +17,11 @@ namespace CraftMagicItems {
         RecipeBased
     }
 
+    public enum SlotRestrictionEnum {
+        ArmourExceptRobes,
+        ArmourOnlyRobes
+    }
+
     public interface ICraftingData {
         // ReSharper disable once UnusedMember.Global
         DataTypeEnum DataType { get; set; }
@@ -49,6 +54,9 @@ namespace CraftMagicItems {
         [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
         public ItemsFilter.ItemType[] Slots;
 
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public SlotRestrictionEnum[] SlotRestrictions;
+        
         [JsonProperty] public int MundaneBaseDC;
         [JsonProperty] public bool MundaneEnhancementsStackable;
 
