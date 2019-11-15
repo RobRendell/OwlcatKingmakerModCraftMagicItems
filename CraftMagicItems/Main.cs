@@ -321,7 +321,7 @@ namespace CraftMagicItems {
         private static bool RenderToggleSection(ref OpenSection current, OpenSection mySection, string label) {
             GUILayout.BeginVertical("box");
             GUILayout.BeginHorizontal();
-            bool toggledOn = GUILayout.Toggle(current == mySection, " " + label);
+            bool toggledOn = GUILayout.Toggle(current == mySection, " <size=16><b>" + label + "</b></size>");
             if (toggledOn) {
                 current = mySection;
             }
@@ -436,7 +436,7 @@ namespace CraftMagicItems {
 
             var itemTypeNames = itemTypes.Select(data => new L10NString(data.NameId).ToString())
                 .PrependConditional(hasBondedItemFeature, new L10NString("craftMagicItems-bonded-object-name")).ToArray();
-            var selectedItemTypeIndex = RenderSelection("Crafting: ", itemTypeNames, 6, ref selectedCustomName);
+            var selectedItemTypeIndex = RenderSelection("Crafting: ", itemTypeNames, 6, ref selectedCustomName, false);
             if (hasBondedItemFeature && selectedItemTypeIndex == 0) {
                 RenderBondedItemCrafting(caster);
             } else {
@@ -1886,12 +1886,15 @@ namespace CraftMagicItems {
             return SelectedIndex.ContainsKey(label) ? SelectedIndex[label] : 0;
         }
 
-        private static int RenderSelection<T>(string label, string[] options, int xCount, ref T emptyOnChange) {
+        private static int RenderSelection<T>(string label, string[] options, int xCount, ref T emptyOnChange, bool addSpace = true) {
             var index = GetSelectionIndex(label);
             if (index >= options.Length) {
                 index = 0;
             }
 
+            if (addSpace) {
+                GUILayout.Space(20);
+            }
             GUILayout.BeginHorizontal();
             GUILayout.Label(label, GUILayout.ExpandWidth(false));
             var newIndex = GUILayout.SelectionGrid(index, options, xCount);

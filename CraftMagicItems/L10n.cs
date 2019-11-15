@@ -1,8 +1,8 @@
-﻿using Kingmaker.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Kingmaker;
+using Kingmaker.Localization;
 using Newtonsoft.Json;
 
 namespace CraftMagicItems {

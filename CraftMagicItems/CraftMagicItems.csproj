@@ -70,7 +70,7 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Pathfinder Kingmaker\Kingmaker_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
-      <Reference Include="UnityModManager, Version=0.17.0.0, Culture=neutral, PublicKeyToken=null">
+    <Reference Include="UnityModManager, Version=0.18.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\..\..\Downloads\UnityModManager\UnityModManager.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -91,7 +91,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SustenanceEnchantment.cs" />
     <Compile Include="WeaponSizeChange.cs" />
-    <Compile Include="WildEnchantment.cs"/>
+    <Compile Include="WildEnchantment.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data" />
