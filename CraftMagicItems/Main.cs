@@ -1094,12 +1094,17 @@ namespace CraftMagicItems {
             var selectedEnchantmentIndex = 0;
             if (selectedRecipe.ResultItem == null) {
                 // Pick specific enchantment from the recipe
-                availableEnchantments = selectedRecipe.Enchantments;
-                var supersededEnchantment = upgradeItem != null ? FindSupersededEnchantmentId(upgradeItem.Blueprint, availableEnchantments[0].AssetGuid) : null;
-                if (supersededEnchantment != null) {
-                    // Don't offer downgrade options.
-                    var existingIndex = availableEnchantments.FindIndex(enchantment => enchantment.AssetGuid == supersededEnchantment);
-                    availableEnchantments = availableEnchantments.Skip(existingIndex + 1).ToArray();
+                if (selectedRecipe.EnchantmentsCumulative && upgradeItem != null) {
+                    var itemEnchantments = GetEnchantments(upgradeItem.Blueprint, selectedRecipe);
+                    availableEnchantments = selectedRecipe.Enchantments.Where(enchantment => !itemEnchantments.Contains(enchantment)).ToArray();
+                } else {
+                    availableEnchantments = selectedRecipe.Enchantments;
+                    var supersededEnchantment = upgradeItem != null ? FindSupersededEnchantmentId(upgradeItem.Blueprint, availableEnchantments[0].AssetGuid) : null;
+                    if (supersededEnchantment != null) {
+                        // Don't offer downgrade options.
+                        var existingIndex = availableEnchantments.FindIndex(enchantment => enchantment.AssetGuid == supersededEnchantment);
+                        availableEnchantments = availableEnchantments.Skip(existingIndex + 1).ToArray();
+                    }
                 }
 
                 if (availableEnchantments.Length > 0 && selectedRecipe.Enchantments.Length > 1) {

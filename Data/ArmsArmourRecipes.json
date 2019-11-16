@@ -661,10 +661,12 @@
     "Name": "WeaponThundering",
     "NameId": "a79f0833-e4ec-4a67-ae75-1508ad54648b",
     "Enchantments": [
-      "690e762f7704e1f4aa1ac69ef0ce6a96"
+      "690e762f7704e1f4aa1ac69ef0ce6a96",
+      "3f032a3cd54e57649a0cdad0434bf221#CraftMagicItems(Component[0].Element=Sonic,nameId=craftMagicItems-enchantment-thundering-burst-name,descriptionId=craftMagicItems-enchantment-thundering-burst-description)"
     ],
+    "EnchantmentsCumulative": true,
     "CasterLevelStart": 5,
-    "CasterLevelMultiplier": 0,
+    "CasterLevelMultiplier": 7,
     "PrerequisiteSpells": ["f09453607e683784c8fca646eec49162"],
     "CostType": "EnhancementLevelSquared",
     "CostFactor": 1,
