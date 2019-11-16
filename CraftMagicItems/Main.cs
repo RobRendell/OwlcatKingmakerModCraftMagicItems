@@ -174,6 +174,7 @@ namespace CraftMagicItems {
         private static readonly Dictionary<string, List<ItemCraftingData>> SubCraftingData = new Dictionary<string, List<ItemCraftingData>>();
         private static readonly Dictionary<string, List<BlueprintItemEquipment>> EnchantmentIdToItem = new Dictionary<string, List<BlueprintItemEquipment>>();
         private static readonly Dictionary<string, List<RecipeData>> EnchantmentIdToRecipe = new Dictionary<string, List<RecipeData>>();
+        private static readonly Dictionary<PhysicalDamageMaterial, List<RecipeData>> MaterialToRecipe = new Dictionary<PhysicalDamageMaterial, List<RecipeData>>();
         private static readonly Dictionary<string, int> EnchantmentIdToCost = new Dictionary<string, int>();
         private static readonly List<LogDataManager.LogItemData> PendingLogItems = new List<LogDataManager.LogItemData>();
         private static readonly Dictionary<ItemEntity, CraftingProjectData> ItemUpgradeProjects = new Dictionary<ItemEntity, CraftingProjectData>();
@@ -724,12 +725,20 @@ namespace CraftMagicItems {
         }
 
         public static RecipeData FindSourceRecipe(string selectedEnchantmentId, BlueprintItem blueprint) {
-            if (!EnchantmentIdToRecipe.ContainsKey(selectedEnchantmentId)) {
+            List<RecipeData> recipes = null;
+            if (EnchantmentIdToRecipe.ContainsKey(selectedEnchantmentId)) {
+                recipes = EnchantmentIdToRecipe[selectedEnchantmentId];
+            } else {
+                foreach (var material in blueprintPatcher.PhysicalDamageMaterialEnchantments.Keys) {
+                    if (blueprintPatcher.PhysicalDamageMaterialEnchantments[material] == selectedEnchantmentId) {
+                        recipes = MaterialToRecipe[material];
+                    }
+                }
+            }
+            if (recipes == null) {
                 return null;
             }
-
             var slot = GetItemType(blueprint);
-            var recipes = EnchantmentIdToRecipe[selectedEnchantmentId];
             return recipes.FirstOrDefault(recipe => (recipe.OnlyForSlots == null || recipe.OnlyForSlots.Contains(slot))
                                                     && (blueprint == null || RecipeAppliesToBlueprint(recipe, blueprint, true)));
         }
@@ -917,8 +926,8 @@ namespace CraftMagicItems {
                    || (skipEnchantedCheck || recipe.CanApplyToMundaneItem || IsEnchanted(blueprint, recipe))
                    && recipe.ResultItem == null
                    && ItemMatchesRestrictions(blueprint, recipe.Restrictions)
-                   // Weapons with special materials can't apply recipes which apply special materials
-                   && (!(blueprint is BlueprintItemWeapon weapon) || recipe.Material == 0 || weapon.DamageType.Physical.Material == 0)
+                   // Weapons with special materials can't apply recipes which apply different special materials
+                   && (!(blueprint is BlueprintItemWeapon weapon) || recipe.Material == 0 || weapon.DamageType.Physical.Material == 0 || recipe.Material == weapon.DamageType.Physical.Material)
                    // Shields make this complicated.  A shield's armour component can match a recipe which is for shields but not weapons. 
                    && (recipe.OnlyForSlots == null || recipe.OnlyForSlots.Contains(blueprint.ItemType)
                                                    || blueprint is BlueprintItemArmor armor && armor.IsShield
@@ -1558,16 +1567,16 @@ namespace CraftMagicItems {
                 .ToArray();
             var itemTypeNames = itemTypes.Select(data => new L10NString(data.ParentNameId ?? data.NameId).ToString()).ToArray();
             var selectedItemTypeIndex = upgradingBlueprint == null
-                ? RenderSelection("Crafting: ", itemTypeNames, 6, ref selectedCustomName)
-                : GetSelectionIndex("Crafting: ");
+                ? RenderSelection("Mundane Crafting: ", itemTypeNames, 6, ref selectedCustomName)
+                : GetSelectionIndex("Mundane Crafting: ");
 
             var selectedCraftingData = itemTypes[selectedItemTypeIndex];
             if (selectedCraftingData.ParentNameId != null) {
                 itemTypeNames = SubCraftingData[selectedCraftingData.ParentNameId].Select(data => new L10NString(data.NameId).ToString()).ToArray();
-                var selectedItemSubTypeIndex = 0;
-                if (upgradingBlueprint == null) {
-                    selectedItemSubTypeIndex = RenderSelection($"{new L10NString(selectedCraftingData.ParentNameId)}: ", itemTypeNames, 6);
-                }
+                var label = new L10NString(selectedCraftingData.ParentNameId) + ": ";
+                var selectedItemSubTypeIndex = upgradingBlueprint == null
+                    ? RenderSelection(label, itemTypeNames, 6)
+                    : GetSelectionIndex(label);
 
                 selectedCraftingData = SubCraftingData[selectedCraftingData.ParentNameId][selectedItemSubTypeIndex];
             }
@@ -1992,6 +2001,15 @@ namespace CraftMagicItems {
 
             if (!EnchantmentIdToRecipe[enchantmentId].Contains(recipe)) {
                 EnchantmentIdToRecipe[enchantmentId].Add(recipe);
+            }
+        }
+
+        private static void AddRecipeForMaterial(PhysicalDamageMaterial material, RecipeData recipe) {
+            if (!MaterialToRecipe.ContainsKey(material)) {
+                MaterialToRecipe.Add(material, new List<RecipeData>());
+            }
+            if (!MaterialToRecipe[material].Contains(recipe)) {
+                MaterialToRecipe[material].Add(recipe);
             }
         }
 
@@ -2535,6 +2553,9 @@ namespace CraftMagicItems {
                         foreach (var recipe in recipeBased.Recipes) {
                             foreach (var enchantment in recipe.Enchantments) {
                                 AddRecipeForEnchantment(enchantment.AssetGuid, recipe);
+                            }
+                            if (recipe.Material != 0) {
+                                AddRecipeForMaterial(recipe.Material, recipe);
                             }
 
                             if (recipe.ParentNameId != null) {

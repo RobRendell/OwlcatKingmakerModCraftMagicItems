@@ -172,7 +172,7 @@
     "Material": "Adamantite",
     "PrerequisiteSpells": [],
     "CostType": "Flat",
-    "CostFactor": 300,
+    "CostFactor": 0,
     "MundaneDC": 10,
     "OnlyForSlots": ["Weapon"],
     "Restrictions": ["WeaponNotUseAmmunition", "WeaponMetal"],

@@ -6,8 +6,6 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 
 * Oversize weapon (+ Impact?) shows base damage on item card.
 * Someone reported swapping bonded ring between ring slots made it vanish.
-* Double weapons: craft DCs 3 lower than expected for special materials (9 vs. 12 for cold iron, 14 vs. 17 for mithral / adamantine / masterwork, 19 vs 21 for oversized)
-* Double weapons: receive 1000 instead of 500 increase from adamantine, and have exceptional prices with mithral (1337 for GHH, 1684 for TBS, 2009 for DU, 2510 for ODA) and noticeably more than double base price with cold iron
 * After upgrading the Cloak of Sold Souls a few times its effects duplicate, I have 2 -4 penalties to con and I get +4 to necromancy spells DC
 * On load, Fast Healing 1 effect from regeneration ring becomes Fast Healing 5... doesn't change GUID?
 * It's possible to sell your bonded item to a merchant, and the "downgraded" version appears in your inventory, so you
