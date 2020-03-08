@@ -32,6 +32,7 @@ using Kingmaker.Kingdom;
 using Kingmaker.Localization;
 using Kingmaker.PubSubSystem;
 using Kingmaker.RuleSystem;
+using Kingmaker.RuleSystem.Rules;
 using Kingmaker.RuleSystem.Rules.Abilities;
 using Kingmaker.UI;
 using Kingmaker.UI.ActionBar;
@@ -2821,6 +2822,8 @@ namespace CraftMagicItems {
             }
         }
 
+        // Add "pending" log items when the battle log becomes available again, so crafting messages sent when e.g. camping
+        // in the overland map are still shown eventually.
         [Harmony12.HarmonyPatch(typeof(BattleLogManager), "Initialize")]
         // ReSharper disable once UnusedMember.Local
         private static class BattleLogManagerInitializePatch {
@@ -3192,6 +3195,7 @@ namespace CraftMagicItems {
             }
         }
 
+        // Make characters in the party work on their crafting projects when they rest.
         [Harmony12.HarmonyPatch(typeof(RestController), "ApplyRest")]
         // ReSharper disable once UnusedMember.Local
         private static class RestControllerApplyRestPatch {
@@ -3250,12 +3254,12 @@ namespace CraftMagicItems {
             }
         }
 
+        // After loading a save, perform various backward compatibility and initialisation operations.
         [Harmony12.HarmonyPatch(typeof(Player), "PostLoad")]
         // ReSharper disable once UnusedMember.Local
         private static class PlayerPostLoadPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
-                // Just finished loading a save
                 ItemUpgradeProjects.Clear();
                 ItemCreationProjects.Clear();
 
@@ -3381,6 +3385,19 @@ namespace CraftMagicItems {
             }
         }
 
+        // Owlcat's code explicitly sets DoNotScaleDamage true for the default weapon, which means it doesn't show its size-based damage dice.  Reverse that.
+        [Harmony12.HarmonyPatch(typeof(UIUtilityItem), "FillWeaponDamage")]
+        // ReSharper disable once UnusedMember.Local
+        private static class UIUtilityItemFillWeaponDamagePatch {
+            // ReSharper disable once UnusedMember.Local
+            private static void Prefix(RuleCalculateWeaponStats defaultWeaponStats) {
+                defaultWeaponStats.DoNotScaleDamage = false;
+                // Apparently need to reset bonus damage manually, if I'm going to re-run trigger.
+                defaultWeaponStats.AddBonusDamage(-defaultWeaponStats.BonusDamage);
+                defaultWeaponStats.OnTrigger(null);
+            }
+        }
+
         [Harmony12.HarmonyPatch(typeof(ItemEntity), "VendorDescription", Harmony12.MethodType.Getter)]
         // ReSharper disable once UnusedMember.Local
         private static class ItemEntityVendorDescriptionPatch {
@@ -3395,7 +3412,9 @@ namespace CraftMagicItems {
             }
         }
 
-        // Owlcat's code doesn't filter out undamaged characters, so will always return someone.
+        // Owlcat's code doesn't filter out undamaged characters, so it will always return someone.  This meant that with the "auto-cast healing" camping
+        // option enabled on, healers would burn all their spell slots healing undamaged characters when they started resting, leaving them no spells to cast
+        // when crafting.  Change it so it returns null if the most damaged character is undamaged.
         [Harmony12.HarmonyPatch(typeof(UnitUseSpellsOnRest), "GetUnitWithMaxDamage")]
         // ReSharper disable once UnusedMember.Local
         private static class UnitUseSpellsOnRestGetUnitWithMaxDamagePatch {
