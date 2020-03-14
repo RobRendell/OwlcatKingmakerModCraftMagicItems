@@ -36,9 +36,9 @@ For details, see the mod page here: https://www.nexusmods.com/pathfinderkingmake
 * Dragonhide is called "dragonscale".  Ironwood?
 * Request for https://www.d20pfsrd.com/magic-items/wondrous-items/m-p/page-of-spell-knowledge/
 
-* Mighty Fists enchantment is stacking - looks like a bug in Owlcat's code
+* Mighty Fists enchantment is stacking - looks like a bug in Owlcat's code (require Mighty Fists to only be on Amulet)
 * Tabletop Amulet of Mighty Fists actually allows all relevant weapon enhancements (such as Flaming or Agile)... not
-        sure if the engine can even do that. 
+        sure if the engine can even do that. (Added Agile. Seems to be the only supported enhancement)
 * Mundane crafting - craft shields with shield spikes?  Tricky, the base spiked shield blueprints are weapons...
 * Craft Rod?
 * In-game GUI

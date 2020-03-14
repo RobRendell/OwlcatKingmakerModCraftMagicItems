@@ -81,6 +81,7 @@ namespace CraftMagicItems {
         private const int MasterworkCost = 300;
         private const int WeaponPlusCost = 2000;
         private const int ArmourPlusCost = 1000;
+        private const int UnarmedPlusCost = 4000;
         private const string BondedItemRitual = "bondedItemRitual";
 
         private static readonly string[] CraftingPriceStrings = {
@@ -1227,7 +1228,8 @@ namespace CraftMagicItems {
                 if (IsItemLegalEnchantmentLevel(itemToCraft)) {
                     RenderRecipeBasedCraftItemControl(caster, craftingData, selectedRecipe, casterLevel, itemToCraft, upgradeItem);
                 } else {
-                    RenderLabel($"This would result in {itemToCraft.Name} having an equivalent enhancement bonus of more than +10");
+                    var maxEnchantmentLevel = ItemMaxEnchantmentLevel(itemToCraft);
+                    RenderLabel($"This would result in {itemToCraft.Name} having an equivalent enhancement bonus of more than +{maxEnchantmentLevel}");
                 }
             }
         }
@@ -2364,6 +2366,13 @@ namespace CraftMagicItems {
 
             return 0;
         }
+        private static int ItemMaxEnchantmentLevel(BlueprintItem blueprint) {
+            if (blueprint is BlueprintItemWeapon || blueprint is BlueprintItemArmor || blueprint is BlueprintItemShield) {
+                return 10;
+            } else {
+                return 5;
+            }
+        }
 
         private static int ItemPlusEquivalent(BlueprintItem blueprint) {
             if (blueprint == null || blueprint.Enchantments == null) {
@@ -2402,8 +2411,7 @@ namespace CraftMagicItems {
                 return IsItemLegalEnchantmentLevel(shield.ArmorComponent) && IsItemLegalEnchantmentLevel(shield.WeaponComponent);
             }
 
-            var plusEquivalent = ItemPlusEquivalent(blueprint);
-            return plusEquivalent <= 10;
+            return ItemPlusEquivalent(blueprint) <= ItemMaxEnchantmentLevel(blueprint);
         }
 
         private static int GetEnchantmentCost(string enchantmentId, BlueprintItem blueprint) {
@@ -2489,6 +2497,15 @@ namespace CraftMagicItems {
                     return cost + RulesRecipeItemCost(doubleWeapon.SecondWeapon);
                 }
                 return cost;
+            }
+
+            if (ItemPlusEquivalent(blueprint) > 0) {
+                var enhancementLevel = ItemPlusEquivalent(blueprint);
+                var enhancementCost = enhancementLevel * enhancementLevel * UnarmedPlusCost;
+                cost += enhancementCost;
+                if (mostExpensiveEnchantmentCost < enhancementCost) {
+                    mostExpensiveEnchantmentCost = enhancementCost;
+                }
             }
 
             // Usable (belt slot) items cost double.

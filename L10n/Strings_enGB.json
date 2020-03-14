@@ -64,8 +64,12 @@
     "Value": "Arms and Armor"
   },
   {
-    "Key": "craftMagicItems-recipeType-unarmed",
-    "Value": "Unarmed Attacks"
+    "Key": "craftMagicItems-recipeType-unarmed-attacks",
+    "Value": "Mighty Fists"
+  },
+  {
+    "Key": "craftMagicItems-recipeType-unarmed-agile",
+    "Value": "Agile"
   },
   {
     "Key": "craftMagicItems-timer-buff-name",
