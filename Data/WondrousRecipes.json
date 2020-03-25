@@ -36,7 +36,7 @@
   },
   {
     "Name": "UnarmedAttacks",
-    "NameId": "craftMagicItems-recipeType-unarmed",
+    "NameId": "craftMagicItems-recipeType-unarmed-attacks",
     "BonusTypeId": "696d7c0e-f960-4b92-a703-01d8ff9c0674",
     "Enchantments": [
       "da7d830b3f75749458c2e51524805560",
@@ -48,8 +48,23 @@
     "CasterLevelStart": 3,
     "CasterLevelMultiplier": 3,
     "PrerequisiteSpells": ["f1100650705a69c4384d3edd88ba0f52"],
-    "CostType": "LevelSquared",
-    "CostFactor": 4000
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Neck"]
+  },
+  {
+    "Name": "UnarmedAgile",
+    "NameId": "craftMagicItems-recipeType-unarmed-agile",
+    "BonusTypeId": "696d7c0e-f960-4b92-a703-01d8ff9c0674",
+    "Enchantments": [
+      "90316f5801dbe4748a66816a7c00380c"
+    ],
+    "CasterLevelStart": 7,
+    "CasterLevelMultiplier": 0,
+    "PrerequisiteSpells": ["de7a025d48ad5da4991e7d3c682cf69d"],
+    "CostType": "EnhancementLevelSquared",
+    "CostFactor": 1,
+    "OnlyForSlots": ["Neck"]
   },
   {
     "Name": "FeatherStep",
