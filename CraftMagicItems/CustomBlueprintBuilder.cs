@@ -17,7 +17,7 @@ namespace CraftMagicItems {
 
         public static List<string> CustomBlueprintIDs { get; } = new List<string>();
 
-        public static bool Downgrade { get; private set; }
+        public static bool DidDowngrade { get; private set; }
 
         public static void InitialiseBlueprintRegex(Regex initBlueprintRegex) {
             // This needs to happen as early as possible to allow graceful downgrading when the mod startup fails.
@@ -34,7 +34,7 @@ namespace CraftMagicItems {
             set {
                 enabled = value;
                 if (enabled) {
-                    Downgrade = false;
+                    DidDowngrade = false;
                 } else {
                     // If we disable custom blueprints, remove any we've created from the ResourcesLibrary.
                     foreach (var assetId in CustomBlueprintIDs) {
@@ -51,13 +51,13 @@ namespace CraftMagicItems {
         }
 
         public static void Reset() {
-            Downgrade = false;
+            DidDowngrade = false;
         }
 
         private static BlueprintScriptableObject PatchBlueprint(string assetId, BlueprintScriptableObject blueprint) {
             if (blueprintRegex == null) {
                 // Catastrophic failure - assume we're downgrading.
-                Downgrade = true;
+                DidDowngrade = true;
                 return blueprint;
             }
 
@@ -67,7 +67,7 @@ namespace CraftMagicItems {
             }
 
             if (!enabled) {
-                Downgrade = true;
+                DidDowngrade = true;
                 return blueprint;
             }
 

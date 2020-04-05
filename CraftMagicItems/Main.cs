@@ -333,8 +333,8 @@ namespace CraftMagicItems {
             // Manually search caster.Buffs rather than using GetFact, because we don't want to TryGetBlueprint if the mod is disabled.
             var timerBuff = caster.Buffs.Enumerable.FirstOrDefault(fact => fact.Blueprint.AssetGuid == CraftMagicItemsBlueprintPatcher.TimerBlueprintGuid);
             if (timerBuff == null) {
-                if (CustomBlueprintBuilder.Downgrade) {
-                    // The mod is disabled and we're downgrading custom blueprints - clean up the timer buff.
+                if (!modEnabled) {
+                    // The mod is disabled - clean up the timer buff.
                     var baseBlueprintGuid = CraftMagicItemsBlueprintPatcher.TimerBlueprintGuid.Substring(0, CustomBlueprintBuilder.VanillaAssetIdLength);
                     timerBuff = caster.Buffs.Enumerable.FirstOrDefault(fact => fact.Blueprint.AssetGuid == baseBlueprintGuid);
                     if (timerBuff != null) {
@@ -361,8 +361,8 @@ namespace CraftMagicItems {
             var bondedItemBuff =
                 caster.Buffs.Enumerable.FirstOrDefault(fact => fact.Blueprint.AssetGuid == CraftMagicItemsBlueprintPatcher.BondedItemBuffBlueprintGuid);
             if (bondedItemBuff == null) {
-                if (CustomBlueprintBuilder.Downgrade) {
-                    // The mod is disabled and we're downgrading custom blueprints - clean up the bonded item buff.
+                if (!modEnabled) {
+                    // The mod is disabled - clean up the bonded item buff.
                     var baseBlueprintGuid = CraftMagicItemsBlueprintPatcher.TimerBlueprintGuid.Substring(0, CustomBlueprintBuilder.VanillaAssetIdLength);
                     bondedItemBuff = caster.Buffs.Enumerable.FirstOrDefault(fact => fact.Blueprint.AssetGuid == baseBlueprintGuid);
                     if (bondedItemBuff != null) {
@@ -3194,7 +3194,7 @@ namespace CraftMagicItems {
         private static class GameOnAreaLoadedPatch {
             // ReSharper disable once UnusedMember.Local
             private static void Postfix() {
-                if (CustomBlueprintBuilder.Downgrade) {
+                if (CustomBlueprintBuilder.DidDowngrade) {
                     UIUtility.ShowMessageBox("Craft Magic Items is disabled.  All your custom enchanted items and crafting feats have been replaced with " +
                                              "vanilla versions.", DialogMessageBox.BoxType.Message, null);
                     CustomBlueprintBuilder.Reset();
